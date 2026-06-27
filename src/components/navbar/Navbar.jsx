@@ -110,7 +110,7 @@ function Navbar() {
   }
 
   return (
-    <header className="w-full">
+    <header className="relative w-full z-50">
       {/* ── 1. TOP BAR ── */}
       <div className="sticky top-0 z-50 bg-[#0c1f4a] px-4 py-3 lg:px-8">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
