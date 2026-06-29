@@ -62,12 +62,12 @@ export default function News() {
     const regularItems = newsItems.filter(item => !item.isFeatured)
 
     return (
-        <section className="w-full bg-white py-12 md:py-16 text-left" aria-labelledby="news-heading">
+        <section className="w-full bg-white py-12 md:py-16 text-left container mx-auto" aria-labelledby="news-heading">
             <div className="w-full px-4 sm:px-6 lg:px-8">
 
                 {/* Header section */}
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
-                    <h2 id="news-heading" className="font-black text-[#0c1f4a] tracking-tight" style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                    <h2 id="news-heading" className="font-black tracking-tight" style={{ color: '#0c1f4a', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         So'nggi yangiliklar
                     </h2>
 

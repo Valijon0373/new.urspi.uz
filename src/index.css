@@ -119,3 +119,15 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+html.theme-grayscale {
+  filter: grayscale(100%);
+}
+
+html.theme-low-light {
+  filter: brightness(70%);
+}
+
+html.theme-high-contrast {
+  filter: contrast(150%) saturate(150%);
+}

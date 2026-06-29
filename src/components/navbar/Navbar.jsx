@@ -6,6 +6,7 @@ import { IoAccessibilityOutline } from 'react-icons/io5'
 import { useState, useRef, useEffect } from 'react'
 import logoImg from '../../assets/images/logo.png'
 import bgImg from '../../assets/images/background.jpg'
+import AccessibilityDrawer from './AccessibilityDrawer'
 
 const address =
   "Manzil: O'zbekiston, 220100, Urganch shahri, Gurlan ko'chasi, 1-A uy"
@@ -91,6 +92,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpenIdx, setMobileOpenIdx] = useState(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [accessibilityOpen, setAccessibilityOpen] = useState(false)
   const searchRef = useRef(null)
 
   useEffect(() => {
@@ -127,7 +129,12 @@ function Navbar() {
               <Languages className="h-4 w-4" />
               <ChevronDown className="h-3 w-3" />
             </button>
-            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20" aria-label="Maxsus imkoniyatlar">
+            <button 
+              type="button" 
+              onClick={() => setAccessibilityOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500" 
+              aria-label="Maxsus imkoniyatlar"
+            >
               <IoAccessibilityOutline className="h-4 w-4" />
             </button>
           </div>
@@ -284,6 +291,12 @@ function Navbar() {
           )}
         </nav>
       </div>
+
+      {/* ── 4. ACCESSIBILITY DRAWER ── */}
+      <AccessibilityDrawer 
+        isOpen={accessibilityOpen} 
+        onClose={() => setAccessibilityOpen(false)} 
+      />
     </header>
   )
 }
