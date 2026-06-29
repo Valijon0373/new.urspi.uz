@@ -35,7 +35,7 @@ export default function Statistics() {
     return (
         <section className="w-full bg-[#f4f7f9] py-12 md:py-16 text-center" aria-labelledby="statistics-heading">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
-                
+
                 {/* Header */}
                 <div className="flex items-center justify-center mb-10">
                     <h2 id="statistics-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
@@ -45,17 +45,17 @@ export default function Statistics() {
 
                 {/* Layout Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[340px]">
-                    
+
                     {/* Left Column */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
-                        <StatCard title="Yo'nalishlar" value="519" Icon={FaBookOpenReader} />
-                        <StatCard title="Talabalar soni" value="17280" Icon={PiUsers} />
+                        <StatCard title="Yo'nalishlar" value="50" Icon={FaBookOpenReader} />
+                        <StatCard title="Talabalar soni" value="9000" Icon={PiUsers} />
                     </div>
 
                     {/* Middle Column (Slider) */}
                     <div className="relative rounded-2xl overflow-hidden shadow-sm lg:col-span-2 min-h-[250px] lg:min-h-full">
                         {bgImages.map((img, idx) => (
-                            <div 
+                            <div
                                 key={idx}
                                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === bgIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                             >
@@ -66,7 +66,7 @@ export default function Statistics() {
 
                     {/* Right Column */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
-                        <StatCard title="Professor-o'qituvchilar soni" value="781" Icon={PiStudentFill} />
+                        <StatCard title="Professor-o'qituvchilar soni" value="325" Icon={PiStudentFill} />
                         <StatCard title="Ilmiy salohiyat" value="67.6%" Icon={Briefcase} />
                     </div>
 
