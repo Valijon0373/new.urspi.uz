@@ -1,8 +1,6 @@
-import { Eye, Calendar, ChevronRight } from 'lucide-react'
-import fgjf from '../../assets/images/fgjf.jpg'
-import bg23 from '../../assets/images/bg23.jpg'
-import background from '../../assets/images/background.jpg'
-import footerbg from '../../assets/images/footerbg.jpg'
+import { Eye, ChevronRight } from 'lucide-react'
+import { FaRegCalendarAlt } from 'react-icons/fa'
+import urspiImage from '../../../assets/images/urspi_new.png'
 
 const categories = [
     "Sport",
@@ -18,7 +16,7 @@ const newsItems = [
     {
         id: 1,
         title: "Oliy ta'lim, fan va innovatsiyalar vaziri Qo'ng'irotboy Sharipov UrDPI yangi o'quv binosi va zamonaviy sharoitlari bilan tanishdi",
-        image: fgjf,
+        image: urspiImage,
         views: 356,
         date: "20-06-2026",
         isFeatured: true,
@@ -26,7 +24,7 @@ const newsItems = [
     {
         id: 2,
         title: "URDPI REKTORI XITOYNING NANKIN AUDIT UNIVERSITETI VAKILLARI BILAN HAMKORLIKNI MUHOKAMA QILDI",
-        image: bg23,
+        image: urspiImage,
         views: 358,
         date: "17-06-2026",
         isFeatured: false,
@@ -34,7 +32,7 @@ const newsItems = [
     {
         id: 3,
         title: "UrDPI va TDYU o'rtasida strategik hamkorlik memorandumi imzolandi",
-        image: background,
+        image: urspiImage,
         views: 329,
         date: "17-06-2026",
         isFeatured: false,
@@ -42,7 +40,7 @@ const newsItems = [
     {
         id: 4,
         title: "URGANCH DAVLAT PEDAGOGIKA INSTITUTI YANA RESPUBLIKA MINBARIDA ET'IROF ETILDI",
-        image: footerbg,
+        image: urspiImage,
         views: 151,
         date: "15-06-2026",
         isFeatured: false,
@@ -50,7 +48,7 @@ const newsItems = [
     {
         id: 5,
         title: "UrDPIda \"TALABA FEST\" FESTIVALI YUQORI SAVIYADA O'TKAZILDI",
-        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80",
+        image: urspiImage,
         views: 506,
         date: "12-06-2026",
         isFeatured: false,
@@ -62,8 +60,8 @@ export default function News() {
     const regularItems = newsItems.filter(item => !item.isFeatured)
 
     return (
-        <section className="w-full bg-white py-12 md:py-16 text-left container mx-auto" aria-labelledby="news-heading">
-            <div className="w-full px-4 sm:px-6 lg:px-8">
+        <section className="w-full bg-white py-12 md:py-16 text-left" aria-labelledby="news-heading">
+            <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
 
                 {/* Header section */}
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
@@ -95,12 +93,12 @@ export default function News() {
 
                     {/* Left Column: Large Featured Card */}
                     {featuredItem && (
-                        <article className="group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 aspect-[4/3] lg:h-full min-h-[380px] lg:min-h-[500px]">
+                        <article className="group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px]">
                             {/* Image */}
                             <img
                                 src={featuredItem.image}
                                 alt={featuredItem.title}
-                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
                             />
                             {/* Gradient Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -113,19 +111,19 @@ export default function News() {
                                 </div>
 
                                 {/* Content Panel */}
-                                <div className="flex-1 bg-black/45 backdrop-blur-md p-4 sm:p-6 flex flex-col justify-between border-t border-white/10 text-white">
+                                <div className="flex-1 bg-black/20 backdrop-blur-sm p-4 sm:p-6 flex flex-col justify-between text-white">
                                     <h3 className="text-sm sm:text-base md:text-lg font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-3">
                                         <a href="#">{featuredItem.title}</a>
                                     </h3>
 
                                     {/* Meta details */}
                                     <div className="flex items-center gap-3 mt-3">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-[10px] font-semibold tracking-wider uppercase border border-white/10">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold tracking-wider uppercase">
                                             <Eye className="h-3.5 w-3.5" />
                                             {featuredItem.views}
                                         </span>
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-[10px] font-semibold tracking-wider uppercase border border-white/10">
-                                            <Calendar className="h-3.5 w-3.5" />
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-xs font-semibold tracking-wider uppercase">
+                                            <FaRegCalendarAlt className="h-4 w-4" />
                                             {featuredItem.date}
                                         </span>
                                     </div>
@@ -139,13 +137,13 @@ export default function News() {
                         {regularItems.map(item => (
                             <article
                                 key={item.id}
-                                className="group relative rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 aspect-[4/3] min-h-[180px]"
+                                className="group relative aspect-[4/3] min-h-[180px] overflow-hidden rounded-2xl shadow-md transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
                             >
                                 {/* Image */}
                                 <img
                                     src={item.image}
                                     alt={item.title}
-                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
                                 />
                                 {/* Gradient Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -158,19 +156,19 @@ export default function News() {
                                     </div>
 
                                     {/* Content Panel */}
-                                    <div className="flex-1 bg-black/45 backdrop-blur-md p-3 flex flex-col justify-between border-t border-white/10 text-white">
+                                    <div className="flex-1 bg-black/20 backdrop-blur-sm p-3 flex flex-col justify-between text-white">
                                         <h3 className="text-xs sm:text-xs md:text-sm font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-2">
                                             <a href="#">{item.title}</a>
                                         </h3>
 
                                         {/* Meta details */}
                                         <div className="flex items-center gap-2 mt-2">
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 text-[9px] font-semibold border border-white/10">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[9px] font-semibold">
                                                 <Eye className="h-3 w-3" />
                                                 {item.views}
                                             </span>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/15 text-[9px] font-semibold border border-white/10">
-                                                <Calendar className="h-3 w-3" />
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold">
+                                                <FaRegCalendarAlt className="h-3.5 w-3.5" />
                                                 {item.date}
                                             </span>
                                         </div>
