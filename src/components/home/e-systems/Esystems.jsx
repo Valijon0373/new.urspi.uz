@@ -3,7 +3,7 @@ import { ChevronRight, Mail, BarChart, GraduationCap, Eye, Book, Wifi, Briefcase
 import { HiOutlineDesktopComputer } from 'react-icons/hi'
 import { VscFeedback } from 'react-icons/vsc'
 import { BsCameraVideo } from 'react-icons/bs'
-import { RiMailSendLine } from 'react-icons/ri'
+import { RiMailSendLine, RiPinDistanceLine } from 'react-icons/ri'
 
 const systems = [
     {
@@ -45,7 +45,7 @@ const systems = [
     {
         id: 7,
         title: "Masofaviy ta'lim",
-        icon: Wifi,
+        icon: RiPinDistanceLine,
         link: "https://moodle.urspi.uz/"
     },
     {
@@ -89,7 +89,7 @@ export default function Esystems() {
 
                                 {/* Icon Container */}
                                 <div className="w-16 h-16 flex items-center justify-center rounded-[18px] bg-blue-50/80 text-blue-500 mb-5 transition-colors duration-300 group-hover:bg-blue-500 group-hover:text-white">
-                                    <Icon className="w-7 h-7 transition-transform duration-500 group-hover:rotate-[360deg]" {...(sys.icon === VscFeedback || sys.icon === BsCameraVideo || sys.icon === RiMailSendLine ? {} : { strokeWidth: 2 })} />
+                                    <Icon className="w-7 h-7 transition-transform duration-500 group-hover:rotate-[360deg]" {...(sys.icon === VscFeedback || sys.icon === BsCameraVideo || sys.icon === RiMailSendLine || sys.icon === RiPinDistanceLine ? {} : { strokeWidth: 2 })} />
                                 </div>
 
                                 {/* Text */}
