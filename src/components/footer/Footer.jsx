@@ -1,92 +1,57 @@
 import React from 'react'
-import { Phone, Mail, Bus } from 'lucide-react'
+import { Phone, Mail, MapPin } from 'lucide-react'
+import { FiSend, FiInstagram, FiYoutube, FiFacebook } from 'react-icons/fi'
+import { IoBusOutline } from 'react-icons/io5'
+import logo from '../../assets/images/logo1.jpg'
 
 export default function Footer() {
-    const col1Links = [
-        "Institut tarixi",
-        "Institut nizomi",
-        "Rahbariyat",
-        "Fakultetlar",
-        "Kafedralar",
-        "Markaz va bo`limlar",
-        "Jamoatchilik kengashi"
-    ]
-
-    const col2Links = [
-        "Kengash",
-        "Xalqaro hamkorlik",
-        "Institutga ishga qabul",
-        "Moliya bo`limi",
-        "Ilmiy faoliyat",
-        "Ma`naviyat"
-    ]
-
-    const Bullet = () => (
-        <div className="w-1.5 h-1.5 bg-[#0c1f4a] rotate-45 mr-3 shrink-0 relative mt-1.5">
-            <div className="absolute inset-0 m-auto w-[3px] h-[3px] bg-[#e2e8f0] rounded-full"></div>
-        </div>
-    )
-
     return (
-        <footer className="w-full bg-[#e2e8f0] py-12 text-[#0c1f4a] font-medium text-sm">
+        <footer className="w-full bg-[#0a3161] py-10 md:py-16 text-white font-medium text-sm">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-                    
-                    {/* Column 1: Contacts */}
-                    <div className="flex flex-col space-y-4">
-                        <h3 className="font-bold text-base mb-2">
-                            Urganch davlat pedagogika instituti
-                        </h3>
-                        <p className="leading-relaxed">
-                            O'zbekiston, 220100, Urganch shahri,<br />
-                            Gurlan ko'chasi, 1-A uy
-                        </p>
-                        
-                        <div className="flex flex-col space-y-3 mt-4">
-                            <a href="tel:+998622291840" className="flex items-center hover:text-blue-600 transition-colors">
-                                <Phone className="w-4 h-4 mr-3 shrink-0" />
-                                +998 62 229 18 40
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
+
+                    {/* Column 1: Contacts & Logo */}
+                    <div className="flex flex-col space-y-6">
+                        <div className="flex items-center gap-4">
+                            <img src={logo} alt="UrDPI Logo" className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full shadow-sm bg-white" />
+                            <h3 className="font-bold text-[15px] leading-snug max-w-[200px] uppercase tracking-wide">
+                                Urganch Davlat<br />Pedagogika Instituti
+                            </h3>
+                        </div>
+
+                        <div className="flex flex-col space-y-4 pt-2 text-[#e2e8f0] text-base">
+                            <a href="tel:+998622291840" className="flex items-center hover:text-white transition-colors">
+                                <Phone className="w-5 h-5 mr-3 shrink-0" />
+                                (+998) 62 229-18-40
                             </a>
-                            <a href="mailto:study_info@urspi.uz" className="flex items-center hover:text-blue-600 transition-colors">
-                                <Mail className="w-4 h-4 mr-3 shrink-0" />
+                            <a href="mailto:study_info@urspi.uz" className="flex items-center hover:text-white transition-colors">
+                                <Mail className="w-5 h-5 mr-3 shrink-0" />
                                 study_info@urspi.uz
                             </a>
+                            <div className="flex items-start">
+                                <MapPin className="w-5 h-5 mr-3 shrink-0 mt-0.5" />
+                                <span>
+                                    Urganch sh. Gurlan ko'chasi 1A-uy
+                                </span>
+                            </div>
                             <div className="flex items-center">
-                                <Bus className="w-4 h-4 mr-3 shrink-0" />
+                                <IoBusOutline className="w-5 h-5 mr-3 shrink-0" />
                                 7, 18, 19
                             </div>
                         </div>
                     </div>
 
-                    {/* Column 2: Links 1 */}
-                    <div className="flex flex-col space-y-3 pt-1">
-                        {col1Links.map((link, idx) => (
-                            <a key={idx} href="#" className="flex items-start hover:text-blue-600 transition-colors group">
-                                <Bullet />
-                                <span>{link}</span>
-                            </a>
-                        ))}
-                    </div>
 
-                    {/* Column 3: Links 2 */}
-                    <div className="flex flex-col space-y-3 pt-1">
-                        {col2Links.map((link, idx) => (
-                            <a key={idx} href="#" className="flex items-start hover:text-blue-600 transition-colors group">
-                                <Bullet />
-                                <span>{link}</span>
-                            </a>
-                        ))}
-                    </div>
 
-                    {/* Column 4: Map */}
-                    <div className="w-full h-[220px] rounded-md overflow-hidden shadow-sm bg-white pt-1">
-                        <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m3!1d2975.337579133644!2d60.622521!3d41.567223!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x41dfc92842c22829%3A0x6b44357c32b535d4!2sUrganch%20davlat%20pedagogika%20instituti!5e0!3m2!1sru!2s!4v1700000000000!5m2!1sru!2s" 
-                            width="100%" 
-                            height="100%" 
-                            style={{ border: 0 }} 
-                            allowFullScreen="" 
-                            loading="lazy" 
+                    {/* Column 3: Map */}
+                    <div className="w-full h-[220px] md:h-[260px] rounded-md overflow-hidden shadow-sm bg-white border-2 border-white/10">
+                        <iframe
+                            src="https://www.google.com/maps?q=41.567223,60.622521&output=embed"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                             title="UrSPI Map"
                         ></iframe>
@@ -94,11 +59,27 @@ export default function Footer() {
 
                 </div>
             </div>
-            
-            {/* Bottom bar if needed */}
-            {/* <div className="mt-12 border-t border-[#0c1f4a]/20 pt-6 text-center text-xs opacity-80">
-                © {new Date().getFullYear()} Urganch davlat pedagogika instituti. Barcha huquqlar himoyalangan.
-            </div> */}
+
+            {/* Bottom Section */}
+            <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center justify-center space-y-6">
+                <div className="flex items-center gap-4 md:gap-6">
+                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                        <FiSend className="w-5 h-5 ml-0.5 mt-0.5" />
+                    </a>
+                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                        <FiInstagram className="w-5 h-5" />
+                    </a>
+                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                        <FiYoutube className="w-6 h-6" />
+                    </a>
+                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                        <FiFacebook className="w-5 h-5" />
+                    </a>
+                </div>
+                <div className="text-white/90 font-semibold tracking-wider text-[15px]">
+                    UrSPI | RTTM Jamoasi | {new Date().getFullYear()}
+                </div>
+            </div>
         </footer>
     )
 }
