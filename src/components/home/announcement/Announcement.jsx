@@ -36,9 +36,9 @@ export default function Announcement() {
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-3 md:gap-4 text-[#0c1f4a]">
-                        <GrAnnounce style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#0c1f4a' }} />
-                        <h2 id="announcement-heading" className="font-black tracking-tight" style={{ color: '#0c1f4a', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                    <div className="flex items-center gap-3 md:gap-4 text-[#1d4ed8]">
+                        <GrAnnounce style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
+                        <h2 id="announcement-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                             E'lonlar
                         </h2>
                     </div>

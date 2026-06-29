@@ -65,7 +65,7 @@ export default function News() {
 
                 {/* Header section */}
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
-                    <h2 id="news-heading" className="font-black tracking-tight" style={{ color: '#0c1f4a', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                    <h2 id="news-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         So'nggi yangiliklar
                     </h2>
 

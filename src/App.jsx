@@ -1,5 +1,6 @@
 import Navbar from './components/navbar/Navbar'
 import Home from './components/home/Home'
+import Footer from './components/footer/Footer'
 import './App.css'
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <Home />
+      <Footer />
     </div>
   )
 }

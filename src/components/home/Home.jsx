@@ -1,6 +1,7 @@
 import HeroCarousel from './HeroCarousel'
 import News from './news/News'
 import Announcement from './announcement/Announcement'
+import Statistics from './statistics/Statistics'
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <HeroCarousel />
       <News />
       <Announcement />
+      <Statistics />
     </div>
   )
 }
