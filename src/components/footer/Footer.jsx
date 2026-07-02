@@ -2,9 +2,11 @@ import React from 'react'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import { FiSend, FiInstagram, FiYoutube, FiFacebook } from 'react-icons/fi'
 import { IoBusOutline } from 'react-icons/io5'
+import { useTranslation } from 'react-i18next'
 import logo from '../../assets/images/logo1.jpg'
 
 export default function Footer() {
+    const { t } = useTranslation()
     return (
         <footer className="w-full bg-[#0a3161] py-10 md:py-16 text-white font-medium text-sm">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
@@ -14,8 +16,8 @@ export default function Footer() {
                     <div className="flex flex-col space-y-6">
                         <div className="flex items-center gap-4">
                             <img src={logo} alt="UrDPI Logo" className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full shadow-sm bg-white" />
-                            <h3 className="font-bold text-[15px] leading-snug max-w-[200px] uppercase tracking-wide">
-                                Urganch Davlat<br />Pedagogika Instituti
+                            <h3 className="font-bold text-[15px] leading-snug max-w-[200px] uppercase tracking-wide whitespace-pre-line">
+                                {t('footer.institute_name')}
                             </h3>
                         </div>
 
@@ -31,7 +33,7 @@ export default function Footer() {
                             <div className="flex items-start">
                                 <MapPin className="w-5 h-5 mr-3 shrink-0 mt-0.5" />
                                 <span>
-                                    Urganch sh. Gurlan ko'chasi 1A-uy
+                                    {t('footer.address')}
                                 </span>
                             </div>
                             <div className="flex items-center">

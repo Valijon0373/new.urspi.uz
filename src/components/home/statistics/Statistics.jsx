@@ -3,10 +3,12 @@ import { Briefcase } from 'lucide-react'
 import { FaBookOpenReader } from 'react-icons/fa6'
 import { PiStudentFill, PiUsers } from 'react-icons/pi'
 import { FcStatistics } from 'react-icons/fc'
+import { useTranslation } from 'react-i18next'
 import slider1 from '../../../assets/images/slider1.jpg'
 import slider2 from '../../../assets/images/slider2.jpg'
 
 export default function Statistics() {
+    const { t } = useTranslation()
     const [bgIndex, setBgIndex] = useState(0)
     const bgImages = [slider1, slider2]
 
@@ -42,7 +44,7 @@ export default function Statistics() {
                     <h2 id="statistics-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         -
                         <FcStatistics style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)' }} />
-                        Statistika
+                        {t('home.statistics.title')}
                         -
                     </h2>
                 </div>
@@ -52,8 +54,8 @@ export default function Statistics() {
 
                     {/* Left Column */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
-                        <StatCard title="Yo'nalishlar" value="50" Icon={FaBookOpenReader} />
-                        <StatCard title="Talabalar soni" value="9000" Icon={PiUsers} />
+                        <StatCard title={t('home.statistics.directions')} value="50" Icon={FaBookOpenReader} />
+                        <StatCard title={t('home.statistics.students')} value="9000" Icon={PiUsers} />
                     </div>
 
                     {/* Middle Column (Slider) */}
@@ -70,8 +72,8 @@ export default function Statistics() {
 
                     {/* Right Column */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
-                        <StatCard title="Professor-o'qituvchilar soni" value="325" Icon={PiStudentFill} />
-                        <StatCard title="Ilmiy salohiyat" value="67.6%" Icon={Briefcase} />
+                        <StatCard title={t('home.statistics.professors')} value="325" Icon={PiStudentFill} />
+                        <StatCard title={t('home.statistics.science_potential')} value="67.6%" Icon={Briefcase} />
                     </div>
 
                 </div>

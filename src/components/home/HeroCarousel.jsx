@@ -1,26 +1,28 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import slider1 from '../../assets/images/slider1.jpg'
 import slider2 from '../../assets/images/slider2.jpg'
 
-const slides = [
-  {
-    id: 1,
-    image: slider1,
-    title: "Urganch davlat pedagogika instituti tashkil etildi",
-    link: "#",
-  },
-  {
-    id: 2,
-    image: slider2,
-    title: "Zamonaviy ta'lim texnologiyalari va innovatsion yondashuv",
-    link: "#",
-  }
-]
-
 export default function HeroCarousel() {
+  const { t } = useTranslation()
   const [current, setCurrent] = useState(0)
   const timerRef = useRef(null)
+
+  const slides = [
+    {
+      id: 1,
+      image: slider1,
+      title: t('home.carousel.slide1'),
+      link: "#",
+    },
+    {
+      id: 2,
+      image: slider2,
+      title: t('home.carousel.slide2'),
+      link: "#",
+    }
+  ]
 
   const nextSlide = () => {
     setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
@@ -91,14 +93,14 @@ export default function HeroCarousel() {
       <button
         onClick={handlePrev}
         className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-sm transition-all hover:bg-black/50 hover:scale-105 active:scale-95 opacity-0 group-hover:opacity-100"
-        aria-label="Oldingi rasm"
+        aria-label={t('home.carousel.prev')}
       >
         <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
       </button>
       <button
         onClick={handleNext}
         className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-sm transition-all hover:bg-black/50 hover:scale-105 active:scale-95 opacity-0 group-hover:opacity-100"
-        aria-label="Keyingi rasm"
+        aria-label={t('home.carousel.next')}
       >
         <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
       </button>
@@ -113,7 +115,7 @@ export default function HeroCarousel() {
             href={slides[current].link}
             className="inline-block mt-1 text-xs sm:text-sm font-semibold text-[#3b82f6] hover:text-[#60a5fa] hover:underline transition-colors duration-200"
           >
-            Batafsil
+            {t('home.carousel.details')}
           </a>
         </div>
       </div>

@@ -8,6 +8,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 
 import { EffectCoverflow, Pagination, Autoplay } from 'swiper/modules';
+import { useTranslation } from 'react-i18next';
 
 const images = [
     "https://picsum.photos/id/10/800/450",
@@ -22,18 +23,22 @@ const images = [
 ];
 
 export default function Galery() {
+    const { t } = useTranslation()
     return (
         <section className="w-full bg-slate-50 py-12 md:py-16 text-left">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] overflow-hidden">
 
                 {/* Header */}
-                <div className="flex items-center justify-center mb-10">
+                <div className="flex items-center justify-center mb-10 relative">
                     <h2 className="flex items-center gap-3 md:gap-4 font-black tracking-tight text-center" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         - 
                         <BsImages style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        Foto galereya 
+                        {t('home.galery.title')}
                         -
                     </h2>
+                    <a href="#" className="absolute right-0 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                        {t('home.galery.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
+                    </a>
                 </div>
 
                 {/* Carousel */}

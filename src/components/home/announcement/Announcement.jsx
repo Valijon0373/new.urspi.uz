@@ -1,6 +1,8 @@
 import { ChevronRight } from 'lucide-react'
 import { GrAnnounce } from 'react-icons/gr'
 import { FaRegCalendarAlt } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import urspiImage from '../../../assets/images/urspi_new.png'
 
 const announcements = [
@@ -31,6 +33,7 @@ const announcements = [
 ]
 
 export default function Announcement() {
+    const { t } = useTranslation()
     return (
         <section className="w-full bg-slate-50 py-12 md:py-16 text-left" aria-labelledby="announcement-heading">
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
@@ -39,18 +42,19 @@ export default function Announcement() {
                     <h2 id="announcement-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         -
                         <GrAnnounce style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        E'lonlar
+                        {t('home.announcements.title')}
                         -
                     </h2>
-                    <a href="#" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
-                        Barchasi <ChevronRight className="h-4 w-4 ml-0.5" />
-                    </a>
+                    <Link to="/announcements" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                        {t('home.announcements.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
+                    </Link>
                 </div>
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {announcements.map(item => (
-                        <article
+                        <Link 
+                            to={`/announcements/${item.id}`}
                             key={item.id}
                             className="group flex flex-col overflow-hidden rounded-xl border border-gray-200/60 bg-white shadow-sm transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg cursor-pointer"
                         >
@@ -77,7 +81,7 @@ export default function Announcement() {
                                     {item.title}
                                 </h3>
                             </div>
-                        </article>
+                        </Link>
                     ))}
                 </div>
             </div>

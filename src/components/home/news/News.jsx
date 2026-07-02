@@ -1,17 +1,10 @@
 import { Eye, ChevronRight } from 'lucide-react'
 import { FaRegCalendarAlt } from 'react-icons/fa'
 import { PiNewspaperClipping } from 'react-icons/pi'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import urspiImage from '../../../assets/images/urspi_new.png'
 
-const categories = [
-    "Sport",
-    "Xalqaro hamkorlik",
-    "Olimpiadalar",
-    "Tadbirlar",
-    "O'quv seminar",
-    "Ta'lim granti",
-    "Bitiruvchilar"
-]
 
 const newsItems = [
     {
@@ -57,6 +50,7 @@ const newsItems = [
 ]
 
 export default function News() {
+    const { t } = useTranslation()
     const featuredItem = newsItems.find(item => item.isFeatured)
     const regularItems = newsItems.filter(item => !item.isFeatured)
 
@@ -66,30 +60,18 @@ export default function News() {
 
                 {/* Header section */}
                 <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center">
-                    <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
-                        -
-                        <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        So'nggi yangiliklar
-                        -
-                    </h2>
-
-                    {/* Categories list */}
-                    <div className="flex flex-wrap items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full">
-                        {categories.map((cat, idx) => (
-                            <button
-                                key={idx}
-                                className="rounded-full bg-slate-100 px-3.5 py-1.5 text-xs font-semibold text-[#0c1f4a] transition-all hover:bg-slate-200 active:scale-95 whitespace-nowrap cursor-pointer"
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                        <a
-                            href="#"
-                            className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors ml-2 whitespace-nowrap"
-                        >
-                            Barchasi <ChevronRight className="h-3.5 w-3.5" />
-                        </a>
+                    <div className="relative w-full flex justify-center">
+                        <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                            -
+                            <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
+                            {t('home.news.title')}
+                            -
+                        </h2>
+                        <Link to="/news" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                            {t('home.news.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
+                        </Link>
                     </div>
+
                 </div>
 
                 {/* Grid Layout */}
@@ -97,7 +79,7 @@ export default function News() {
 
                     {/* Left Column: Large Featured Card */}
                     {featuredItem && (
-                        <article className="group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px]">
+                        <Link to={`/news/${featuredItem.id}`} className="block group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px]">
                             {/* Image */}
                             <img
                                 src={featuredItem.image}
@@ -111,13 +93,13 @@ export default function News() {
                             <div className="absolute bottom-0 left-0 right-0 flex items-stretch min-h-[140px] sm:min-h-[160px]">
                                 {/* Vertical Blue Bar */}
                                 <div className="bg-[#1d4ed8] text-white font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center w-10 sm:w-12 shrink-0 select-none [writing-mode:vertical-lr] rotate-180 border-r border-white/10">
-                                    Yangiliklar
+                                    {t('home.news.label')}
                                 </div>
 
                                 {/* Content Panel */}
                                 <div className="flex-1 bg-black/20 backdrop-blur-sm p-4 sm:p-6 flex flex-col justify-between text-white">
                                     <h3 className="text-sm sm:text-base md:text-lg font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-3">
-                                        <a href="#">{featuredItem.title}</a>
+                                        {featuredItem.title}
                                     </h3>
 
                                     {/* Meta details */}
@@ -133,15 +115,16 @@ export default function News() {
                                     </div>
                                 </div>
                             </div>
-                        </article>
+                        </Link>
                     )}
 
                     {/* Right Column: 2x2 Grid of Smaller Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {regularItems.map(item => (
-                            <article
+                            <Link
+                                to={`/news/${item.id}`}
                                 key={item.id}
-                                className="group relative aspect-[4/3] min-h-[180px] overflow-hidden rounded-2xl shadow-md transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
+                                className="block group relative aspect-[4/3] min-h-[180px] overflow-hidden rounded-2xl shadow-md transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
                             >
                                 {/* Image */}
                                 <img
@@ -156,13 +139,13 @@ export default function News() {
                                 <div className="absolute bottom-0 left-0 right-0 flex items-stretch min-h-[110px]">
                                     {/* Vertical Blue Bar */}
                                     <div className="bg-[#1d4ed8] text-white font-bold uppercase tracking-wider text-[9px] flex items-center justify-center w-8 shrink-0 select-none [writing-mode:vertical-lr] rotate-180 border-r border-white/10">
-                                        Yangiliklar
+                                        {t('home.news.label')}
                                     </div>
 
                                     {/* Content Panel */}
                                     <div className="flex-1 bg-black/20 backdrop-blur-sm p-3 flex flex-col justify-between text-white">
                                         <h3 className="text-xs sm:text-xs md:text-sm font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-2">
-                                            <a href="#">{item.title}</a>
+                                            {item.title}
                                         </h3>
 
                                         {/* Meta details */}
@@ -178,7 +161,7 @@ export default function News() {
                                         </div>
                                     </div>
                                 </div>
-                            </article>
+                            </Link>
                         ))}
                     </div>
 

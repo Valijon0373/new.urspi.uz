@@ -1,0 +1,104 @@
+{
+  "navbar": {
+    "address": "Address: Uzbekistan, 220100, Urgench city, Gurlan street, 1-A",
+    "search_placeholder": "Search",
+    "select_lang": "Select language",
+    "accessibility": "Accessibility",
+    "close_search": "Close search",
+    "menu": "Menu",
+    "links": {
+      "institut": "INSTITUTE",
+      "institut_about": "About the Institute",
+      "rector": "Rector",
+      "structure": "Structure",
+      "faculties": "Faculties",
+      "departments": "Departments",
+      "activity": "ACTIVITY",
+      "science": "Scientific Activity",
+      "education": "Educational Activity",
+      "international": "International Cooperation",
+      "projects": "Projects",
+      "students": "FOR STUDENTS",
+      "student_life": "Student Life",
+      "scholarships": "Scholarships",
+      "dormitory": "Dormitory",
+      "library": "Library",
+      "admission": "ADMISSION 2026",
+      "green_uni": "GREEN UNIVERSITY",
+      "foreign": "FOREIGN STUDENTS",
+      "for_foreign": "For Foreign Students",
+      "lang_courses": "Language Courses",
+      "visa": "Visa and Documents",
+      "anticorruption": "ANTI-CORRUPTION",
+      "appeal": "Make an Appeal",
+      "docs": "Regulatory Documents",
+      "reports": "Reports",
+      "stats": "STATISTICS"
+    }
+  },
+  "home": {
+    "carousel": {
+      "slide1": "Urgench State Pedagogical Institute was established",
+      "slide2": "Modern educational technologies and innovative approach",
+      "details": "Details",
+      "prev": "Previous image",
+      "next": "Next image"
+    },
+    "news": {
+      "title": "Latest news",
+      "view_all": "View all",
+      "label": "News"
+    },
+    "announcements": {
+      "title": "Announcements",
+      "view_all": "View all"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "directions": "Directions",
+      "students": "Number of students",
+      "professors": "Number of professors-teachers",
+      "science_potential": "Scientific potential"
+    },
+    "esystems": {
+      "title": "Electronic systems"
+    },
+    "links": {
+      "title": "Useful links"
+    },
+    "galery": {
+      "title": "Photo gallery",
+      "view_all": "All photos"
+    }
+  },
+  "footer": {
+    "institute_name": "Urgench State\nPedagogical Institute",
+    "address": "Urgench city, Gurlan street, 1A"
+  },
+  "dashboard": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "structure": "Structure",
+      "faculties": "Faculties",
+      "departments": "Departments",
+      "centers": "Centers & Depts",
+      "positions": "Positions",
+      "users": "Users",
+      "teachers": "Teachers",
+      "news": "News",
+      "announcements": "Announcements",
+      "about": "About Us",
+      "settings": "Settings"
+    },
+    "general": {
+      "return": "Back to Platform",
+      "logout": "Logout",
+      "general_stats": "General Statistics",
+      "faculties_count": "Number of faculties",
+      "departments_count": "Number of departments",
+      "staff_count": "Number of staff",
+      "news_count": "Number of news",
+      "announcements_count": "Number of announcements"
+    }
+  }
+}

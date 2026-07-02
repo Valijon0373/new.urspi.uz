@@ -1,0 +1,104 @@
+{
+  "navbar": {
+    "address": "Manzil: O'zbekiston, 220100, Urganch shahri, Gurlan ko'chasi, 1-A uy",
+    "search_placeholder": "Izlash",
+    "select_lang": "Til tanlash",
+    "accessibility": "Maxsus imkoniyatlar",
+    "close_search": "Qidirishni yopish",
+    "menu": "Menyu",
+    "links": {
+      "institut": "INSTITUT",
+      "institut_about": "Institut haqida",
+      "rector": "Rektor",
+      "structure": "Tuzilma",
+      "faculties": "Fakultetlar",
+      "departments": "Kafedralar",
+      "activity": "FAOLIYAT",
+      "science": "Ilmiy faoliyat",
+      "education": "Ta'lim faoliyati",
+      "international": "Xalqaro hamkorlik",
+      "projects": "Loyihalar",
+      "students": "TALABALARGA",
+      "student_life": "Talabalar hayoti",
+      "scholarships": "Stipendiyalar",
+      "dormitory": "Yotoqxona",
+      "library": "Kutubxona",
+      "admission": "QABUL 2026",
+      "green_uni": "YASHIL UNIVERSITET",
+      "foreign": "XORIJIY TALABALAR",
+      "for_foreign": "Xorijiy talabalar uchun",
+      "lang_courses": "Til kurslari",
+      "visa": "Viza va hujjatlar",
+      "anticorruption": "KORRUPSIYAGA QARSHI KURASHISH",
+      "appeal": "Murojaat qilish",
+      "docs": "Me'yoriy hujjatlar",
+      "reports": "Hisobotlar",
+      "stats": "STATISTIKA"
+    }
+  },
+  "home": {
+    "carousel": {
+      "slide1": "Urganch davlat pedagogika instituti tashkil etildi",
+      "slide2": "Zamonaviy ta'lim texnologiyalari va innovatsion yondashuv",
+      "details": "Batafsil",
+      "prev": "Oldingi rasm",
+      "next": "Keyingi rasm"
+    },
+    "news": {
+      "title": "So'nggi yangiliklar",
+      "view_all": "Barchasi",
+      "label": "Yangiliklar"
+    },
+    "announcements": {
+      "title": "E'lonlar",
+      "view_all": "Barchasi"
+    },
+    "statistics": {
+      "title": "Statistika",
+      "directions": "Yo'nalishlar",
+      "students": "Talabalar soni",
+      "professors": "Professor-o'qituvchilar soni",
+      "science_potential": "Ilmiy salohiyat"
+    },
+    "esystems": {
+      "title": "Elektron tizimlar"
+    },
+    "links": {
+      "title": "Foydali havolalar"
+    },
+    "galery": {
+      "title": "Fotogalereya",
+      "view_all": "Barcha rasmlar"
+    }
+  },
+  "footer": {
+    "institute_name": "Urganch Davlat\nPedagogika Instituti",
+    "address": "Urganch sh. Gurlan ko'chasi 1A-uy"
+  },
+  "dashboard": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "structure": "Tuzilma",
+      "faculties": "Fakultetlar",
+      "departments": "Kafedralar",
+      "centers": "Markaz va Bo'limlar",
+      "positions": "Lavozimlar",
+      "users": "Foydalanuvchilar",
+      "teachers": "O'qituvchilar",
+      "news": "Yangiliklar",
+      "announcements": "E'lonlar",
+      "about": "Biz haqimizda",
+      "settings": "Sozlamalar"
+    },
+    "general": {
+      "return": "Platformaga qaytish",
+      "logout": "Chiqish",
+      "general_stats": "Umumiy Statistika",
+      "faculties_count": "Fakultetlar soni",
+      "departments_count": "Kafedralar soni",
+      "staff_count": "Hodimlar soni",
+      "news_count": "Yangiliklar soni",
+      "announcements_count": "E'lonlar soni"
+    }
+  }
+}

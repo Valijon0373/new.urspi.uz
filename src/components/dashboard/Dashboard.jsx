@@ -7,19 +7,22 @@ import {
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
 import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
+import { LiaBlackTie } from 'react-icons/lia';
+import { FaLandmarkFlag } from 'react-icons/fa6';
+import { FaNetworkWired } from 'react-icons/fa';
 import logo from '../../assets/images/logo1.jpg';
 import Settings from './Settings';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
-  { 
-    icon: LuLandmark, 
+  {
+    icon: LuLandmark,
     label: 'Tuzilma',
     subItems: [
-      { label: 'Fakultetlar' },
-      { label: 'Kafedralar' },
-      { label: "Markaz va Bo'limlar" },
-      { label: 'Lavozim' }
+      { label: 'Fakultetlar', icon: FaLandmarkFlag },
+      { label: 'Kafedralar', icon: GraduationCap },
+      { label: "Markaz va Bo'limlar", icon: FaNetworkWired },
+      { label: 'Lavozimlar', icon: LiaBlackTie }
     ]
   },
   { icon: User, label: 'Foydalanuvchilar' },
@@ -66,28 +69,24 @@ export default function Dashboard() {
   };
 
   const navLinkClass = (active) =>
-    `flex items-center gap-3 py-2.5 rounded-xl transition-colors ${
-      sidebarCollapsed ? 'justify-center px-2.5' : 'px-4'
-    } ${
-      active
-        ? 'bg-[#0eb99c] text-white shadow-sm'
-        : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'
+    `flex items-center gap-3 py-2.5 rounded-xl transition-colors ${sidebarCollapsed ? 'justify-center px-2.5' : 'px-4'
+    } ${active
+      ? 'bg-[#0eb99c] text-white shadow-sm'
+      : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'
     }`;
 
   return (
     <div className={`flex h-screen bg-slate-50 dark:bg-slate-950 font-sans text-left ${darkMode ? 'dark' : ''}`}>
       {/* Sidebar */}
       <aside
-        className={`shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all duration-300 overflow-hidden ${
-          sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'
-        }`}
+        className={`shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all duration-300 overflow-hidden ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'
+          }`}
       >
         <div>
           {/* Logo area */}
           <div
-            className={`h-[72px] flex items-center border-b border-slate-100 dark:border-slate-800 ${
-              sidebarCollapsed ? 'justify-center px-2' : 'px-5'
-            }`}
+            className={`h-[72px] flex items-center border-b border-slate-100 dark:border-slate-800 ${sidebarCollapsed ? 'justify-center px-2' : 'px-5'
+              }`}
           >
             <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-3'}`}>
               <img
@@ -111,59 +110,61 @@ export default function Dashboard() {
             {NAV_ITEMS.map(({ icon: Icon, label, subItems }) => {
               const isActive = activeTab === label;
               return (
-              <div key={label}>
-                {subItems ? (
-                  <>
+                <div key={label}>
+                  {subItems ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!sidebarCollapsed) toggleDropdown(label);
+                          setActiveTab(label);
+                        }}
+                        title={sidebarCollapsed ? label : undefined}
+                        className={`w-full ${navLinkClass(isActive)} ${!sidebarCollapsed ? 'justify-between' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-[22px] h-[22px] shrink-0" />
+                          {!sidebarCollapsed && (
+                            <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+                          )}
+                        </div>
+                        {!sidebarCollapsed && (
+                          <ChevronDown className={`w-5 h-5 transition-transform ${openDropdowns[label] ? 'rotate-180' : ''}`} />
+                        )}
+                      </button>
+                      {!sidebarCollapsed && openDropdowns[label] && (
+                        <div className="mt-1 space-y-1 pl-11 pr-2">
+                          {subItems.map(({ label, icon: SubIcon }) => (
+                            <a
+                              key={label}
+                              href="#"
+                              className="flex items-center gap-2 py-2 px-3 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                              {SubIcon && <SubIcon className="w-[18px] h-[18px] shrink-0" />}
+                              <span>{label}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!sidebarCollapsed) toggleDropdown(label);
-                        setActiveTab(label);
-                      }}
+                      onClick={() => setActiveTab(label)}
                       title={sidebarCollapsed ? label : undefined}
-                      className={`w-full ${navLinkClass(isActive)} ${!sidebarCollapsed ? 'justify-between' : ''}`}
+                      className={`w-full ${navLinkClass(isActive)}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                        <Icon className="w-[22px] h-[22px] shrink-0" />
                         {!sidebarCollapsed && (
                           <span className="text-sm font-medium whitespace-nowrap">{label}</span>
                         )}
                       </div>
-                      {!sidebarCollapsed && (
-                        <ChevronDown className={`w-4 h-4 transition-transform ${openDropdowns[label] ? 'rotate-180' : ''}`} />
-                      )}
                     </button>
-                    {!sidebarCollapsed && openDropdowns[label] && (
-                      <div className="mt-1 space-y-1 pl-11 pr-2">
-                        {subItems.map((subItem) => (
-                          <a
-                            key={subItem.label}
-                            href="#"
-                            className="block py-2 px-3 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                          >
-                            {subItem.label}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab(label)}
-                    title={sidebarCollapsed ? label : undefined}
-                    className={`w-full ${navLinkClass(isActive)}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-[18px] h-[18px] shrink-0" />
-                      {!sidebarCollapsed && (
-                        <span className="text-sm font-medium whitespace-nowrap">{label}</span>
-                      )}
-                    </div>
-                  </button>
-                )}
-              </div>
-            )})}
+                  )}
+                </div>
+              )
+            })}
           </nav>
         </div>
 
@@ -172,12 +173,11 @@ export default function Dashboard() {
           <Link
             to="/"
             title={sidebarCollapsed ? 'Platformaga qaytish' : undefined}
-            className={`flex items-center justify-center border border-red-300 dark:border-red-500/50 text-red-500 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm font-medium ${
-              sidebarCollapsed ? 'p-2.5' : 'py-2.5 px-4 w-full gap-2'
-            }`}
+            className={`flex items-center justify-center border border-red-300 dark:border-red-500/50 text-red-500 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm font-medium ${sidebarCollapsed ? 'p-2.5' : 'py-2.5 px-4 w-full gap-2'
+              }`}
           >
             {sidebarCollapsed ? (
-              <ArrowLeft className="w-[18px] h-[18px]" />
+              <ArrowLeft className="w-[22px] h-[22px]" />
             ) : (
               'Platformaga qaytish'
             )}
@@ -253,74 +253,62 @@ export default function Dashboard() {
             <div className="max-w-[1280px] mx-auto space-y-6">
               {/* Title Section */}
               <div>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Umumiy natija</p>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 m-0">
-                Yangiliklar bo'yicha yig'ilgan ball va holat
-              </p>
-            </div>
+                <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Umumiy Statistika</p>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">110 / 110</p>
-                  <p className="text-sm text-slate-400 mt-1 m-0">Jami maksimal ball</p>
-                </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-teal-50 dark:bg-teal-950/40 rounded-xl flex items-center justify-center text-[#0eb99c] shrink-0">
-                  <File className="w-6 h-6" />
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
+                    <LuLandmark className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">5</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">Fakultetlar soni</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">0</p>
-                  <p className="text-sm text-slate-400 mt-1 m-0">Jami yuklangan fayllar</p>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950/40 rounded-xl flex items-center justify-center text-violet-500 shrink-0">
-                  <ClipboardList className="w-6 h-6" />
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">15</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">Kafedralar soni</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">20</p>
-                  <p className="text-sm text-slate-400 mt-1 m-0">Yangiliklar soni</p>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
-                  <LuLandmark className="w-6 h-6" />
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950/40 rounded-xl flex items-center justify-center text-violet-500 shrink-0">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">144</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">Hodimlar soni</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-400 mb-0.5 m-0">Fakultetlar</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 m-0">5</p>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
-                  <GraduationCap className="w-6 h-6" />
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-teal-50 dark:bg-teal-950/40 rounded-xl flex items-center justify-center text-[#0eb99c] shrink-0">
+                    <ClipboardList className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">20</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">Yangiliklar soni</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-400 mb-0.5 m-0">Kafedralar</p>
-                  <p className="text-2xl font-bold text-emerald-500 m-0">15</p>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950/40 rounded-xl flex items-center justify-center text-violet-500 shrink-0">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400 mb-0.5 m-0">O'qituvchilar</p>
-                  <p className="text-2xl font-bold text-violet-600 dark:text-violet-400 m-0">144</p>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
+                    <IoMegaphoneOutline className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">12</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">E'lonlar soni</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
 
 

@@ -7,8 +7,10 @@ import 'swiper/css/autoplay';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { Link } from 'lucide-react';
 import { PiLinkSimple } from 'react-icons/pi';
+import { useTranslation } from 'react-i18next';
 
 const Links = () => {
+  const { t } = useTranslation();
   const [prevEl, setPrevEl] = useState(null);
   const [nextEl, setNextEl] = useState(null);
   const swiperRef = useRef(null);
@@ -54,13 +56,10 @@ const Links = () => {
     <section className="bg-[#f4f7f9] py-10 w-full font-sans">
       <div className="w-full px-4 md:px-8 lg:px-12">
         <div className="relative flex items-center justify-center mb-10">
-          <h2
-            className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight text-center"
-            style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}
-          >
+          <h2 className="flex items-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
             -
             <PiLinkSimple style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-            Rasmiy havolalar
+            {t('home.links.title')}
             -
           </h2>
           <div className="absolute right-0 flex items-center gap-2">

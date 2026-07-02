@@ -4,6 +4,7 @@ import { HiOutlineDesktopComputer } from 'react-icons/hi'
 import { VscFeedback } from 'react-icons/vsc'
 import { BsCameraVideo } from 'react-icons/bs'
 import { RiMailSendLine, RiPinDistanceLine } from 'react-icons/ri'
+import { useTranslation } from 'react-i18next'
 
 const systems = [
     {
@@ -57,6 +58,7 @@ const systems = [
 ]
 
 export default function Esystems() {
+    const { t } = useTranslation()
     return (
         <section className="w-full bg-[#f4f7fb] py-12 md:py-16 text-center" aria-labelledby="esystems-heading">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
@@ -66,7 +68,7 @@ export default function Esystems() {
                     <h2 id="esystems-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         -
                         <HiOutlineDesktopComputer style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        Axborot tizimlari
+                        {t('home.esystems.title')}
                         -
                     </h2>
                     <a href="#" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
