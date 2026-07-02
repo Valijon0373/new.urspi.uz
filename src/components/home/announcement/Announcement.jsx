@@ -35,14 +35,14 @@ export default function Announcement() {
         <section className="w-full bg-slate-50 py-12 md:py-16 text-left" aria-labelledby="announcement-heading">
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-3 md:gap-4 text-[#1d4ed8]">
+                <div className="relative flex flex-col items-center justify-center mb-8 gap-4 text-center">
+                    <h2 id="announcement-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        -
                         <GrAnnounce style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        <h2 id="announcement-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
-                            E'lonlar
-                        </h2>
-                    </div>
-                    <a href="#" className="flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                        E'lonlar
+                        -
+                    </h2>
+                    <a href="#" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
                         Barchasi <ChevronRight className="h-4 w-4 ml-0.5" />
                     </a>
                 </div>

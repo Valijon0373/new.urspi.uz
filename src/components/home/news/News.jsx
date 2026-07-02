@@ -1,5 +1,6 @@
 import { Eye, ChevronRight } from 'lucide-react'
 import { FaRegCalendarAlt } from 'react-icons/fa'
+import { PiNewspaperClipping } from 'react-icons/pi'
 import urspiImage from '../../../assets/images/urspi_new.png'
 
 const categories = [
@@ -64,13 +65,16 @@ export default function News() {
             <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
 
                 {/* Header section */}
-                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
-                    <h2 id="news-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center">
+                    <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        -
+                        <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
                         So'nggi yangiliklar
+                        -
                     </h2>
 
                     {/* Categories list */}
-                    <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                    <div className="flex flex-wrap items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full">
                         {categories.map((cat, idx) => (
                             <button
                                 key={idx}
@@ -117,13 +121,13 @@ export default function News() {
                                     </h3>
 
                                     {/* Meta details */}
-                                    <div className="flex items-center gap-3 mt-3">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-semibold tracking-wider uppercase">
-                                            <Eye className="h-3.5 w-3.5" />
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/40 border border-white/20 text-xs font-medium text-white">
+                                            <Eye className="h-3.5 w-3.5 shrink-0" />
                                             {featuredItem.views}
                                         </span>
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-xs font-semibold tracking-wider uppercase">
-                                            <FaRegCalendarAlt className="h-4 w-4" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/40 border border-white/20 text-xs font-medium text-white">
+                                            <FaRegCalendarAlt className="h-4 w-4 shrink-0" />
                                             {featuredItem.date}
                                         </span>
                                     </div>
@@ -163,12 +167,12 @@ export default function News() {
 
                                         {/* Meta details */}
                                         <div className="flex items-center gap-2 mt-2">
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[9px] font-semibold">
-                                                <Eye className="h-3 w-3" />
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/40 border border-white/20 text-[11px] font-medium text-white">
+                                                <Eye className="h-3 w-3 shrink-0" />
                                                 {item.views}
                                             </span>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold">
-                                                <FaRegCalendarAlt className="h-3.5 w-3.5" />
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/40 border border-white/20 text-[11px] font-medium text-white">
+                                                <FaRegCalendarAlt className="h-3.5 w-3.5 shrink-0" />
                                                 {item.date}
                                             </span>
                                         </div>

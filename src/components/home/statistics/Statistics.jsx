@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Briefcase } from 'lucide-react'
 import { FaBookOpenReader } from 'react-icons/fa6'
 import { PiStudentFill, PiUsers } from 'react-icons/pi'
+import { FcStatistics } from 'react-icons/fc'
 import slider1 from '../../../assets/images/slider1.jpg'
 import slider2 from '../../../assets/images/slider2.jpg'
 
@@ -38,8 +39,11 @@ export default function Statistics() {
 
                 {/* Header */}
                 <div className="flex items-center justify-center mb-10">
-                    <h2 id="statistics-heading" className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
-                        - Statistika -
+                    <h2 id="statistics-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        -
+                        <FcStatistics style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)' }} />
+                        Statistika
+                        -
                     </h2>
                 </div>
 

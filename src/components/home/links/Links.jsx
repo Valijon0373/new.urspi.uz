@@ -6,6 +6,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/autoplay';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { Link } from 'lucide-react';
+import { PiLinkSimple } from 'react-icons/pi';
 
 const Links = () => {
   const [prevEl, setPrevEl] = useState(null);
@@ -54,10 +55,13 @@ const Links = () => {
       <div className="w-full px-4 md:px-8 lg:px-12">
         <div className="relative flex items-center justify-center mb-10">
           <h2
-            className="font-black tracking-tight text-center"
+            className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight text-center"
             style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}
           >
-            - Rasmiy havolalar -
+            -
+            <PiLinkSimple style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
+            Rasmiy havolalar
+            -
           </h2>
           <div className="absolute right-0 flex items-center gap-2">
             <button

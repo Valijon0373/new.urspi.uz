@@ -27,13 +27,13 @@ export default function Galery() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] overflow-hidden">
 
                 {/* Header */}
-                <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-3 md:gap-4 text-[#1d4ed8]">
+                <div className="flex items-center justify-center mb-10">
+                    <h2 className="flex items-center gap-3 md:gap-4 font-black tracking-tight text-center" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        - 
                         <BsImages style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                        <h2 className="font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
-                            Foto galereya
-                        </h2>
-                    </div>
+                        Foto galereya 
+                        -
+                    </h2>
                 </div>
 
                 {/* Carousel */}
