@@ -6,18 +6,28 @@ import {
   Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
-import TabMenu from './TabMenu';
+import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
 import logo from '../../assets/images/logo1.jpg';
+import Settings from './Settings';
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Dashboard', active: true },
-  { icon: LuLandmark, label: 'Fakultetlar' },
-  { icon: GraduationCap, label: 'Kafedralar' },
-  { icon: FileText, label: 'Lavozim' },
+  { icon: LayoutDashboard, label: 'Dashboard' },
+  { 
+    icon: LuLandmark, 
+    label: 'Tuzilma',
+    subItems: [
+      { label: 'Fakultetlar' },
+      { label: 'Kafedralar' },
+      { label: "Markaz va Bo'limlar" },
+      { label: 'Lavozim' }
+    ]
+  },
   { icon: User, label: 'Foydalanuvchilar' },
   { icon: Users, label: "O'qituvchilar" },
-  { icon: CheckSquare, label: 'Mezonlar' },
+  { icon: CheckSquare, label: 'Yangiliklar' },
+  { icon: IoMegaphoneOutline, label: "E'lonlar" },
   { icon: Info, label: 'Biz haqimizda' },
+  { icon: IoSettingsOutline, label: 'Sozlamalar' },
 ];
 
 export default function Dashboard() {
@@ -29,6 +39,12 @@ export default function Dashboard() {
     () => localStorage.getItem('dashboard-dark') === 'true'
   );
   const [adminOpen, setAdminOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState({});
+  const [activeTab, setActiveTab] = useState('Dashboard');
+
+  const toggleDropdown = (label) => {
+    setOpenDropdowns((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   useEffect(() => {
     localStorage.setItem('dashboard-dark', String(darkMode));
@@ -92,19 +108,62 @@ export default function Dashboard() {
 
           {/* Navigation */}
           <nav className={`py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
-            {NAV_ITEMS.map(({ icon: Icon, label, active }) => (
-              <a
-                key={label}
-                href="#"
-                title={sidebarCollapsed ? label : undefined}
-                className={navLinkClass(active)}
-              >
-                <Icon className="w-[18px] h-[18px] shrink-0" />
-                {!sidebarCollapsed && (
-                  <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+            {NAV_ITEMS.map(({ icon: Icon, label, subItems }) => {
+              const isActive = activeTab === label;
+              return (
+              <div key={label}>
+                {subItems ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!sidebarCollapsed) toggleDropdown(label);
+                        setActiveTab(label);
+                      }}
+                      title={sidebarCollapsed ? label : undefined}
+                      className={`w-full ${navLinkClass(isActive)} ${!sidebarCollapsed ? 'justify-between' : ''}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                        {!sidebarCollapsed && (
+                          <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+                        )}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <ChevronDown className={`w-4 h-4 transition-transform ${openDropdowns[label] ? 'rotate-180' : ''}`} />
+                      )}
+                    </button>
+                    {!sidebarCollapsed && openDropdowns[label] && (
+                      <div className="mt-1 space-y-1 pl-11 pr-2">
+                        {subItems.map((subItem) => (
+                          <a
+                            key={subItem.label}
+                            href="#"
+                            className="block py-2 px-3 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                          >
+                            {subItem.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab(label)}
+                    title={sidebarCollapsed ? label : undefined}
+                    className={`w-full ${navLinkClass(isActive)}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-[18px] h-[18px] shrink-0" />
+                      {!sidebarCollapsed && (
+                        <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+                      )}
+                    </div>
+                  </button>
                 )}
-              </a>
-            ))}
+              </div>
+            )})}
           </nav>
         </div>
 
@@ -190,13 +249,13 @@ export default function Dashboard() {
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-auto p-6 lg:p-8">
-          <div className="max-w-[1280px] mx-auto space-y-6">
-
-            {/* Title Section */}
-            <div>
+          {activeTab === 'Dashboard' && (
+            <div className="max-w-[1280px] mx-auto space-y-6">
+              {/* Title Section */}
+              <div>
               <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Umumiy natija</p>
               <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 m-0">
-                Mezonlar bo'yicha yig'ilgan ball va holat
+                Yangiliklar bo'yicha yig'ilgan ball va holat
               </p>
             </div>
 
@@ -228,7 +287,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">20</p>
-                  <p className="text-sm text-slate-400 mt-1 m-0">Mezonlar soni</p>
+                  <p className="text-sm text-slate-400 mt-1 m-0">Yangiliklar soni</p>
                 </div>
               </div>
 
@@ -263,78 +322,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Bottom Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 min-h-[380px] flex flex-col">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-                  <div>
-                    <p className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                      Yuklangan fayllar taqsimoti
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 m-0">
-                      File • Video • Link • Rasm
-                    </p>
-                  </div>
-                  <TabMenu />
-                </div>
-
-                <div className="flex-1 flex flex-col items-center justify-center py-4">
-                  <div
-                    className="relative w-52 h-52 rounded-full flex items-center justify-center"
-                    style={{
-                      background:
-                        'conic-gradient(#3B82F6 0% 15%, #EF4444 15% 40%, #F59E0B 40% 65%, #10B981 65% 100%)',
-                    }}
-                  >
-                    <div className="absolute w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center">
-                      <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Turlar</span>
-                    </div>
-                    <span className="absolute top-10 right-6 text-white text-[10px] font-medium">File (15%)</span>
-                    <span className="absolute bottom-10 right-6 text-white text-[10px] font-medium">Video (25%)</span>
-                    <span className="absolute bottom-10 left-6 text-white text-[10px] font-medium">Link (25%)</span>
-                    <span className="absolute top-10 left-6 text-white text-[10px] font-medium">Rasm (25%)</span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-blue-500" />
-                      <span className="text-slate-600 dark:text-slate-400">File (0)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-red-500" />
-                      <span className="text-slate-600 dark:text-slate-400">Video (0)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
-                      <span className="text-slate-600 dark:text-slate-400">Link (0)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-                      <span className="text-slate-600 dark:text-slate-400">Rasm (0)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 min-h-[380px] flex flex-col">
-                <div>
-                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                    Fakultet o'qituvchilari yuklagan fayllar
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-6 m-0">
-                    Har bir fakultet bo'yicha jami yuklangan fayllar soni
-                  </p>
-                </div>
-
-                <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
-                  Hozircha ma'lumot yo'q
-                </div>
-              </div>
 
             </div>
-
-          </div>
+          )}
+          {activeTab === 'Sozlamalar' && (
+            <Settings />
+          )}
         </div>
       </main>
     </div>
