@@ -12,6 +12,8 @@ import { FaLandmarkFlag } from 'react-icons/fa6';
 import { FaNetworkWired } from 'react-icons/fa';
 import logo from '../../assets/images/logo1.jpg';
 import Settings from './Settings';
+import NewsAdmin from './NewsAdmin';
+import AnnouncementsAdmin from './AnnouncementsAdmin';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
@@ -313,6 +315,12 @@ export default function Dashboard() {
 
 
             </div>
+          )}
+          {activeTab === 'Yangiliklar' && (
+            <NewsAdmin />
+          )}
+          {activeTab === "E'lonlar" && (
+            <AnnouncementsAdmin />
           )}
           {activeTab === 'Sozlamalar' && (
             <Settings />
