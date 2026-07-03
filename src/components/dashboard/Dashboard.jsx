@@ -11,6 +11,7 @@ import { LiaBlackTie } from 'react-icons/lia';
 import { FaLandmarkFlag } from 'react-icons/fa6';
 import { FaNetworkWired } from 'react-icons/fa';
 import { PiUsersThree, PiUserSquare } from 'react-icons/pi';
+import { HiOutlineMailOpen } from 'react-icons/hi';
 import logo from '../../assets/images/logo1.jpg';
 import Settings from './Settings';
 import NewsAdmin from './NewsAdmin';
@@ -18,6 +19,9 @@ import AnnouncementsAdmin from './AnnouncementsAdmin';
 import AboutUsAdmin from './AboutUsAdmin';
 import TeachersAdmin from './TeachersAdmin';
 import EmployeesAdmin from './EmployeesAdmin';
+import PositionsAdmin from './PositionsAdmin';
+import FacultiesAdmin from './FacultiesAdmin';
+import DepartmentsAdmin from './DepartmentsAdmin';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
@@ -31,7 +35,7 @@ const NAV_ITEMS = [
       { label: 'Lavozimlar', icon: LiaBlackTie }
     ]
   },
-  { icon: User, label: 'Foydalanuvchilar' },
+  { icon: User, label: 'Rahbariyat' },
   {
     icon: Users,
     label: 'Hodimlar',
@@ -42,8 +46,9 @@ const NAV_ITEMS = [
   },
   { icon: CheckSquare, label: 'Yangiliklar' },
   { icon: IoMegaphoneOutline, label: "E'lonlar" },
-  { icon: Info, label: 'Biz haqimizda' },
   { icon: IoSettingsOutline, label: 'Sozlamalar' },
+  { icon: HiOutlineMailOpen, label: 'Korporativ pochta', href: 'http://webmail.urspi.uz:4040/admin' },
+  { icon: Info, label: 'Biz haqimizda' },
 ];
 
 export default function Dashboard() {
@@ -120,7 +125,7 @@ export default function Dashboard() {
 
           {/* Navigation */}
           <nav className={`py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
-            {NAV_ITEMS.map(({ icon: Icon, label, subItems }) => {
+            {NAV_ITEMS.map(({ icon: Icon, label, subItems, href }) => {
               const isActive = activeTab === label;
               return (
                 <div key={label}>
@@ -167,6 +172,21 @@ export default function Dashboard() {
                         </div>
                       )}
                     </>
+                  ) : href ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={sidebarCollapsed ? label : undefined}
+                      className={`w-full block ${navLinkClass(isActive)}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-[22px] h-[22px] shrink-0" />
+                        {!sidebarCollapsed && (
+                          <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+                        )}
+                      </div>
+                    </a>
                   ) : (
                     <button
                       type="button"
@@ -336,6 +356,15 @@ export default function Dashboard() {
           )}
           {activeTab === 'Yangiliklar' && (
             <NewsAdmin />
+          )}
+          {activeTab === 'Lavozimlar' && (
+            <PositionsAdmin />
+          )}
+          {activeTab === 'Fakultetlar' && (
+            <FacultiesAdmin />
+          )}
+          {activeTab === 'Kafedralar' && (
+            <DepartmentsAdmin />
           )}
           {activeTab === "O'qituvchilar" && (
             <TeachersAdmin />
