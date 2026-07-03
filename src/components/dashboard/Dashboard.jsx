@@ -10,10 +10,14 @@ import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
 import { LiaBlackTie } from 'react-icons/lia';
 import { FaLandmarkFlag } from 'react-icons/fa6';
 import { FaNetworkWired } from 'react-icons/fa';
+import { PiUsersThree, PiUserSquare } from 'react-icons/pi';
 import logo from '../../assets/images/logo1.jpg';
 import Settings from './Settings';
 import NewsAdmin from './NewsAdmin';
 import AnnouncementsAdmin from './AnnouncementsAdmin';
+import AboutUsAdmin from './AboutUsAdmin';
+import TeachersAdmin from './TeachersAdmin';
+import EmployeesAdmin from './EmployeesAdmin';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
@@ -28,7 +32,14 @@ const NAV_ITEMS = [
     ]
   },
   { icon: User, label: 'Foydalanuvchilar' },
-  { icon: Users, label: "O'qituvchilar" },
+  {
+    icon: Users,
+    label: 'Hodimlar',
+    subItems: [
+      { label: "O'qituvchilar", icon: PiUsersThree },
+      { label: 'Xodimlar', icon: PiUserSquare }
+    ]
+  },
   { icon: CheckSquare, label: 'Yangiliklar' },
   { icon: IoMegaphoneOutline, label: "E'lonlar" },
   { icon: Info, label: 'Biz haqimizda' },
@@ -136,15 +147,22 @@ export default function Dashboard() {
                       </button>
                       {!sidebarCollapsed && openDropdowns[label] && (
                         <div className="mt-1 space-y-1 pl-11 pr-2">
-                          {subItems.map(({ label, icon: SubIcon }) => (
-                            <a
-                              key={label}
-                              href="#"
-                              className="flex items-center gap-2 py-2 px-3 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                          {subItems.map(({ label: subLabel, icon: SubIcon }) => (
+                            <button
+                              key={subLabel}
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setActiveTab(subLabel);
+                              }}
+                              className={`w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${activeTab === subLabel
+                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800'
+                                }`}
                             >
                               {SubIcon && <SubIcon className="w-[18px] h-[18px] shrink-0" />}
-                              <span>{label}</span>
-                            </a>
+                              <span>{subLabel}</span>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -286,8 +304,8 @@ export default function Dashboard() {
                     <Users className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">144</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">Hodimlar soni</p>
+                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">124</p>
+                    <p className="text-sm text-slate-400 mt-1 m-0">Xodimlar soni</p>
                   </div>
                 </div>
 
@@ -319,8 +337,17 @@ export default function Dashboard() {
           {activeTab === 'Yangiliklar' && (
             <NewsAdmin />
           )}
+          {activeTab === "O'qituvchilar" && (
+            <TeachersAdmin />
+          )}
+          {activeTab === 'Xodimlar' && (
+            <EmployeesAdmin />
+          )}
           {activeTab === "E'lonlar" && (
             <AnnouncementsAdmin />
+          )}
+          {activeTab === 'Biz haqimizda' && (
+            <AboutUsAdmin />
           )}
           {activeTab === 'Sozlamalar' && (
             <Settings />
