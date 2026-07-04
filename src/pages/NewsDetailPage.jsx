@@ -20,7 +20,7 @@ export default function NewsDetailPage() {
 
 Tashrif doirasida vazir talabalar uchun yaratilayotgan zamonaviy sharoitlar, o'quv xonalarining jihozlanishi va laboratoriya uskunalari bilan ta'minlanishi holatini ko'zdan kechirdi. Shuningdek, pudratchi tashkilot vakillari bilan suhbatlashib, qurilish ishlarini belgilangan muddatda va sifatli yakunlash bo'yicha tegishli topshiriqlar berdi.
 
-Institut rektori Feruza Madrahimova vazirga yangi bino imkoniyatlari hamda kelgusida amalga oshirilishi rejalashtirilgan istiqbolli loyihalar yuzasidan batafsil ma'lumot berdi.
+Institut rektor Diyorjon Abdullayev vazirga yangi bino imkoniyatlari hamda kelgusida amalga oshirilishi rejalashtirilgan istiqbolli loyihalar yuzasidan batafsil ma'lumot berdi.
 
 Yangi o'quv binosi 2026-2027 o'quv yili boshidan foydalanishga topshirilishi kutilmoqda.`,
         views: 356
