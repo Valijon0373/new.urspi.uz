@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const QA_KNOWLEDGE_BASE = [
   {
@@ -8,7 +9,8 @@ const QA_KNOWLEDGE_BASE = [
   },
   {
     keywords: ['fakultet', 'yo\'nalish', 'qabul', 'o\'qishga', 'kirish', 'imtihon'],
-    answer: 'Institutimizda qator pedagogik yo\'nalishlar va fakultetlar mavjud. Qabul jarayonlari, imtihonlar va yo\'nalishlar haqida batafsil ma\'lumotni saytimizning "Qabul" va "Ta\'lim" bo\'limlaridan olishingiz mumkin.'
+    answer: 'Institutimizda qator pedagogik yo\'nalishlar va fakultetlar mavjud. Qabul jarayonlari, imtihonlar va yo\'nalishlar haqida batafsil ma\'lumotni saytimizning "Qabul" va "Ta\'lim" bo\'limlaridan olishingiz mumkin.',
+    action: { url: '/', label: 'Bosh sahifaga o\'tish' }
   },
   {
     keywords: ['manzil', 'qayerda', 'lokatsiya', 'joylashuv'],
@@ -16,11 +18,17 @@ const QA_KNOWLEDGE_BASE = [
   },
   {
     keywords: ['rektor', 'rahbariyat', 'dekan'],
-    answer: 'Institut rahbariyati (rektor, prorektorlar va dekanlar) haqida batafsil ma\'lumotni "Rahbariyat" sahifasidan topishingiz mumkin.'
+    answer: 'Institut rahbariyati (rektor, prorektorlar va dekanlar) haqida batafsil ma\'lumotni "Rahbariyat" sahifasidan topishingiz mumkin.',
+    action: { url: '/rahbariyat', label: 'Rahbariyat sahifasiga o\'tish' }
   },
   {
     keywords: ['aloqa', 'telefon', 'bog\'lanish', 'raqam', 'email', 'pochtasi'],
     answer: 'Biz bilan bog\'lanish uchun saytning "Aloqa" bo\'limidagi telefon raqamlariga qo\'ng\'iroq qilishingiz yoki elektron pochta orqali xabar yuborishingiz mumkin.'
+  },
+  {
+    keywords: ['yangiliklar', 'yangilik', 'xabar', 'elonlar'],
+    answer: 'Institut hayotidagi so\'nggi yangiliklar va e\'lonlar bilan tanishish uchun "Yangiliklar" sahifasiga o\'tishingiz mumkin.',
+    action: { url: '/news', label: 'Yangiliklar sahifasiga o\'tish' }
   },
   {
     keywords: ['sayt', 'yaratuvchi', 'qilgan', 'yaratgan'],
@@ -29,6 +37,7 @@ const QA_KNOWLEDGE_BASE = [
 ];
 
 export default function AiAgent() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, text: "Assalomu alaykum! \n\nMen Urganch davlat pedagogika instituti saytining sun'iy intellekt yordamchisiman. \n\nSizga qanday yordam bera olaman?", isBot: true }
@@ -57,17 +66,19 @@ export default function AiAgent() {
     // Simulate RAG / AI processing delay
     setTimeout(() => {
       let botResponse = "Kechirasiz, ma'lumotlar bazasidan bu savolga aniq javob topa olmadim. Iltimos, savolingizni aniqroq yozing yoki sayt menyularidan qidiring.";
+      let botAction = null;
       
       const lowerInput = newUserMessage.text.toLowerCase();
       
       for (const qa of QA_KNOWLEDGE_BASE) {
         if (qa.keywords.some(kw => lowerInput.includes(kw))) {
           botResponse = qa.answer;
+          if (qa.action) botAction = qa.action;
           break;
         }
       }
 
-      setMessages(prev => [...prev, { id: Date.now() + 1, text: botResponse, isBot: true }]);
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: botResponse, action: botAction, isBot: true }]);
       setIsTyping(false);
     }, 1200);
   };
@@ -178,14 +189,25 @@ export default function AiAgent() {
                   {msg.isBot ? <Bot size={16} /> : <User size={16} />}
                 </div>
                 <div 
-                  className={`p-3.5 rounded-2xl text-[14px] shadow-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`p-3.5 rounded-2xl text-[14px] shadow-sm leading-relaxed whitespace-pre-wrap flex flex-col gap-2 ${
                     msg.isBot 
                       ? 'bg-white text-gray-700 rounded-tl-sm border border-gray-100 shadow-sm' 
                       : 'bg-blue-600 text-white rounded-tr-sm shadow-md'
                   }`}
                   style={{ wordBreak: 'break-word' }}
                 >
-                  {msg.text}
+                  <span>{msg.text}</span>
+                  {msg.action && (
+                    <button 
+                      onClick={() => {
+                        navigate(msg.action.url);
+                        setIsOpen(false);
+                      }}
+                      className="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-600 active:scale-95 text-[13px] font-semibold py-2 px-4 rounded-xl w-fit transition-all duration-200 border border-blue-200 shadow-sm"
+                    >
+                      {msg.action.label}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -230,7 +252,9 @@ export default function AiAgent() {
       {/* Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-20 h-20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 relative focus:outline-none"
+        className={`w-20 h-20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 relative focus:outline-none rounded-full ${
+          !isOpen ? 'bg-blue-100/50 backdrop-blur-sm border border-white/50 shadow-[0_8px_32px_rgba(37,99,235,0.2)]' : ''
+        }`}
       >
         {isOpen ? (
           <div className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center shadow-lg text-white">
