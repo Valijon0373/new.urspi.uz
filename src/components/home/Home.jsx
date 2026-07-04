@@ -5,6 +5,7 @@ import Statistics from './statistics/Statistics'
 import Esystems from './e-systems/Esystems'
 import Galery from './galery/Galery'
 import Links from './links/Links'
+import AiAgent from './ai-agent/AiAgent'
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <Esystems />
       <Links />
       <Galery />
+      <AiAgent />
     </div>
   )
 }
