@@ -30,7 +30,7 @@ export default function Galery() {
 
                 {/* Header */}
                 <div className="flex items-center justify-center mb-10 relative">
-                    <h2 className="flex items-center gap-3 md:gap-4 font-black tracking-tight text-center" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                    <h2 className="flex items-center gap-3 md:gap-4 font-bold tracking-tight text-center" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         - 
                         <BsImages style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
                         {t('home.galery.title')}

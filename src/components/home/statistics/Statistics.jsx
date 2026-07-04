@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Briefcase } from 'lucide-react'
 import { FaBookOpenReader } from 'react-icons/fa6'
 import { PiStudentFill, PiUsers } from 'react-icons/pi'
-import { FcStatistics } from 'react-icons/fc'
+import { IoBarChartOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import slider1 from '../../../assets/images/slider1.jpg'
 import slider2 from '../../../assets/images/slider2.jpg'
@@ -41,9 +41,9 @@ export default function Statistics() {
 
                 {/* Header */}
                 <div className="flex items-center justify-center mb-10">
-                    <h2 id="statistics-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                    <h2 id="statistics-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         -
-                        <FcStatistics style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)' }} />
+                        <IoBarChartOutline style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)' }} />
                         {t('home.statistics.title')}
                         -
                     </h2>

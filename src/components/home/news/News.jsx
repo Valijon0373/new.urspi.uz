@@ -61,7 +61,7 @@ export default function News() {
                 {/* Header section */}
                 <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center">
                     <div className="relative w-full flex justify-center">
-                        <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-black tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                             -
                             <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
                             {t('home.news.title')}
