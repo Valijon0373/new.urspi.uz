@@ -27,11 +27,13 @@ const navLinks = [
     labelKey: 'navbar.links.institut',
     href: '#',
     dropdown: [
-      { labelKey: 'navbar.links.institut_about', href: '#' },
-      { labelKey: 'navbar.links.rector', href: '#' },
-      { labelKey: 'navbar.links.structure', href: '#' },
-      { labelKey: 'navbar.links.faculties', href: '#' },
-      { labelKey: 'navbar.links.departments', href: '#' },
+      { labelKey: 'Institut tarixi', href: '#' },
+      { labelKey: 'Institut nizomi', href: '#' },
+      { labelKey: 'Rahbariyat', href: '/rahbariyat' },
+      { labelKey: 'Fakultetlar', href: '#' },
+      { labelKey: 'Kafedralar', href: '#' },
+      { labelKey: 'Markaz va bo‘limlar', href: '#' },
+      { labelKey: 'Jamoatchilik kengashi', href: '#' },
     ],
   },
   {

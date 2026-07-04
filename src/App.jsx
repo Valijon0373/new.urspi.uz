@@ -8,6 +8,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage'
 import AnnouncementDetailPage from './pages/AnnouncementDetailPage'
 import NewsPage from './pages/NewsPage'
 import NewsDetailPage from './pages/NewsDetailPage'
+import RahbariyatPage from './pages/RahbariyatPage'
 import './App.css'
 
 function App() {
@@ -55,6 +56,15 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <NewsDetailPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Rahbariyat sahifasi */}
+        <Route path="/rahbariyat" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <RahbariyatPage />
             <Footer />
           </div>
         } />
