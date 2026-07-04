@@ -11,6 +11,7 @@ import NewsDetailPage from './pages/NewsDetailPage'
 import RahbariyatPage from './pages/RahbariyatPage'
 import FakultetlarPage from './pages/FakultetlarPage'
 import KafedralarPage from './pages/KafedralarPage'
+import FakultetXodimlariPage from './pages/FakultetXodimlariPage'
 import './App.css'
 
 function App() {
@@ -85,6 +86,15 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <KafedralarPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Fakultet xodimlari sahifasi */}
+        <Route path="/fakultet-xodimlari" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <FakultetXodimlariPage />
             <Footer />
           </div>
         } />

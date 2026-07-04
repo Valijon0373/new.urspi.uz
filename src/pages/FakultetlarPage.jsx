@@ -1,5 +1,6 @@
 import React from 'react'
-import { ChevronRight, Users, Layers, BookOpen } from 'lucide-react'
+import { ChevronRight, Users, Layers } from 'lucide-react'
+import { BsInfoCircle } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
 import facultyImg from '../assets/images/logo1.jpg' // Generic placeholder for faculty image
 
@@ -36,17 +37,17 @@ const FacultyCard = ({ faculty }) => (
       </div>
 
       <div className="mt-auto pt-2 space-y-2">
-        <button className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+        <Link to="/fakultet-xodimlari" className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
           <Users size={16} />
           Xodimlar
-        </button>
+        </Link>
         <button className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
           <Layers size={16} />
           Kafedralar
         </button>
         <button className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
-          <BookOpen size={16} />
-          Ta'lim yo'nalishlari
+          <BsInfoCircle size={16} />
+          Batafsil
         </button>
       </div>
     </div>
@@ -79,7 +80,7 @@ export default function FakultetlarPage() {
 
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
-          
+
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-[#0c1f4a]">Fakultetlar</h1>
             <p className="text-slate-500 mt-3 max-w-2xl mx-auto">Urganch davlat pedagogika institutidagi mavjud fakultetlar va ularning tuzilmasi bilan tanishing.</p>
