@@ -9,6 +9,8 @@ import AnnouncementDetailPage from './pages/AnnouncementDetailPage'
 import NewsPage from './pages/NewsPage'
 import NewsDetailPage from './pages/NewsDetailPage'
 import RahbariyatPage from './pages/RahbariyatPage'
+import FakultetlarPage from './pages/FakultetlarPage'
+import KafedralarPage from './pages/KafedralarPage'
 import './App.css'
 
 function App() {
@@ -65,6 +67,24 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <RahbariyatPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Fakultetlar sahifasi */}
+        <Route path="/fakultetlar" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <FakultetlarPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Kafedralar sahifasi */}
+        <Route path="/kafedralar" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <KafedralarPage />
             <Footer />
           </div>
         } />
