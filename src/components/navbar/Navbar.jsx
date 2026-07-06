@@ -33,7 +33,7 @@ const navLinks = [
       { labelKey: 'Fakultetlar', href: '/fakultetlar' },
       { labelKey: 'Kafedralar', href: '/kafedralar' },
       { labelKey: 'Markaz va bo‘limlar', href: '/markazlar' },
-      { labelKey: 'Jamoatchilik kengashi', href: '#' },
+      { labelKey: 'Me\'yoriy hujjatlar', href: '/meyoriy-hujjatlar' },
     ],
   },
   {
@@ -141,19 +141,19 @@ function Navbar() {
             <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
             <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
             <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
-            
+
             <div className="relative">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setLangOpen(!langOpen)}
-                className="flex h-9 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-white transition hover:bg-white/20" 
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-white transition hover:bg-white/20"
                 aria-label={t('navbar.select_lang')}
               >
                 <img src={currentLang === 'ru' ? ruFlag : currentLang === 'en' ? enFlag : uzFlag} alt="flag" className="w-5 h-5 rounded-full object-cover" />
                 <span className="text-xs font-semibold uppercase">{currentLang}</span>
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {langOpen && (
                 <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 bg-[#0c1f4a]/90 py-1.5 shadow-xl backdrop-blur-xl">
                   <button onClick={() => changeLanguage('uz')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
@@ -171,10 +171,10 @@ function Navbar() {
                 </div>
               )}
             </div>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setAccessibilityOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500" 
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500"
               aria-label={t('navbar.accessibility')}
             >
               <IoAccessibilityOutline className="h-4 w-4" />
@@ -335,9 +335,9 @@ function Navbar() {
       </div>
 
       {/* ── 4. ACCESSIBILITY DRAWER ── */}
-      <AccessibilityDrawer 
-        isOpen={accessibilityOpen} 
-        onClose={() => setAccessibilityOpen(false)} 
+      <AccessibilityDrawer
+        isOpen={accessibilityOpen}
+        onClose={() => setAccessibilityOpen(false)}
       />
     </header>
   )

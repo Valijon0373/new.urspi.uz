@@ -17,6 +17,7 @@ import FakultetDetailPage from './pages/FakultetDetailPage'
 import MarkazlarPage from './pages/MarkazlarPage'
 import MarkazXodimlariPage from './pages/MarkazXodimlariPage'
 import XodimProfilePage from './pages/XodimProfilePage'
+import MeyoriyHujjatlarPage from './pages/MeyoriyHujjatlarPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/ScrollToTop'
 import './App.css'
@@ -139,6 +140,15 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <MarkazXodimlariPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Meyoriy hujjatlar sahifasi */}
+        <Route path="/meyoriy-hujjatlar" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MeyoriyHujjatlarPage />
             <Footer />
           </div>
         } />
