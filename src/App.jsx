@@ -12,6 +12,8 @@ import RahbariyatPage from './pages/RahbariyatPage'
 import FakultetlarPage from './pages/FakultetlarPage'
 import KafedralarPage from './pages/KafedralarPage'
 import FakultetXodimlariPage from './pages/FakultetXodimlariPage'
+import KafedraXodimlariPage from './pages/KafedraXodimlariPage'
+import FakultetDetailPage from './pages/FakultetDetailPage'
 import './App.css'
 
 function App() {
@@ -95,6 +97,24 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <FakultetXodimlariPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Kafedra xodimlari sahifasi */}
+        <Route path="/kafedra-xodimlari" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <KafedraXodimlariPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Fakultet haqida sahifasi */}
+        <Route path="/fakultet-haqida" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <FakultetDetailPage />
             <Footer />
           </div>
         } />

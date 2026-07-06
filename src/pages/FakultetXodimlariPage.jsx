@@ -93,18 +93,18 @@ export default function FakultetXodimlariPage() {
               </div>
 
               {/* Contact Info Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
                 <div>
                   <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     <DeskPhoneIcon size={18} /> Telefon raqam:
                   </div>
-                  <div className="text-slate-700 font-semibold">+998 90 184 11 91</div>
+                  <div className="text-slate-700 font-semibold">+998 94 237 03 73</div>
                 </div>
                 <div>
                   <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     <HiOutlineMail size={20} /> Elektron pochta:
                   </div>
-                  <div className="text-slate-700 font-semibold">qwertyuha.sas@mail.ru</div>
+                  <div className="text-slate-700 font-semibold">sss999@gmail.com</div>
                 </div>
               </div>
 

@@ -131,12 +131,13 @@ export default function KafedralarPage() {
                     {/* Departments List */}
                     <div className="flex flex-col w-full bg-white">
                       {faculty.departments.map((dep, idx) => (
-                        <div 
+                        <Link 
+                          to="/kafedra-xodimlari"
                           key={idx} 
-                          className="border border-t-0 border-slate-200 px-5 py-3.5 text-[13px] sm:text-[14px] text-[#5b87b7] font-medium transition-all duration-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/80 hover:-translate-y-[2px] hover:text-[#0c1f4a] cursor-pointer relative hover:z-10"
+                          className="block border border-t-0 border-slate-200 px-5 py-3.5 text-[13px] sm:text-[14px] text-[#5b87b7] font-medium transition-all duration-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/80 hover:-translate-y-[2px] hover:text-[#0c1f4a] cursor-pointer relative hover:z-10"
                         >
                           {dep}
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
