@@ -15,12 +15,16 @@ import FakultetXodimlariPage from './pages/FakultetXodimlariPage'
 import KafedraXodimlariPage from './pages/KafedraXodimlariPage'
 import FakultetDetailPage from './pages/FakultetDetailPage'
 import MarkazlarPage from './pages/MarkazlarPage'
+import MarkazXodimlariPage from './pages/MarkazXodimlariPage'
+import XodimProfilePage from './pages/XodimProfilePage'
 import AiAgent from './components/home/ai-agent/AiAgent'
+import ScrollToTop from './components/ScrollToTop'
 import './App.css'
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Asosiy sahifa */}
         <Route path="/" element={
@@ -126,6 +130,24 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <MarkazlarPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Markaz xodimlari sahifasi */}
+        <Route path="/markazlar/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MarkazXodimlariPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Xodim profili sahifasi */}
+        <Route path="/xodim/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <XodimProfilePage />
             <Footer />
           </div>
         } />

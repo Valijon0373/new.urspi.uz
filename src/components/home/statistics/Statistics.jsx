@@ -65,7 +65,7 @@ export default function Statistics() {
                                 key={idx}
                                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === bgIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                             >
-                                <img src={img} alt="Universitet ko'rinishi" className="w-full h-full object-cover" />
+                                <img src={img} alt="Institut ko'rinishi" className="w-full h-full object-cover" />
                             </div>
                         ))}
                     </div>

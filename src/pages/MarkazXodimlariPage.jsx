@@ -2,7 +2,8 @@ import React from 'react'
 import { ChevronRight, ArrowRight } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { centers } from './MarkazlarPage'
 import menImg from '../assets/men.jpg'
 import placeholderImg from '../assets/images/bg23.jpg' // Use as fallback for other staff
 
@@ -22,7 +23,7 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   </svg>
 )
 
-const StaffCard = ({ name, degree, position, img }) => (
+const StaffCard = ({ id = '1', name, phone, position, img }) => (
   <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
     <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
       <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" />
@@ -31,15 +32,12 @@ const StaffCard = ({ name, degree, position, img }) => (
       <h4 className="text-[13px] md:text-[14px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-snug mb-3">
         {name}
       </h4>
-      <p className="text-slate-600 text-[13px] mb-1">
-        {degree}
-      </p>
-      <p className="text-slate-600 text-[13px] mb-6">
+      <p className="text-slate-600 text-[13px] mb-6 font-medium leading-snug">
         {position}
       </p>
       
       <div className="mt-auto">
-        <Link to="/xodim/1" className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
+        <Link to={`/xodim/${id}`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
           Batafsil <ArrowRight size={14} />
         </Link>
       </div>
@@ -47,7 +45,11 @@ const StaffCard = ({ name, degree, position, img }) => (
   </div>
 )
 
-export default function KafedraXodimlariPage() {
+export default function MarkazXodimlariPage() {
+  const { id } = useParams();
+  const centerInfo = centers.find(c => c.id === parseInt(id));
+  const centerTitle = centerInfo ? centerInfo.title : "Bo'lim nomi topilmadi";
+
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
       {/* Header Banner */}
@@ -63,15 +65,15 @@ export default function KafedraXodimlariPage() {
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <Link to="/kafedralar" className="hover:text-white transition-colors">
-                    Kafedralar
+                  <Link to="/markazlar" className="hover:text-white transition-colors">
+                    Markazlar va bo'limlar
                   </Link>
                 </div>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Kafedra xodimlari</span>
+                  <span className="text-white font-medium">Bo'lim xodimlari</span>
                 </div>
               </li>
             </ol>
@@ -82,9 +84,16 @@ export default function KafedraXodimlariPage() {
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Kafedra mudiri Section */}
+          {/* Bo'lim nomi */}
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0c1f4a] uppercase">
+              {centerTitle}
+            </h1>
+          </div>
+
+          {/* Bo'lim boshlig'i Section */}
           <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-            Kafedra mudiri
+            Bo'lim boshlig'i
           </div>
 
           <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative">
@@ -100,7 +109,7 @@ export default function KafedraXodimlariPage() {
               <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
                 <img
                   src={menImg}
-                  alt="Mudir"
+                  alt="Boshliq"
                   className="w-full h-full object-cover object-top"
                 />
               </div>
@@ -110,10 +119,10 @@ export default function KafedraXodimlariPage() {
             <div className="flex-1 flex flex-col h-full w-full">
               <div className="mb-6 mt-2 text-center md:text-left pr-0 md:pr-[120px]">
                 <h3 className="text-[20px] md:text-[24px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                  ABDULLAYEV ALISHER
+                  {centerInfo?.headName || "OBIDOV JAHONGIR"}
                 </h3>
                 <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                  Kafedra mudiri, Dotsent
+                  Bo'lim boshlig'i
                 </p>
               </div>
 
@@ -129,7 +138,7 @@ export default function KafedraXodimlariPage() {
                   <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     <HiOutlineMail size={20} /> Elektron pochta:
                   </div>
-                  <div className="text-slate-700 font-semibold">alisher.a@gmail.com</div>
+                  <div className="text-slate-700 font-semibold">jahongir.o@gmail.com</div>
                 </div>
               </div>
 
@@ -142,60 +151,103 @@ export default function KafedraXodimlariPage() {
             </div>
           </div>
 
-          {/* Kafedra xodimlari Section */}
+          {/* Xodimlar Section */}
           <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 mt-12 text-[18px] sm:text-[20px]">
-            Kafedra xodimlari
+            Bo'lim xodimlari
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StaffCard 
-              name="BAXTIYOROV SARDOR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
+              id="davlatmuratov"
+              name="Davlatmuratov Valijon To'lqin o'g'li"
+              position="Muxandis dasturchi 1- toifa"
+              phone="+998 94 237 03 73"
               img={menImg}
             />
             <StaffCard 
-              name="JALOLOV RUSTAM"
-              degree="Falsafa doktori (PhD)"
-              position="O'qituvchi"
+              id="matyaqubov"
+              name="Matyaqubov Odilbek O‘ktamovich"
+              position="Muhandis-dasturchi 1-toifali"
+              phone="+998 97 606 14 21"
               img={menImg}
             />
             <StaffCard 
-              name="YUSUPOV NODIR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
+              id="bobojonov"
+              name="Bobojonov Ahmad Anvar o'g'li"
+              position="Tarmoq administratori"
+              phone="+998 93 745 06 15"
               img={menImg}
             />
             <StaffCard 
-              name="KARIMOV AZIZ"
-              degree="Magistr"
-              position="Assistent"
+              id="jumaniyozov"
+              name="Jumaniyozov Jahongir Polvonovich"
+              position="Kontent menejer"
+              phone="+998 99 745 91 20"
               img={menImg}
             />
             <StaffCard 
-              name="XOLMATOV ELDOR"
-              degree="Falsafa doktori (PhD)"
-              position="Dotsent"
+              id="baltabayev"
+              name="Baltabayev Doniyor Marat o'g'li"
+              position="Bo‘lim boshlig‘i"
+              phone="+998 99 022 81 28"
               img={menImg}
             />
             <StaffCard 
-              name="RAHIMOV BOTIR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
+              id="abdullayev"
+              name="Abdullayev Otajon Otabek o'g'li"
+              position="Tarmoq administratori"
+              phone="+998 88 357 95 65"
               img={menImg}
             />
             <StaffCard 
-              name="TOSHEV QODIR"
-              degree="Magistr"
-              position="O'qituvchi"
+              id="ismailov"
+              name="Ismailov Umrbek Ravshanovich"
+              position="Bo'lim boshlig'i"
+              phone="+998 91 422 41 44"
               img={menImg}
             />
             <StaffCard 
-              name="USMONOV ALISHER"
-              degree="Magistr"
-              position="Stajyor-o'qituvchi"
+              id="otaboyev"
+              name="Otaboyev Akbar Ilxambek o`g`li"
+              position="Muxandis dasturchi 1- toifa"
+              phone="+998-97-221-88-96"
               img={menImg}
             />
+          </div>
+
+          {/* Bo'lim maqsadi Section */}
+          <div className="mt-16 mb-6">
+            <h2 className="text-center font-bold text-[#0c1f4a] text-[18px] sm:text-[20px] mb-6">Bo'lim maqsadi</h2>
+            <div className="bg-slate-100 rounded-xl p-8 text-center relative shadow-sm">
+              <div className="text-[#0c1f4a]/20 text-7xl font-serif leading-none h-10 overflow-visible mx-auto mb-2 select-none">“</div>
+              <p className="text-slate-700 text-[15px] relative z-10 leading-relaxed max-w-4xl mx-auto font-medium">
+                Axborot texnologiyalari bo'limining asosiy maqsadi — institutda zamonaviy axborot-kommunikatsiya texnologiyalarini joriy etish, ta'lim va ilmiy jarayonlarni raqamlashtirish, samarali axborot tizimlarini yaratish hamda axborot xavfsizligini ta'minlashdir.
+              </p>
+            </div>
+          </div>
+
+          {/* Bo'lim vazifalari Section */}
+          <div className="mt-16 mb-10">
+            <h2 className="text-center font-bold text-[#0c1f4a] text-[18px] sm:text-[20px] mb-6">Bo'lim vazifalari</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                "Institutdagi barcha axborot tizimlari va tarmoqlarini samarali boshqarish.",
+                "O'quv jarayonida zamonaviy texnologiyalarni keng qo'llash va elektron ta'lim tizimini rivojlantirish.",
+                "Talabalar, professor-o'qituvchilar va xodimlarga axborot texnologiyalari bo'yicha texnik yordam ko'rsatish.",
+                "Institutning rasmiy veb-sayti, elektron pochta va ichki platformalarini qo'llab-quvvatlash va yangilab borish.",
+                "Axborot xavfsizligini ta'minlash, ma'lumotlarni himoya qilish va zaxiralash tizimlarini joriy etish.",
+                "Innovatsion IT loyihalarni ishlab chiqish va ularni ta'lim hamda boshqaruv jarayoniga tatbiq etish."
+              ].map((task, index) => (
+                <div key={index} className="group bg-white rounded-xl p-6 border border-slate-200 text-center shadow-sm hover:shadow-xl hover:border-[#0c1f4a]/30 hover:-translate-y-1.5 transition-all duration-300 cursor-default">
+                  <div className="w-12 h-12 bg-slate-100 text-[#0c1f4a] group-hover:bg-[#0c1f4a] group-hover:text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4 transition-colors duration-300">
+                    {index + 1}
+                  </div>
+                  <p className="text-slate-600 group-hover:text-slate-800 text-[14px] leading-relaxed transition-colors duration-300">
+                    {task}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>

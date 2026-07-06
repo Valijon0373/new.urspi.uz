@@ -2,7 +2,7 @@ import React from 'react'
 import { ChevronRight, ArrowRight, BookOpen, GraduationCap, Library, Users, Award, Briefcase, Heart, Star, Scale, Globe, Shield, Monitor } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-const centers = [
+export const centers = [
   {
     id: 1,
     title: "TA'LIM SIFATINI NAZORAT QILISH BO'LIMI",
@@ -93,11 +93,12 @@ const centers = [
   },
   {
     id: 12,
-    title: "AXBOROT TEXNOLOGIYALARI BO'LIMI",
+    title: "RAQAMLI TA'LIM TEXNOLOGIYALARI MARKAZI",
     description: "Axborot texnologiyalari sohasidagi faoliyatni tashkil etadi va qo'llab-quvvatlaydi.",
     icon: <Monitor className="w-10 h-10 text-blue-600" />,
     borderColor: "border-t-blue-600",
-    iconBg: "bg-blue-50"
+    iconBg: "bg-blue-50",
+    headName: "MATSAPAYEV ODILBEK BAXTIYOR O'G'LI"
   }
 ];
 
@@ -125,7 +126,7 @@ export default function MarkazlarPage() {
               Markazlar va bo'limlar
             </h1>
             <p className="text-slate-500 text-[15px] md:text-base">
-              Universitetimizning markazlari va bo'limlari bilan tanishing.
+              Institutimizning markazlari va bo'limlari bilan tanishing.
             </p>
           </div>
 
@@ -151,7 +152,7 @@ export default function MarkazlarPage() {
                   
                   <div className="mt-auto">
                     <Link 
-                      to="#" 
+                      to={`/markazlar/${center.id}`} 
                       className="inline-flex items-center gap-2 text-blue-600 font-bold text-[13px] hover:text-[#0c1f4a] transition-colors"
                     >
                       Batafsil <ArrowRight size={16} />
