@@ -14,6 +14,8 @@ import KafedralarPage from './pages/KafedralarPage'
 import FakultetXodimlariPage from './pages/FakultetXodimlariPage'
 import KafedraXodimlariPage from './pages/KafedraXodimlariPage'
 import FakultetDetailPage from './pages/FakultetDetailPage'
+import MarkazlarPage from './pages/MarkazlarPage'
+import AiAgent from './components/home/ai-agent/AiAgent'
 import './App.css'
 
 function App() {
@@ -119,12 +121,22 @@ function App() {
           </div>
         } />
 
+        {/* Markazlar va bo'limlar sahifasi */}
+        <Route path="/markazlar" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MarkazlarPage />
+            <Footer />
+          </div>
+        } />
+
         {/* Admin kirish sahifasi */}
         <Route path="/admin" element={<AdminLogin />} />
 
         {/* Dashboard sahifasi */}
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
+      <AiAgent />
     </Router>
   )
 }

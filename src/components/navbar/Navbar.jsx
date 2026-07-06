@@ -32,7 +32,7 @@ const navLinks = [
       { labelKey: 'Rahbariyat', href: '/rahbariyat' },
       { labelKey: 'Fakultetlar', href: '/fakultetlar' },
       { labelKey: 'Kafedralar', href: '/kafedralar' },
-      { labelKey: 'Markaz va bo‘limlar', href: '#' },
+      { labelKey: 'Markaz va bo‘limlar', href: '/markazlar' },
       { labelKey: 'Jamoatchilik kengashi', href: '#' },
     ],
   },
