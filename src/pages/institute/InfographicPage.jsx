@@ -63,6 +63,7 @@ const faculties = [
     title: 'I. Aniq amaliy fanlar fakulteti',
     icon: Calculator,
     color: 'text-blue-600',
+    dotColor: 'bg-blue-600',
     borderColor: 'border-blue-200',
     bgColor: 'bg-blue-50/30',
     departments: [
@@ -77,6 +78,7 @@ const faculties = [
     title: 'II. Pedagogika fakulteti',
     icon: Presentation,
     color: 'text-emerald-600',
+    dotColor: 'bg-emerald-600',
     borderColor: 'border-emerald-200',
     bgColor: 'bg-emerald-50/30',
     departments: [
@@ -89,6 +91,7 @@ const faculties = [
     title: 'III. Filologiya fakulteti',
     icon: BookType,
     color: 'text-purple-600',
+    dotColor: 'bg-purple-600',
     borderColor: 'border-purple-200',
     bgColor: 'bg-purple-50/30',
     departments: [
@@ -102,6 +105,7 @@ const faculties = [
     title: "IV. Boshlang'ich ta'lim fakulteti",
     icon: Pencil,
     color: 'text-orange-500',
+    dotColor: 'bg-orange-500',
     borderColor: 'border-orange-200',
     bgColor: 'bg-orange-50/30',
     departments: [
@@ -114,6 +118,7 @@ const faculties = [
     title: 'V. Ijtimoiy fanlar fakulteti',
     icon: Landmark,
     color: 'text-teal-600',
+    dotColor: 'bg-teal-600',
     borderColor: 'border-teal-200',
     bgColor: 'bg-teal-50/30',
     departments: [
@@ -291,7 +296,6 @@ export default function InfographicPage() {
         <div className="mt-10">
           <div className="w-full">
             <div className="flex items-center gap-3 mb-6">
-              <GraduationCap className="w-7 h-7 text-blue-800" />
               <h2 className="text-2xl font-bold text-slate-800">Fakultetlar</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -305,7 +309,7 @@ export default function InfographicPage() {
                     <ul className="space-y-3 flex-1 mb-4">
                       {fac.departments.map((dep, dIdx) => (
                         <li key={dIdx} className="flex items-start gap-2">
-                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${fac.color.replace('text-', 'bg-')}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${fac.dotColor}`}></div>
                           <span className="text-xs text-slate-600 leading-tight">{dep}</span>
                         </li>
                       ))}

@@ -4,6 +4,12 @@ import { Plus, Search, Calendar, X, Image as ImageIcon } from 'lucide-react';
 export default function NewsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageIds, setImageIds] = useState([1]);
+  const [activeLang, setActiveLang] = useState('uz');
+  const [formData, setFormData] = useState({
+    title: { uz: '', ru: '', en: '' },
+    content: { uz: '', ru: '', en: '' },
+    author: '©️ UrDPI matbuot xizmati'
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -88,101 +94,144 @@ export default function NewsAdmin() {
 
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              {/* Sarlavha */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Sarlavha
-                </label>
-                <input
-                  type="text"
-                  placeholder="Yangilik sarlavhasini kiriting"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
-                />
+              {/* Language Tabs */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+                {[
+                  { id: 'uz', label: "O'zbekcha" },
+                  { id: 'ru', label: 'Русский' },
+                  { id: 'en', label: 'English' }
+                ].map(lang => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setActiveLang(lang.id)}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                      activeLang === lang.id
+                        ? 'border-[#0eb99c] text-[#0eb99c]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Izoh */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Izoh
-                </label>
-                <textarea
-                  rows="4"
-                  placeholder="Yangilik matnini kiriting"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
-                />
-              </div>
+              {(() => {
+                const text = {
+                  uz: { titleLabel: "Sarlavha", titlePl: "Yangilik sarlavhasini kiriting", contentLabel: "Izoh", contentPl: "Yangilik matnini kiriting", authorLabel: "Muallif" },
+                  ru: { titleLabel: "Заголовок", titlePl: "Введите заголовок новости", contentLabel: "Текст", contentPl: "Введите текст новости", authorLabel: "Автор" },
+                  en: { titleLabel: "Title", titlePl: "Enter news title", contentLabel: "Content", contentPl: "Enter news content", authorLabel: "Author" }
+                }[activeLang];
 
-              {/* Rasm yuklash */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                  Rasm yuklash (maksimal 5 ta)
-                </label>
+                return (
+                  <>
+                    {/* Sarlavha */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {text.titleLabel}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title[activeLang]}
+                        onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
+                        placeholder={text.titlePl}
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                      />
+                    </div>
 
-                <div className="space-y-4">
-                  {imageIds.map((id, index) => {
-                    const isLast = index === imageIds.length - 1;
-                    return (
-                      <div key={id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        {/* Upload box */}
-                        <div className="flex-1 w-full flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
-                          <div className="text-center">
-                            <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
-                            <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
-                              <label
-                                className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
-                              >
-                                <span>{index === 0 ? "Asosiy rasm yuklash" : `${index + 1}-rasm yuklash`}</span>
-                                <input type="file" className="sr-only" accept="image/*" />
-                              </label>
-                            </div>
-                          </div>
-                        </div>
+                    {/* Izoh */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {text.contentLabel}
+                      </label>
+                      <textarea
+                        rows="4"
+                        value={formData.content[activeLang]}
+                        onChange={e => setFormData({ ...formData, content: { ...formData.content, [activeLang]: e.target.value } })}
+                        placeholder={text.contentPl}
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
+                      />
+                    </div>
 
-                        {/* Actions */}
-                        <div className="flex flex-col gap-3 shrink-0 sm:w-[100px] w-full items-start">
-                          {isLast && imageIds.length < 5 && (
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="checkbox" 
-                                id={`extra-image-${id}`}
-                                checked={false}
-                                onChange={() => setImageIds(prev => [...prev, Date.now()])}
-                                className="w-4 h-4 text-[#0eb99c] rounded focus:ring-[#0eb99c] border-slate-300 dark:border-slate-600 cursor-pointer"
-                              />
-                              <label htmlFor={`extra-image-${id}`} className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                                yana
-                              </label>
-                            </div>
-                          )}
+                    {/* Rasm yuklash faqat UZ da chiqadi */}
+                    {activeLang === 'uz' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                          Rasm yuklash (maksimal 5 ta)
+                        </label>
 
-                          {isLast && index > 0 && (
-                            <button 
-                              type="button"
-                              onClick={() => setImageIds(prev => prev.filter(imgId => imgId !== id))}
-                              className="text-sm font-medium text-red-500 hover:text-red-600 text-left flex items-center gap-1 transition-colors whitespace-nowrap"
-                            >
-                              <X className="w-4 h-4" />
-                              Tashlash
-                            </button>
-                          )}
+                        <div className="space-y-4">
+                          {imageIds.map((id, index) => {
+                            const isLast = index === imageIds.length - 1;
+                            return (
+                              <div key={id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                {/* Upload box */}
+                                <div className="flex-1 w-full flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
+                                  <div className="text-center">
+                                    <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
+                                    <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
+                                      <label
+                                        className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
+                                      >
+                                        <span>{index === 0 ? "Asosiy rasm yuklash" : `${index + 1}-rasm yuklash`}</span>
+                                        <input type="file" className="sr-only" accept="image/*" />
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex flex-col gap-3 shrink-0 sm:w-[100px] w-full items-start">
+                                  {isLast && imageIds.length < 5 && (
+                                    <div className="flex items-center gap-2">
+                                      <input 
+                                        type="checkbox" 
+                                        id={`extra-image-${id}`}
+                                        checked={false}
+                                        onChange={() => setImageIds(prev => [...prev, Date.now()])}
+                                        className="w-4 h-4 text-[#0eb99c] rounded focus:ring-[#0eb99c] border-slate-300 dark:border-slate-600 cursor-pointer"
+                                      />
+                                      <label htmlFor={`extra-image-${id}`} className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                                        yana
+                                      </label>
+                                    </div>
+                                  )}
+
+                                  {isLast && index > 0 && (
+                                    <button 
+                                      type="button"
+                                      onClick={() => setImageIds(prev => prev.filter(imgId => imgId !== id))}
+                                      className="text-sm font-medium text-red-500 hover:text-red-600 text-left flex items-center gap-1 transition-colors whitespace-nowrap"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      Tashlash
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    )}
 
-              {/* Xizmat matni */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Muallif
-                </label>
-                <input
-                  type="text"
-                  defaultValue="©️ UrDPI matbuot xizmati"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
-                />
-              </div>
+                    {/* Xizmat matni */}
+                    {activeLang === 'uz' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {text.authorLabel}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.author}
+                          onChange={e => setFormData({ ...formData, author: e.target.value })}
+                          className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Modal Footer */}

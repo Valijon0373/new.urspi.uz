@@ -3,6 +3,12 @@ import { Plus, Search, Calendar, X, Image as ImageIcon } from 'lucide-react';
 
 export default function AnnouncementsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeLang, setActiveLang] = useState('uz');
+  const [formData, setFormData] = useState({
+    title: { uz: '', ru: '', en: '' },
+    content: { uz: '', ru: '', en: '' },
+    author: '©️ UrDPI matbuot xizmati'
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -87,62 +93,105 @@ export default function AnnouncementsAdmin() {
 
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              {/* Sarlavha */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Sarlavha
-                </label>
-                <input
-                  type="text"
-                  placeholder="E'lon sarlavhasini kiriting"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
-                />
+              {/* Language Tabs */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+                {[
+                  { id: 'uz', label: "O'zbekcha" },
+                  { id: 'ru', label: 'Русский' },
+                  { id: 'en', label: 'English' }
+                ].map(lang => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setActiveLang(lang.id)}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                      activeLang === lang.id
+                        ? 'border-[#0eb99c] text-[#0eb99c]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Izoh */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Izoh
-                </label>
-                <textarea
-                  rows="4"
-                  placeholder="E'lon matnini kiriting"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
-                />
-              </div>
+              {(() => {
+                const text = {
+                  uz: { titleLabel: "Sarlavha", titlePl: "E'lon sarlavhasini kiriting", contentLabel: "Izoh", contentPl: "E'lon matnini kiriting", authorLabel: "Muallif" },
+                  ru: { titleLabel: "Заголовок", titlePl: "Введите заголовок объявления", contentLabel: "Текст", contentPl: "Введите текст объявления", authorLabel: "Автор" },
+                  en: { titleLabel: "Title", titlePl: "Enter announcement title", contentLabel: "Content", contentPl: "Enter announcement content", authorLabel: "Author" }
+                }[activeLang];
 
-              {/* Rasm yuklash */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                  Rasm yuklash
-                </label>
-
-                <div className="flex-1 w-full flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
-                  <div className="text-center">
-                    <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
-                    <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
-                      <label
-                        className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
-                      >
-                        <span>Rasm yuklash</span>
-                        <input type="file" className="sr-only" accept="image/*" />
+                return (
+                  <>
+                    {/* Sarlavha */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {text.titleLabel}
                       </label>
+                      <input
+                        type="text"
+                        value={formData.title[activeLang]}
+                        onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
+                        placeholder={text.titlePl}
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                      />
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Xizmat matni */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Muallif
-                </label>
-                <input
-                  type="text"
-                  defaultValue="©️ UrDPI matbuot xizmati"
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
-                />
-              </div>
+                    {/* Izoh */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {text.contentLabel}
+                      </label>
+                      <textarea
+                        rows="4"
+                        value={formData.content[activeLang]}
+                        onChange={e => setFormData({ ...formData, content: { ...formData.content, [activeLang]: e.target.value } })}
+                        placeholder={text.contentPl}
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
+                      />
+                    </div>
+
+                    {/* Rasm yuklash */}
+                    {activeLang === 'uz' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                          Rasm yuklash
+                        </label>
+
+                        <div className="flex-1 w-full flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
+                          <div className="text-center">
+                            <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
+                            <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
+                              <label
+                                className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
+                              >
+                                <span>Rasm yuklash</span>
+                                <input type="file" className="sr-only" accept="image/*" />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Xizmat matni */}
+                    {activeLang === 'uz' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {text.authorLabel}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.author}
+                          onChange={e => setFormData({ ...formData, author: e.target.value })}
+                          className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Modal Footer */}
