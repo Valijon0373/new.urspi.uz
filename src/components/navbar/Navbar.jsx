@@ -28,7 +28,7 @@ const navLinks = [
     labelKey: 'navbar.links.institut',
     href: '#',
     dropdown: [
-      { labelKey: 'Institut tarixi', href: '#' },
+      { labelKey: 'Institut tarixi', href: '/infografika' },
       { labelKey: 'Institut nizomi', href: '#' },
       { labelKey: 'Rahbariyat', href: '/rahbariyat' },
       { labelKey: 'Fakultetlar', href: '/fakultetlar' },

@@ -19,6 +19,7 @@ import MarkazXodimlariPage from './pages/institute/MarkazXodimlariPage'
 import XodimProfilePage from './pages/institute/XodimProfilePage'
 import MeyoriyHujjatlarPage from './pages/institute/MeyoriyHujjatlarPage'
 import GreenInstitute from './pages/green-institute/GreenInstitute'
+import InfographicPage from './pages/institute/InfographicPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/ScrollToTop'
 import './App.css'
@@ -174,6 +175,15 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <GreenInstitute />
+            <Footer />
+          </div>
+        } />
+
+        {/* Infografika sahifasi */}
+        <Route path="/infografika" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <InfographicPage />
             <Footer />
           </div>
         } />
