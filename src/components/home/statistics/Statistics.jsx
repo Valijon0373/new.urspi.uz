@@ -54,8 +54,8 @@ export default function Statistics() {
 
                     {/* Left Column */}
                     <div className="flex flex-col gap-6 lg:col-span-1">
-                        <StatCard title={t('home.statistics.directions')} value="50" Icon={FaBookOpenReader} />
-                        <StatCard title={t('home.statistics.students')} value="9000" Icon={PiUsers} />
+                        <StatCard title={t('home.statistics.directions')} value="19" Icon={FaBookOpenReader} />
+                        <StatCard title={t('home.statistics.students')} value="8317" Icon={PiUsers} />
                     </div>
 
                     {/* Middle Column (Slider) */}

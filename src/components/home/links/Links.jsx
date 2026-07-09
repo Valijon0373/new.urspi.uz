@@ -8,6 +8,9 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { Link } from 'lucide-react';
 import { PiLinkSimple } from 'react-icons/pi';
 import { useTranslation } from 'react-i18next';
+import mygovImg from '../../../assets/links/mygov.png';
+import gerbImg from '../../../assets/links/Gerb.jpeg';
+import lexuzImg from '../../../assets/links/lexuz.png';
 
 const Links = () => {
   const { t } = useTranslation();
@@ -30,25 +33,31 @@ const Links = () => {
       id: 1,
       title: "Yagona interaktiv davlat xizmatlari portali",
       url: "https://my.gov.uz/ru",
-      image: "https://my.gov.uz/img/logo_ru.svg"
+      image: mygovImg
     },
     {
       id: 2,
       title: "O'zbekiston Respublikasi Prezidenti",
       url: "https://president.uz/oz",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Emblem_of_Uzbekistan.svg/100px-Emblem_of_Uzbekistan.svg.png"
+      image: gerbImg
     },
     {
       id: 3,
       title: "O'zbekiston Respublikasi ochiq ma'lumotlar portali",
       url: "https://data.egov.uz/",
-      image: "https://data.egov.uz/favicon.ico"
+      image: gerbImg
     },
     {
       id: 4,
+      title: "O`zbekiston Respublikasi Qonunchilik ma`lumotlari milliy bazasi",
+      url: "http://lex.uz/",
+      image: lexuzImg
+    },
+    {
+      id: 5,
       title: "Normativ-huquqiy hujjatlar loyihalarini muhokama qilish",
       url: "https://regulation.gov.uz/",
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Emblem_of_Uzbekistan.svg/100px-Emblem_of_Uzbekistan.svg.png"
+      image: gerbImg
     }
   ];
 
