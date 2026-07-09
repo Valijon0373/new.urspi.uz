@@ -3,12 +3,16 @@ import { Phone, Mail, MapPin } from 'lucide-react'
 import { FiSend, FiInstagram, FiYoutube, FiFacebook } from 'react-icons/fi'
 import { IoBusOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import logo from '../../assets/images/logo1.jpg'
 
 export default function Footer() {
     const { t } = useTranslation()
+    const location = useLocation()
+    const isGreenTheme = location.pathname.includes('/green-institute')
+    
     return (
-        <footer className="w-full bg-[#0a3161] py-10 md:py-16 text-white font-medium text-sm">
+        <footer className={`w-full py-10 md:py-16 text-white font-medium text-sm transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0a3161]'}`}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
 

@@ -5,6 +5,7 @@ import { TfiYoutube } from 'react-icons/tfi'
 import { IoAccessibilityOutline } from 'react-icons/io5'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import logoImg from '../../assets/images/logo.png'
 import bgImg from '../../assets/images/background.jpg'
 import uzFlag from '../../assets/images/uz.png'
@@ -96,6 +97,9 @@ function SocialLink({ href, label, children }) {
 
 function Navbar() {
   const { t, i18n } = useTranslation()
+  const location = useLocation()
+  const isGreenTheme = location.pathname.includes('/green-institute')
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpenIdx, setMobileOpenIdx] = useState(null)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -108,7 +112,7 @@ function Navbar() {
   }, [searchOpen])
 
   const glassNavClass =
-    'rounded-2xl border border-white/20 bg-[#1a2f55]/70 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-xl'
+    `rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/80' : 'bg-[#1a2f55]/70'}`
 
   const openSearch = () => {
     setMenuOpen(false)
@@ -130,7 +134,7 @@ function Navbar() {
   return (
     <header className="relative w-full z-50">
       {/* ── 1. TOP BAR ── */}
-      <div className="sticky top-0 z-50 bg-[#0c1f4a] px-4 py-3 lg:px-8">
+      <div className={`sticky top-0 z-50 px-4 py-3 lg:px-8 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
           <p className="flex items-start gap-1.5 text-left text-[11px] leading-snug text-white sm:items-center sm:text-xs">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:mt-0" />
@@ -155,7 +159,7 @@ function Navbar() {
               </button>
 
               {langOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 bg-[#0c1f4a]/90 py-1.5 shadow-xl backdrop-blur-xl">
+                <div className={`absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 py-1.5 shadow-xl backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/90' : 'bg-[#0c1f4a]/90'}`}>
                   <button onClick={() => changeLanguage('uz')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
                     <img src={uzFlag} alt="UZ" className="w-5 h-5 rounded-full object-cover" />
                     O'zbek
@@ -188,7 +192,7 @@ function Navbar() {
         className="relative px-4 py-5 lg:px-8 lg:py-6"
         style={{ backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
-        <div className="absolute inset-0 bg-[#0c1f4a]/30" />
+        <div className={`absolute inset-0 transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/50' : 'bg-[#0c1f4a]/30'}`} />
         <div className="relative z-10 mx-auto flex max-w-[1400px] justify-start">
           <a href="#">
             <img src={logoImg} alt="URSPI Logo" className="h-22 w-auto" />
@@ -197,7 +201,7 @@ function Navbar() {
       </div>
 
       {/* ── 3. MAIN NAV BAR ── */}
-      <div className="bg-[#0c1f4a] px-3 py-4 sm:px-4 lg:px-5">
+      <div className={`px-3 py-4 sm:px-4 lg:px-5 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
         <nav className={`w-full ${glassNavClass}`}>
           {searchOpen ? (
             <div className="flex items-center gap-3 px-5 py-3.5 lg:px-6 lg:py-4">
@@ -238,17 +242,17 @@ function Navbar() {
                         <>
                           <button
                             type="button"
-                            className="flex items-center gap-1 rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white transition hover:bg-white/10 xl:px-3 xl:text-[13px]"
+                            className={`flex items-center gap-1 rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                           >
                             <span className="whitespace-nowrap">{t(link.labelKey)}</span>
                             <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80 transition-transform group-hover:rotate-180" />
                           </button>
-                          <ul className="invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 bg-[#0c1f4a]/90 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all group-hover:visible group-hover:opacity-100">
+                          <ul className={`invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
                             {link.dropdown.map((item) => (
                               <li key={item.labelKey}>
                                 <a
                                   href={item.href}
-                                  className="block px-4 py-2.5 text-left text-[13px] normal-case text-white/85 transition hover:bg-white/10 hover:text-white"
+                                  className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
                                 >
                                   {t(item.labelKey)}
                                 </a>
@@ -259,7 +263,7 @@ function Navbar() {
                       ) : (
                         <a
                           href={link.href}
-                          className="block rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white transition hover:bg-white/10 xl:px-3 xl:text-[13px] whitespace-nowrap"
+                          className={`block rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition whitespace-nowrap xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                         >
                           {t(link.labelKey)}
                         </a>
@@ -291,7 +295,7 @@ function Navbar() {
                           <>
                             <button
                               type="button"
-                              className="flex w-full items-center justify-between rounded-lg px-2 py-2.5 text-left text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10"
+                              className={`flex w-full items-center justify-between rounded-lg px-2 py-2.5 text-left text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                               onClick={() => setMobileOpenIdx(mobileOpenIdx === idx ? null : idx)}
                             >
                               {t(link.labelKey)}
@@ -305,7 +309,7 @@ function Navbar() {
                                   <li key={item.labelKey}>
                                     <a
                                       href={item.href}
-                                      className="block rounded-lg px-2 py-2 text-sm normal-case text-white/80 transition hover:bg-white/10 hover:text-white"
+                                      className={`block rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
                                       onClick={() => setMenuOpen(false)}
                                     >
                                       {t(item.labelKey)}
@@ -318,7 +322,7 @@ function Navbar() {
                         ) : (
                           <a
                             href={link.href}
-                            className="block rounded-lg px-2 py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10"
+                            className={`block rounded-lg px-2 py-2.5 text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                             onClick={() => setMenuOpen(false)}
                           >
                             {t(link.labelKey)}
