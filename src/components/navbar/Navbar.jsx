@@ -41,10 +41,11 @@ const navLinks = [
     labelKey: 'navbar.links.activity',
     href: '#',
     dropdown: [
-      { labelKey: 'navbar.links.science', href: '#' },
-      { labelKey: 'navbar.links.education', href: '#' },
-      { labelKey: 'navbar.links.international', href: '#' },
-      { labelKey: 'navbar.links.projects', href: '#' },
+      { labelKey: 'Kengash', href: '#' },
+      { labelKey: "Moliya bo'limi", href: '#' },
+      { labelKey: "Ma'naviyat", href: '#' },
+      { labelKey: 'Institutga Ishga qabul', href: '#' },
+      { labelKey: 'Ilmiy va innovatsion faoliyat', href: '#' },
     ],
   },
   {
