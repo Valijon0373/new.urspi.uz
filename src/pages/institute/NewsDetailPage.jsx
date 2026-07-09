@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import slider1 from '../assets/images/slider1.jpg';
-import slider2 from '../assets/images/slider2.jpg';
-import urspiImage from '../assets/images/urspi_new.png';
+import slider1 from '../../assets/images/slider1.jpg';
+import slider2 from '../../assets/images/slider2.jpg';
+import urspiImage from '../../assets/images/urspi_new.png';
 
 export default function NewsDetailPage() {
     const { id } = useParams();

@@ -57,7 +57,7 @@ const navLinks = [
     ],
   },
   { labelKey: 'navbar.links.admission', href: '#', dropdown: null },
-  { labelKey: 'navbar.links.green_uni', href: '#', dropdown: null },
+  { labelKey: 'navbar.links.green_uni', href: '/green-institute', dropdown: null },
   {
     labelKey: 'navbar.links.foreign',
     href: '#',

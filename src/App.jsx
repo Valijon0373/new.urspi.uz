@@ -4,20 +4,21 @@ import Home from './components/home/Home'
 import Footer from './components/footer/Footer'
 import AdminLogin from './components/dashboard/AdminLogin'
 import Dashboard from './components/dashboard/Dashboard'
-import AnnouncementsPage from './pages/AnnouncementsPage'
-import AnnouncementDetailPage from './pages/AnnouncementDetailPage'
-import NewsPage from './pages/NewsPage'
-import NewsDetailPage from './pages/NewsDetailPage'
-import RahbariyatPage from './pages/RahbariyatPage'
-import FakultetlarPage from './pages/FakultetlarPage'
-import KafedralarPage from './pages/KafedralarPage'
-import FakultetXodimlariPage from './pages/FakultetXodimlariPage'
-import KafedraXodimlariPage from './pages/KafedraXodimlariPage'
-import FakultetDetailPage from './pages/FakultetDetailPage'
-import MarkazlarPage from './pages/MarkazlarPage'
-import MarkazXodimlariPage from './pages/MarkazXodimlariPage'
-import XodimProfilePage from './pages/XodimProfilePage'
-import MeyoriyHujjatlarPage from './pages/MeyoriyHujjatlarPage'
+import AnnouncementsPage from './pages/institute/AnnouncementsPage'
+import AnnouncementDetailPage from './pages/institute/AnnouncementDetailPage'
+import NewsPage from './pages/institute/NewsPage'
+import NewsDetailPage from './pages/institute/NewsDetailPage'
+import RahbariyatPage from './pages/institute/RahbariyatPage'
+import FakultetlarPage from './pages/institute/FakultetlarPage'
+import KafedralarPage from './pages/institute/KafedralarPage'
+import FakultetXodimlariPage from './pages/institute/FakultetXodimlariPage'
+import KafedraXodimlariPage from './pages/institute/KafedraXodimlariPage'
+import FakultetDetailPage from './pages/institute/FakultetDetailPage'
+import MarkazlarPage from './pages/institute/MarkazlarPage'
+import MarkazXodimlariPage from './pages/institute/MarkazXodimlariPage'
+import XodimProfilePage from './pages/institute/XodimProfilePage'
+import MeyoriyHujjatlarPage from './pages/institute/MeyoriyHujjatlarPage'
+import GreenInstitute from './pages/green-institute/GreenInstitute'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/ScrollToTop'
 import './App.css'
@@ -167,6 +168,15 @@ function App() {
 
         {/* Dashboard sahifasi */}
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Yashil Universitet sahifasi */}
+        <Route path="/green-institute" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <GreenInstitute />
+            <Footer />
+          </div>
+        } />
       </Routes>
       <AiAgent />
     </Router>

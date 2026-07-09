@@ -3,8 +3,8 @@ import { ChevronRight, ArrowRight } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
 import { Link } from 'react-router-dom'
-import menImg from '../assets/men.jpg'
-import placeholderImg from '../assets/images/bg23.jpg' // Use as fallback for other staff
+import menImg from '../../assets/men.jpg'
+import placeholderImg from '../../assets/images/bg23.jpg' // Use as fallback for other staff
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>

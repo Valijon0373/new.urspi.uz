@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import menImg from '../assets/men.jpg'
+import menImg from '../../assets/men.jpg'
 
 export const allStaff = [
   { id: '1', name: "MATSAPAYEV ODILBEK BAXTIYOR O'G'LI", position: "Markaz boshlig'i", phone: "+998 90 123 45 67", email: "odilbek.m@urspi.uz", bio: "Axborot texnologiyalari sohasida ko'p yillik tajribaga ega mutaxassis. Raqamli ta'lim tizimlarini joriy qilish va rivojlantirish bo'yicha qator loyihalar muallifi.", officeHours: "Dushanba - Juma: 10:00 - 16:00", img: menImg },
@@ -17,6 +17,7 @@ export const allStaff = [
 
 export default function XodimProfilePage() {
   const { id } = useParams()
+  const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
 
   const foundStaff = allStaff.find(s => s.id === id);
   const employeeData = foundStaff || allStaff[0];
@@ -116,19 +117,60 @@ export default function XodimProfilePage() {
 
               </div>
 
-              {/* Bio Section */}
-              <div className="mt-auto bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <h3 className="font-bold text-[#0c1f4a] text-[16px] mb-3 flex items-center gap-2">
-                  <User size={18} />
-                  Qisqacha ma'lumot
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-[15px]">
-                  {employeeData.bio}
-                </p>
+              <div className="mt-auto flex flex-col gap-6">
+                {/* Bio Section */}
+                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                  <h3 className="font-bold text-[#0c1f4a] text-[16px] mb-3 flex items-center gap-2">
+                    <User size={18} />
+                    Qisqacha ma'lumot
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed text-[15px]">
+                    {employeeData.bio}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setShowIlmiyFaoliyat(!showIlmiyFaoliyat)}
+                    className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl border border-[#0c1f4a] font-semibold transition-colors duration-300 w-full sm:w-auto ${
+                      showIlmiyFaoliyat ? 'bg-[#0c1f4a] text-white' : 'text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white'
+                    }`}
+                  >
+                    <GraduationCap size={20} />
+                    Ilmiy Faoliyat
+                  </button>
+                </div>
               </div>
 
             </div>
           </div>
+
+          {/* Dropdown Content */}
+          {showIlmiyFaoliyat && (
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm mt-4 transition-all w-full animate-in fade-in slide-in-from-top-4 duration-300">
+              <h4 className="font-bold text-[#0c1f4a] mb-5 text-[18px] border-b border-slate-100 pb-4">
+                Ilmiy faoliyat yo'nalishlari
+              </h4>
+              <div className="flex flex-col gap-3">
+                {[
+                  "Xalqaro jurnallarda nashr etilgan maqolalar",
+                  "Respublika miqyosidagi ilmiy jurnallardagi nashrlar",
+                  "O'quv qo'llanmalar va darsliklar",
+                  "Ilmiy monografiyalar",
+                  "Mualliflik guvohnomalari va patentlar"
+                ].map((item, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[14px] sm:text-[15px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"
+                  >
+                    <ChevronRight className="w-5 h-5 text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

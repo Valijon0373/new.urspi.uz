@@ -3,19 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Eye } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import urspiImage from '../assets/images/urspi_new.png';
+import urspiImage from '../../assets/images/urspi_new.png';
 
-const mockNews = Array.from({ length: 12 }).map((_, index) => ({
+const mockAnnouncements = Array.from({ length: 12 }).map((_, index) => ({
     id: index + 1,
-    date: `1${(index % 9) + 1}.06.2026`,
-    views: Math.floor(Math.random() * 500) + 150,
+    date: `0${(index % 9) + 1}.06.2026`,
+    views: Math.floor(Math.random() * 500) + 50,
     title: index % 2 === 0 
-        ? "Oliy ta'lim, fan va innovatsiyalar vaziri Qo'ng'irotboy Sharipov UrDPI yangi o'quv binosi bilan tanishdi"
-        : "UrDPI va TDYU o'rtasida strategik hamkorlik memorandumi imzolandi",
+        ? "Rajabov Tolib Toshtemir o'g'lining biologiya fanlari bo'yicha falsafa..."
+        : "Adizova Zuhro Ma'rif qizining texnika fanlari bo'yicha falsafa doktor...",
     image: urspiImage
 }));
 
-export default function NewsPage() {
+export default function AnnouncementsPage() {
     const { t } = useTranslation();
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -34,7 +34,7 @@ export default function NewsPage() {
                             <li>
                                 <div className="flex items-center">
                                     <ChevronRight className="w-4 h-4 mx-1" />
-                                    <span className="text-white font-medium">Yangiliklar</span>
+                                    <span className="text-white font-medium">E'lonlar</span>
                                 </div>
                             </li>
                         </ol>
@@ -45,9 +45,9 @@ export default function NewsPage() {
             {/* Content */}
             <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {mockNews.map((item) => (
+                    {mockAnnouncements.map((item) => (
                         <Link 
-                            to={`/news/${item.id}`}
+                            to={`/announcements/${item.id}`}
                             key={item.id} 
                             className="group relative h-[280px] w-full overflow-hidden rounded-2xl cursor-pointer block"
                         >

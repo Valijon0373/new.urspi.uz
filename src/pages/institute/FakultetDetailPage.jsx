@@ -1,7 +1,7 @@
 import React from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import logoImg from '../assets/images/logo1.jpg' // Use generic logo
+import logoImg from '../../assets/images/logo1.jpg' // Use generic logo
 
 export default function FakultetDetailPage() {
   return (

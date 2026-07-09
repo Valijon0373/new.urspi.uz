@@ -1,7 +1,7 @@
 import React from 'react'
 import { MapPin, Mail, Clock, Phone, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import rektorImg from '../assets/men.jpg'
+import rektorImg from '../../assets/men.jpg'
 
 const prorektorCardClass =
   'w-full h-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col xl:flex-row items-start p-5 gap-5 xl:gap-6 transition-all duration-300 hover:shadow-lg hover:shadow-slate-300/60 hover:-translate-y-0.5'

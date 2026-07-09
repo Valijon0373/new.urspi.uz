@@ -121,22 +121,23 @@ export default function KafedralarPage() {
                 <h1 className="text-2xl md:text-[28px] font-bold text-[#0c1f4a]">Kafedralar</h1>
               </div>
 
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-8">
                 {facultiesWithDepartments.map((faculty) => (
                   <div key={faculty.id} className="flex flex-col w-full">
                     {/* Faculty Header */}
-                    <div className="bg-[#0c1f4a] text-white px-5 py-3.5 font-medium text-[14px] sm:text-[15px] uppercase tracking-wide">
+                    <div className="bg-[#0c1f4a] text-white px-5 py-3.5 font-medium text-[14px] sm:text-[15px] uppercase tracking-wide rounded-xl mb-4 shadow-sm">
                       {faculty.name}
                     </div>
                     {/* Departments List */}
-                    <div className="flex flex-col w-full bg-white">
+                    <div className="flex flex-col w-full gap-3">
                       {faculty.departments.map((dep, idx) => (
                         <Link 
                           to="/kafedra-xodimlari"
                           key={idx} 
-                          className="block border border-t-0 border-slate-200 px-5 py-3.5 text-[13px] sm:text-[14px] text-[#5b87b7] font-medium transition-all duration-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/80 hover:-translate-y-[2px] hover:text-[#0c1f4a] cursor-pointer relative hover:z-10"
+                          className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[13px] sm:text-[14px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"
                         >
-                          {dep}
+                          <ChevronRight className="w-5 h-5 text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
+                          <span>{dep}</span>
                         </Link>
                       ))}
                     </div>

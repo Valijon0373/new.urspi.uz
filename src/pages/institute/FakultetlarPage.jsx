@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ChevronRight, Users, Layers, ChevronDown } from 'lucide-react'
 import { BsInfoCircle } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
-import facultyImg from '../assets/images/logo1.jpg' // Generic placeholder for faculty image
+import facultyImg from '../../assets/images/logo1.jpg' // Generic placeholder for faculty image
 
 const faculties = [
   { 
