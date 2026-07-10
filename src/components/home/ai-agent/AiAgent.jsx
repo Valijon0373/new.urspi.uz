@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const QA_KNOWLEDGE_BASE = [
     {
@@ -38,6 +38,13 @@ const QA_KNOWLEDGE_BASE = [
 
 export default function AiAgent() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Hide the AI agent on dashboard or admin pages
+    if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin')) {
+        return null;
+    }
+
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         { id: 1, text: "Assalomu alaykum! \n\nMen Urganch davlat pedagogika instituti saytining sun'iy intellekt yordamchisiman. \n\nSizga qanday yordam bera olaman?", isBot: true }

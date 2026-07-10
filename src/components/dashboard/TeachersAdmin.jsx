@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, SlidersHorizontal, Eye, Edit2, Trash2, ChevronDown, X, Upload, Check } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Eye, Edit2, Trash2, ChevronDown, X, Upload, Check, BookOpen, Globe, FileDown, GraduationCap } from 'lucide-react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
+import menImg from '../../assets/men.jpg';
+
 
 export default function TeachersAdmin() {
   const [activeMenuId, setActiveMenuId] = useState(null);
@@ -12,12 +14,76 @@ export default function TeachersAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [articleModalOpen, setArticleModalOpen] = useState(false);
+  const [articleDeleteModalOpen, setArticleDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
 
   const [imagePreview, setImagePreview] = useState(null);
   const [phone, setPhone] = useState('+998 ');
+
+  const [articles, setArticles] = useState({
+    1: [
+      { id: 1, title: "Boshlang'ich sinflarda pedagogik texnologiyalar", type: "Xalqaro maqola", journal: "Science and Education", year: "2024", url: "https://doi.org/10.37547/su-ed-01", file: null },
+      { id: 2, title: "Ta'lim sifatini oshirish tamoyillari", type: "OAK maqolasi", journal: "Pedagogika jurnali", year: "2023", url: "", file: null }
+    ],
+    2: [
+      { id: 1, title: "Matematik modellashtirish asoslari", type: "Mahalliy maqola", journal: "UrSPI Ilmiy Xabarlari", year: "2025", url: "https://example.com/math-article", file: null }
+    ],
+    3: []
+  });
+
+  const [newArticle, setNewArticle] = useState({
+    title: '',
+    type: 'Xalqaro maqola',
+    journal: '',
+    year: new Date().getFullYear().toString(),
+    url: '',
+    file: null
+  });
+
+  const handleAddArticle = (e) => {
+    e.preventDefault();
+    if (!newArticle.title || !newArticle.journal) return;
+
+    const teacherId = selectedItem.id;
+    const newId = Date.now();
+    const articleToAdd = {
+      id: newId,
+      ...newArticle,
+      fileName: newArticle.file ? newArticle.file.name : 'maqola.pdf'
+    };
+
+    setArticles(prev => ({
+      ...prev,
+      [teacherId]: [...(prev[teacherId] || []), articleToAdd]
+    }));
+
+    setNewArticle({
+      title: '',
+      type: 'Xalqaro maqola',
+      journal: '',
+      year: new Date().getFullYear().toString(),
+      url: '',
+      file: null
+    });
+    
+    showNotification("Maqola muvaffaqiyatli yuklandi");
+  };
+
+  const handleConfirmDeleteArticle = () => {
+    if (!selectedArticle) return;
+    const teacherId = selectedItem.id;
+    setArticles(prev => ({
+      ...prev,
+      [teacherId]: prev[teacherId].filter(art => art.id !== selectedArticle.id)
+    }));
+    setArticleDeleteModalOpen(false);
+    setSelectedArticle(null);
+    showNotification("Maqola muvaffaqiyatli o'chirildi");
+  };
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -46,7 +112,8 @@ export default function TeachersAdmin() {
       position: "O'qituvchi", 
       fullName: "Sobirova Aziza Farxodovna",
       phone: "+998 90 123 45 67",
-      email: "aziza@urspi.uz"
+      email: "aziza@urspi.uz",
+      image: menImg
     },
     { 
       id: 2, 
@@ -55,7 +122,8 @@ export default function TeachersAdmin() {
       position: "O'qituvchi - stajyor", 
       fullName: "Sabirov Azizbek Azad o'g'li",
       phone: "+998 91 234 56 78",
-      email: "azizbek@urspi.uz"
+      email: "azizbek@urspi.uz",
+      image: menImg
     },
     { 
       id: 3, 
@@ -64,7 +132,8 @@ export default function TeachersAdmin() {
       position: "O'qituvchi", 
       fullName: "Otamuradova Aziza Sultonmurodovna",
       phone: "+998 93 456 78 90",
-      email: "otamuradova@urspi.uz"
+      email: "otamuradova@urspi.uz",
+      image: menImg
     },
   ];
 
@@ -106,6 +175,7 @@ export default function TeachersAdmin() {
   const openEditModal = (item) => {
     setEditMode(true);
     setSelectedItem(item);
+    setImagePreview(item.image || null);
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
@@ -113,6 +183,7 @@ export default function TeachersAdmin() {
   const openAddModal = () => {
     setEditMode(false);
     setSelectedItem(null);
+    setImagePreview(null);
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
@@ -188,6 +259,7 @@ export default function TeachersAdmin() {
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-800 dark:text-slate-200">
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold w-16 text-center">№</th>
+                <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-20">Rasm</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Fakultet</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Kafedra</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Lavozim</th>
@@ -199,6 +271,17 @@ export default function TeachersAdmin() {
               {mockTeachers.map((teacher, index) => (
                 <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium text-center">{index + 1}</td>
+                  <td className="border border-slate-200 dark:border-slate-700 p-0 text-center w-20">
+                    <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto overflow-hidden">
+                      {teacher.image ? (
+                        <img src={teacher.image} alt={teacher.fullName} className="w-full h-full object-cover object-top" />
+                      ) : (
+                        <span className="text-sm font-semibold text-slate-400">
+                          {teacher.fullName.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.faculty}</td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.department}</td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.position}</td>
@@ -218,9 +301,16 @@ export default function TeachersAdmin() {
                     {activeMenuId === teacher.id && (
                       <div 
                         ref={menuRef}
-                        className="absolute right-[80%] top-1/2 -translate-y-1/2 mt-1 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-2 z-50 animate-fade-in"
+                        className="absolute right-[80%] top-1/2 -translate-y-1/2 mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-2 z-50 animate-fade-in"
                         style={{ animationDuration: '0.2s' }}
                       >
+                        <button 
+                          onClick={() => { setSelectedItem(teacher); setActiveMenuId(null); setArticleModalOpen(true); }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                        >
+                          <GraduationCap className="w-4 h-4" />
+                          Ilmiy faoliyat
+                        </button>
                         <button 
                           onClick={() => { setSelectedItem(teacher); setActiveMenuId(null); setViewModalOpen(true); }}
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
@@ -504,6 +594,256 @@ export default function TeachersAdmin() {
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
               >
                 Saqlash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scientific Activity Modal */}
+      {articleModalOpen && selectedItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6 text-[#0eb99c]" />
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                    Ilmiy faoliyat va maqolalar
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    O'qituvchi: <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedItem.fullName}</span>
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setArticleModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content: Two Columns */}
+            <div className="flex-1 p-6 overflow-y-auto flex flex-col md:flex-row gap-6 min-h-0">
+              {/* Left column: Article List */}
+              <div className="flex-1 flex flex-col min-w-0">
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                  Yuklangan maqolalar
+                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                    {(articles[selectedItem.id] || []).length}
+                  </span>
+                </h4>
+                
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar bg-slate-50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  {(articles[selectedItem.id] || []).length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center py-10">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Hozircha maqolalar yuklanmagan</p>
+                    </div>
+                  ) : (
+                    (articles[selectedItem.id] || []).map((art) => (
+                      <div key={art.id} className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-start gap-4 hover:shadow-sm transition-all">
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                              {art.type}
+                            </span>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                              {art.year}-yil
+                            </span>
+                          </div>
+                          <h5 className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-snug truncate">
+                            {art.title}
+                          </h5>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                            Jurnal: {art.journal}
+                          </p>
+                          {art.url && (
+                            <a 
+                              href={art.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-[11px] text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 font-medium"
+                            >
+                              <Globe className="w-3 h-3" />
+                              Maqola havolasi
+                            </a>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {art.fileName && (
+                            <button 
+                              title="Faylni yuklab olish"
+                              type="button"
+                              className="p-1.5 text-slate-500 hover:text-[#0eb99c] hover:bg-[#0eb99c]/10 rounded-lg transition-colors"
+                            >
+                              <FileDown className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button 
+                            type="button"
+                            onClick={() => { setSelectedArticle(art); setArticleDeleteModalOpen(true); }}
+                            title="O'chirish"
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Right column: Add article form */}
+              <div className="w-full md:w-[360px] border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-6 md:pt-0 md:pl-6 shrink-0 flex flex-col">
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  Yangi maqola qo'shish
+                </h4>
+                
+                <form onSubmit={handleAddArticle} className="space-y-4 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Maqola nomi</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={newArticle.title}
+                        onChange={(e) => setNewArticle(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Mavzuni kiriting" 
+                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-[#0eb99c] outline-none text-sm transition-colors" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Turi</label>
+                        <select 
+                          value={newArticle.type}
+                          onChange={(e) => setNewArticle(prev => ({ ...prev, type: e.target.value }))}
+                          className="w-full h-10 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-[#0eb99c] outline-none text-xs transition-colors appearance-none cursor-pointer"
+                        >
+                          <option value="Xalqaro maqola">Xalqaro</option>
+                          <option value="OAK maqolasi">OAK</option>
+                          <option value="Mahalliy maqola">Mahalliy</option>
+                          <option value="Tezis">Tezis</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nashr yili</label>
+                        <input 
+                          type="number" 
+                          required
+                          value={newArticle.year}
+                          onChange={(e) => setNewArticle(prev => ({ ...prev, year: e.target.value }))}
+                          placeholder="2024" 
+                          className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-[#0eb99c] outline-none text-sm transition-colors" 
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Jurnal / Konferensiya nomi</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={newArticle.journal}
+                        onChange={(e) => setNewArticle(prev => ({ ...prev, journal: e.target.value }))}
+                        placeholder="Science and Education jurnali" 
+                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-[#0eb99c] outline-none text-sm transition-colors" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Maqola havolasi (URL / DOI)</label>
+                      <input 
+                        type="url" 
+                        value={newArticle.url}
+                        onChange={(e) => setNewArticle(prev => ({ ...prev, url: e.target.value }))}
+                        placeholder="https://doi.org/10.123..." 
+                        className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-[#0eb99c] outline-none text-sm transition-colors" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fayl yuklash (PDF)</label>
+                      <label className="h-20 w-full rounded-xl border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all p-2 text-center">
+                        <input 
+                          type="file" 
+                          accept=".pdf"
+                          className="hidden" 
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setNewArticle(prev => ({ ...prev, file: e.target.files[0] }));
+                            }
+                          }}
+                        />
+                        <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[11px] text-slate-500 font-medium truncate max-w-full px-2">
+                          {newArticle.file ? newArticle.file.name : "Faylni tanlang (.pdf)"}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full h-10 mt-4 bg-[#0eb99c] hover:bg-[#0ba087] text-white rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Maqola qo'shish
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shrink-0 text-right">
+              <button
+                onClick={() => setArticleModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Article Delete Confirmation Modal */}
+      {articleDeleteModalOpen && selectedArticle && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-slate-200 dark:border-slate-700">
+            <button 
+              onClick={() => { setArticleDeleteModalOpen(false); setSelectedArticle(null); }} 
+              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4 mt-2">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed text-sm">
+              Siz rostdan ham <span className="text-red-500 font-semibold">"{selectedArticle.title}"</span> maqolasini o'chirmoqchimisiz?
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button 
+                onClick={() => { setArticleDeleteModalOpen(false); setSelectedArticle(null); }} 
+                className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors text-sm"
+              >
+                Yo'q
+              </button>
+              <button 
+                onClick={handleConfirmDeleteArticle} 
+                className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm text-sm"
+              >
+                Ha
               </button>
             </div>
           </div>
