@@ -22,7 +22,8 @@ import EmployeesAdmin from './EmployeesAdmin';
 import PositionsAdmin from './PositionsAdmin';
 import FacultiesAdmin from './FacultiesAdmin';
 import DepartmentsAdmin from './DepartmentsAdmin';
-
+import RahbariyatAdmin from './RahbariyatAdmin';
+import CentersAdmin from './CentersAdmin';
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
   {
@@ -354,6 +355,9 @@ export default function Dashboard() {
 
             </div>
           )}
+          {activeTab === 'Rahbariyat' && (
+            <RahbariyatAdmin />
+          )}
           {activeTab === 'Yangiliklar' && (
             <NewsAdmin />
           )}
@@ -365,6 +369,9 @@ export default function Dashboard() {
           )}
           {activeTab === 'Kafedralar' && (
             <DepartmentsAdmin />
+          )}
+          {activeTab === "Markaz va Bo'limlar" && (
+            <CentersAdmin />
           )}
           {activeTab === "O'qituvchilar" && (
             <TeachersAdmin />
