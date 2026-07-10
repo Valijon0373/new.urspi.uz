@@ -20,8 +20,9 @@ import XodimProfilePage from './pages/institute/XodimProfilePage'
 import MeyoriyHujjatlarPage from './pages/institute/MeyoriyHujjatlarPage'
 import GreenInstitute from './pages/green-institute/GreenInstitute'
 import InfographicPage from './pages/institute/InfographicPage'
+import DormitoryPage from './pages/students/DormitoryPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
-import ScrollToTop from './components/ScrollToTop'
+import ScrollToTop from './components/seasonEffect/ScrollToTop'
 import './App.css'
 
 function App() {
@@ -184,6 +185,15 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <InfographicPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Yotoqxona sahifasi */}
+        <Route path="/yotoqxona" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <DormitoryPage />
             <Footer />
           </div>
         } />

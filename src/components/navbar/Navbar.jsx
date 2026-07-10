@@ -1,4 +1,4 @@
-import { MapPin, ChevronDown, Languages, Menu, X, Search } from 'lucide-react'
+import { MapPin, ChevronDown, ChevronRight, Languages, Menu, X, Search } from 'lucide-react'
 import { BsTelegram } from 'react-icons/bs'
 import { FaInstagram, FaFacebookF } from 'react-icons/fa'
 import { TfiYoutube } from 'react-icons/tfi'
@@ -54,7 +54,7 @@ const navLinks = [
     dropdown: [
       { labelKey: 'navbar.links.student_life', href: '#' },
       { labelKey: 'navbar.links.scholarships', href: '#' },
-      { labelKey: 'navbar.links.dormitory', href: '#' },
+      { labelKey: 'navbar.links.dormitory', href: '/yotoqxona' },
       { labelKey: 'navbar.links.library', href: '#' },
     ],
   },
@@ -103,6 +103,7 @@ function Navbar() {
   
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpenIdx, setMobileOpenIdx] = useState(null)
+  const [mobileSubOpenKey, setMobileSubOpenKey] = useState(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [accessibilityOpen, setAccessibilityOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -250,13 +251,36 @@ function Navbar() {
                           </button>
                           <ul className={`invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
                             {link.dropdown.map((item) => (
-                              <li key={item.labelKey}>
-                                <a
-                                  href={item.href}
-                                  className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
-                                >
-                                  {t(item.labelKey)}
-                                </a>
+                              <li key={item.labelKey} className={item.submenu ? "relative group/submenu" : ""}>
+                                {item.submenu ? (
+                                  <>
+                                    <div
+                                      className={`flex items-center justify-between px-4 py-2.5 text-left text-[13px] normal-case cursor-pointer transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                    >
+                                      <span>{t(item.labelKey)}</span>
+                                      <ChevronRight className="h-3.5 w-3.5 opacity-80" />
+                                    </div>
+                                    <ul className={`invisible absolute left-full top-0 z-50 min-w-[220px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover/submenu:visible group-hover/submenu:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
+                                      {item.submenu.map((subItem) => (
+                                        <li key={subItem.labelKey}>
+                                          <a
+                                            href={subItem.href}
+                                            className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                          >
+                                            {t(subItem.labelKey)}
+                                          </a>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </>
+                                ) : (
+                                  <a
+                                    href={item.href}
+                                    className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                  >
+                                    {t(item.labelKey)}
+                                  </a>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -308,13 +332,43 @@ function Navbar() {
                               <ul className="mb-1 ml-2 border-l border-white/15 pl-3">
                                 {link.dropdown.map((item) => (
                                   <li key={item.labelKey}>
-                                    <a
-                                      href={item.href}
-                                      className={`block rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
-                                      onClick={() => setMenuOpen(false)}
-                                    >
-                                      {t(item.labelKey)}
-                                    </a>
+                                    {item.submenu ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          className={`flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+                                          onClick={() => setMobileSubOpenKey(mobileSubOpenKey === item.labelKey ? null : item.labelKey)}
+                                        >
+                                          <span>{t(item.labelKey)}</span>
+                                          <ChevronDown
+                                            className={`h-3.5 w-3.5 transition-transform ${mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''}`}
+                                          />
+                                        </button>
+                                        {mobileSubOpenKey === item.labelKey && (
+                                          <ul className="mb-1 ml-3 border-l border-white/10 pl-3">
+                                            {item.submenu.map((subItem) => (
+                                              <li key={subItem.labelKey}>
+                                                <a
+                                                  href={subItem.href}
+                                                  className={`block rounded-lg px-2 py-1.5 text-xs normal-case transition ${isGreenTheme ? 'text-emerald-100/80 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                                                  onClick={() => setMenuOpen(false)}
+                                                >
+                                                  {t(subItem.labelKey)}
+                                                </a>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <a
+                                        href={item.href}
+                                        className={`block rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+                                        onClick={() => setMenuOpen(false)}
+                                      >
+                                        {t(item.labelKey)}
+                                      </a>
+                                    )}
                                   </li>
                                 ))}
                               </ul>

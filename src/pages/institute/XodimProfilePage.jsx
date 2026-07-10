@@ -38,8 +38,14 @@ export default function XodimProfilePage() {
               </li>
               <li>
                 <div className="flex items-center">
-                  <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Xodim profili</span>
+                  <ChevronRight className="w-4 h-4 mx-1 opacity-70" />
+                  <span className="text-white/80 font-medium">{employeeData.position}</span>
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1 opacity-70" />
+                  <span className="text-white font-semibold truncate max-w-[200px] sm:max-w-xs">{employeeData.name}</span>
                 </div>
               </li>
             </ol>
