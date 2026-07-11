@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ChevronRight, ChevronLeft, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import docsBg from '../../assets/images/docs.jpg'
 
 const documents = [
   { id: 1, title: "O'zbekiston Respublikasida fuqarolarning vijdon erkinligini ta'minlash va diniy sohadagi davlat siyosati konsepsiyasini tasdiqlash to'g'risida.", type: "Hujjat", color: "bg-[#ff4d6d]" },
@@ -28,9 +29,12 @@ const documents = [
 
 const DocumentCard = ({ number, title, type, color, onMoreClick }) => (
   <div className="bg-white rounded-t-[8px] rounded-b-sm overflow-hidden shadow-lg border-x border-t border-slate-200 flex flex-col h-full w-full relative z-0 transform transition-transform hover:-translate-y-2 hover:shadow-2xl mx-auto">
-    <div className={`w-full h-[90px] ${color} relative border-b border-black/10 shrink-0`}>
+    <div 
+      className="w-full h-[90px] relative border-b border-black/10 shrink-0 bg-cover bg-center"
+      style={{ backgroundImage: `url(${docsBg})` }}
+    >
        {/* Nomer ustida turishi uchun */}
-       <div className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/25 text-white font-bold flex items-center justify-center text-sm backdrop-blur-md border border-white/30">
+       <div className="absolute top-4 left-4 w-9 h-9 rounded-full bg-[#0c1f4a]/40 backdrop-blur-md text-white font-bold flex items-center justify-center text-sm shadow-md border border-white/50">
          {number}
        </div>
     </div>
