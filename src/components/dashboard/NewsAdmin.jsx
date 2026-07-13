@@ -9,6 +9,10 @@ export default function NewsAdmin() {
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
   const [imageIds, setImageIds] = useState([1]);
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
@@ -27,6 +31,18 @@ export default function NewsAdmin() {
       image: "https://via.placeholder.com/300x200"
     }
   ];
+
+  const filteredNews = mockNews.filter(news => {
+    const titleObj = news.title || '';
+    // Mock data title is string here, handle string or object just in case
+    const titleStr = (typeof titleObj === 'string' ? titleObj : (titleObj.uz || '')).toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+
+    const matchesSearch = titleStr.includes(searchLower);
+    const matchesDateFrom = dateFrom ? news.date >= dateFrom : true;
+    const matchesDateTo = dateTo ? news.date <= dateTo : true;
+    return matchesSearch && matchesDateFrom && matchesDateTo;
+  });
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
@@ -108,6 +124,8 @@ export default function NewsAdmin() {
             </div>
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Qidirish..."
               className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
@@ -123,6 +141,8 @@ export default function NewsAdmin() {
             <span className="text-sm text-slate-500 dark:text-slate-400">Dan:</span>
             <input
               type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
               className="block w-full sm:w-auto px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
           </div>
@@ -130,6 +150,8 @@ export default function NewsAdmin() {
             <span className="text-sm text-slate-500 dark:text-slate-400">Gacha:</span>
             <input
               type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
               className="block w-full sm:w-auto px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
           </div>
@@ -137,17 +159,17 @@ export default function NewsAdmin() {
       </div>
 
       {/* Content area */}
-      {mockNews.length === 0 ? (
+      {filteredNews.length === 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-100 dark:border-slate-700 text-center flex flex-col items-center justify-center min-h-[300px]">
           <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4">
             <Calendar className="w-8 h-8 text-slate-400" />
           </div>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Hozircha yangiliklar yo'q</p>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Yangi yangilik qo'shish uchun yuqoridagi "Qo'shish" tugmasini bosing.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Yangi yangilik qo'shish uchun yuqoridagi "Qo'shish" tugmasini bosing yoki qidiruvni bekor qiling.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockNews.map((news) => (
+          {filteredNews.map((news) => (
             <div key={news.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
               <div className="h-48 w-full bg-slate-100 dark:bg-slate-700">
                 <img src={news.image} alt={news.title} className="w-full h-full object-cover" />

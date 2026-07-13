@@ -39,7 +39,7 @@ const StaffCard = ({ name, degree, position, img }) => (
       </p>
       
       <div className="mt-auto">
-        <Link to="/xodim/1" className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
+        <Link to="/xodim/teacher1" className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
           Batafsil <ArrowRight size={14} />
         </Link>
       </div>
@@ -135,7 +135,7 @@ export default function KafedraXodimlariPage() {
 
               {/* Bottom Buttons */}
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                <Link to="/xodim/1" className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
+                <Link to="/xodim/teacher1" className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
                   Batafsil <ArrowRight size={16} />
                 </Link>
               </div>

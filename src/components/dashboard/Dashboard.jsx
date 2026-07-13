@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, FileText,
   User, Users, CheckSquare, Info, Moon, Sun, ChevronDown,
-  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft
+  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
 import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
@@ -24,6 +24,10 @@ import FacultiesAdmin from './FacultiesAdmin';
 import DepartmentsAdmin from './DepartmentsAdmin';
 import RahbariyatAdmin from './RahbariyatAdmin';
 import CentersAdmin from './CentersAdmin';
+import GalleryAdmin from './GalleryAdmin';
+import DormitoryAdmin from './DormitoryAdmin';
+import RentAdmin from './RentAdmin';
+import GreenInstituteAdmin from './GreenInstituteAdmin';
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
   {
@@ -45,9 +49,19 @@ const NAV_ITEMS = [
       { label: 'Xodimlar', icon: PiUserSquare }
     ]
   },
+  {
+    icon: GraduationCap,
+    label: 'Talabalarga',
+    subItems: [
+      { label: 'Talabalar turar joyi', icon: Home },
+      { label: 'Talabalarga ijara', icon: Key }
+    ]
+  },
   { icon: CheckSquare, label: 'Yangiliklar' },
   { icon: IoMegaphoneOutline, label: "E'lonlar" },
+  { icon: ImageIcon, label: 'Fotogalereya' },
   { icon: IoSettingsOutline, label: 'Sozlamalar' },
+  { icon: Leaf, label: 'Yashil institut' },
   { icon: HiOutlineMailOpen, label: 'Korporativ pochta', href: 'http://webmail.urspi.uz:4040/admin' },
   { icon: Info, label: 'Biz haqimizda' },
 ];
@@ -382,8 +396,20 @@ export default function Dashboard() {
           {activeTab === "E'lonlar" && (
             <AnnouncementsAdmin />
           )}
+          {activeTab === 'Fotogalereya' && (
+            <GalleryAdmin />
+          )}
           {activeTab === 'Biz haqimizda' && (
             <AboutUsAdmin />
+          )}
+          {activeTab === 'Talabalar turar joyi' && (
+            <DormitoryAdmin />
+          )}
+          {activeTab === 'Talabalarga ijara' && (
+            <RentAdmin />
+          )}
+          {activeTab === 'Yashil institut' && (
+            <GreenInstituteAdmin />
           )}
           {activeTab === 'Sozlamalar' && (
             <Settings />
