@@ -58,7 +58,17 @@ const navLinks = [
       { labelKey: 'navbar.links.library', href: '#' },
     ],
   },
-  { labelKey: 'navbar.links.admission', href: '#', dropdown: null },
+  {
+    labelKey: 'navbar.links.admission',
+    href: '#',
+    dropdown: [
+      { labelKey: 'Bakalavr', href: '#' },
+      { labelKey: 'Magistratura', href: '#' },
+      { labelKey: "O'qishni ko'chirish", href: '#' },
+      { labelKey: 'Ikkinchi Mutaxasislik', href: '#' },
+      { labelKey: 'Texnikum bituruvchilari', href: '#' },
+    ],
+  },
   { labelKey: 'navbar.links.green_uni', href: '/green-institute', dropdown: null },
   {
     labelKey: 'navbar.links.foreign',
