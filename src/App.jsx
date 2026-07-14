@@ -21,6 +21,7 @@ import MeyoriyHujjatlarPage from './pages/institute/MeyoriyHujjatlarPage'
 import GreenInstitute from './pages/green-institute/GreenInstitute'
 import InfographicPage from './pages/institute/InfographicPage'
 import DormitoryPage from './pages/students/DormitoryPage'
+import AntiCorruptionPage from './pages/institute/AntiCorruptionPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/seasonEffect/ScrollToTop'
 import './App.css'
@@ -197,6 +198,9 @@ function App() {
             <Footer />
           </div>
         } />
+
+        {/* Korrupsiyaga qarshi kurashish sahifasi */}
+        <Route path="/anti-corruption" element={<AntiCorruptionPage />} />
       </Routes>
       <AiAgent />
     </Router>

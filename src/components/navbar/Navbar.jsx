@@ -79,14 +79,10 @@ const navLinks = [
       { labelKey: 'navbar.links.visa', href: '#' },
     ],
   },
-  {
-    labelKey: 'navbar.links.anticorruption',
-    href: '#',
-    dropdown: [
-      { labelKey: 'navbar.links.appeal', href: '#' },
-      { labelKey: 'navbar.links.docs', href: '#' },
-      { labelKey: 'navbar.links.reports', href: '#' },
-    ],
+  { 
+    labelKey: 'navbar.links.anticorruption', 
+    href: '/anti-corruption', 
+    dropdown: null 
   },
   { labelKey: 'navbar.links.stats', href: '#', dropdown: null },
 ]
