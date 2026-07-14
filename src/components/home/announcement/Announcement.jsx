@@ -3,6 +3,7 @@ import { GrAnnounce } from 'react-icons/gr'
 import { FaRegCalendarAlt } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
 
 const announcements = [
@@ -34,11 +35,31 @@ const announcements = [
 
 export default function Announcement() {
     const { t } = useTranslation()
+    const sectionRef = useRef(null)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up')
+                    observer.unobserve(entry.target)
+                }
+            })
+        }, { threshold: 0.1 })
+
+        const elements = sectionRef.current?.querySelectorAll('.reveal-on-scroll')
+        if (elements) {
+            elements.forEach(el => observer.observe(el))
+        }
+
+        return () => observer.disconnect()
+    }, [])
+
     return (
-        <section className="w-full bg-slate-50 py-12 md:py-16 text-left" aria-labelledby="announcement-heading">
+        <section ref={sectionRef} className="w-full bg-slate-50 py-12 md:py-16 text-left" aria-labelledby="announcement-heading">
             <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
                 {/* Header */}
-                <div className="relative flex flex-col items-center justify-center mb-8 gap-4 text-center">
+                <div className="relative flex flex-col items-center justify-center mb-8 gap-4 text-center reveal-on-scroll opacity-0">
                     <h2 id="announcement-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                         -
                         <GrAnnounce style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
@@ -52,11 +73,12 @@ export default function Announcement() {
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {announcements.map(item => (
+                    {announcements.map((item, idx) => (
                         <Link 
                             to={`/announcements/${item.id}`}
                             key={item.id}
-                            className="group flex flex-col overflow-hidden rounded-xl border border-gray-200/60 bg-white shadow-sm transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+                            className="group flex flex-col overflow-hidden rounded-xl border border-gray-200/60 bg-white shadow-sm transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg cursor-pointer reveal-on-scroll opacity-0"
+                            style={{ animationDelay: `${idx * 150}ms` }}
                         >
                             {/* Image Container */}
                             <div className="relative h-[220px] w-full overflow-hidden bg-slate-100">

@@ -3,6 +3,7 @@ import { FaRegCalendarAlt } from 'react-icons/fa'
 import { PiNewspaperClipping } from 'react-icons/pi'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
 
 
@@ -53,13 +54,32 @@ export default function News() {
     const { t } = useTranslation()
     const featuredItem = newsItems.find(item => item.isFeatured)
     const regularItems = newsItems.filter(item => !item.isFeatured)
+    const sectionRef = useRef(null)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up')
+                    observer.unobserve(entry.target)
+                }
+            })
+        }, { threshold: 0.1 })
+
+        const elements = sectionRef.current?.querySelectorAll('.reveal-on-scroll')
+        if (elements) {
+            elements.forEach(el => observer.observe(el))
+        }
+
+        return () => observer.disconnect()
+    }, [])
 
     return (
-        <section className="w-full bg-white py-12 md:py-16 text-left" aria-labelledby="news-heading">
+        <section ref={sectionRef} className="w-full bg-white py-12 md:py-16 text-left" aria-labelledby="news-heading">
             <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
 
                 {/* Header section */}
-                <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center">
+                <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center reveal-on-scroll opacity-0">
                     <div className="relative w-full flex justify-center">
                         <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
                             -
@@ -79,7 +99,7 @@ export default function News() {
 
                     {/* Left Column: Large Featured Card */}
                     {featuredItem && (
-                        <Link to={`/news/${featuredItem.id}`} className="block group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px]">
+                        <Link to={`/news/${featuredItem.id}`} className="block group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px] reveal-on-scroll opacity-0">
                             {/* Image */}
                             <img
                                 src={featuredItem.image}
@@ -120,11 +140,12 @@ export default function News() {
 
                     {/* Right Column: 2x2 Grid of Smaller Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {regularItems.map(item => (
+                        {regularItems.map((item, idx) => (
                             <Link
                                 to={`/news/${item.id}`}
                                 key={item.id}
-                                className="block group relative aspect-[4/3] min-h-[180px] overflow-hidden rounded-2xl shadow-md transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
+                                className="block group relative aspect-[4/3] min-h-[180px] overflow-hidden rounded-2xl shadow-md transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg reveal-on-scroll opacity-0"
+                                style={{ animationDelay: `${(idx + 1) * 150}ms` }}
                             >
                                 {/* Image */}
                                 <img
