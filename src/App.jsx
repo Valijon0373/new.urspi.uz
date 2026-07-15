@@ -24,6 +24,8 @@ import DormitoryPage from './pages/students/DormitoryPage'
 import AntiCorruptionPage from './pages/institute/AntiCorruptionPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/seasonEffect/ScrollToTop'
+import BakalavriatPage from './pages/admission/BakalavriatPage'
+import MagistraturaPage from './pages/admission/MagistraturaPage'
 import './App.css'
 
 function App() {
@@ -195,6 +197,24 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <DormitoryPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Bakalavriat sahifasi */}
+        <Route path="/bakalavriat" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <BakalavriatPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Magistratura sahifasi */}
+        <Route path="/magistratura" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MagistraturaPage />
             <Footer />
           </div>
         } />

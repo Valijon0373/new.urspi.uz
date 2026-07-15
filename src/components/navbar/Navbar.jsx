@@ -62,8 +62,8 @@ const navLinks = [
     labelKey: 'navbar.links.admission',
     href: '#',
     dropdown: [
-      { labelKey: 'Bakalavr', href: '#' },
-      { labelKey: 'Magistratura', href: '#' },
+      { labelKey: 'Bakalavr', href: '/bakalavriat' },
+      { labelKey: 'Magistratura', href: '/magistratura' },
       { labelKey: "O'qishni ko'chirish", href: '#' },
       { labelKey: 'Ikkinchi Mutaxasislik', href: '#' },
       { labelKey: 'Texnikum bituruvchilari', href: '#' },
