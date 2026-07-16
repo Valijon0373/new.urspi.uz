@@ -439,13 +439,13 @@ export default function BakalavriatPage() {
                     <tr key={dir.code} className="hover:bg-slate-50/50 transition">
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs px-2 py-1 bg-slate-100 text-[#0c1f4a] rounded font-bold shrink-0">{dir.code}</span>
-                          <span className="font-bold text-slate-800">{dir.name}</span>
+                          <span className="font-mono text-xs px-2 py-1 bg-slate-100 text-[#0c1f4a] rounded shrink-0">{dir.code}</span>
+                          <span className="text-slate-800">{dir.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-center font-extrabold text-slate-900">{dir.quota}</td>
-                      <td className="px-6 py-5 text-center font-bold text-emerald-600">{dir.grant}</td>
-                      <td className="px-6 py-5 text-center font-bold text-slate-700">{dir.contract}</td>
+                      <td className="px-6 py-5 text-center text-slate-900">{dir.quota}</td>
+                      <td className="px-6 py-5 text-center text-emerald-600">{dir.grant}</td>
+                      <td className="px-6 py-5 text-center text-slate-700">{dir.contract}</td>
                       <td className="px-6 py-5 text-center">
                         <button
                           onClick={() => setSelectedDirection(dir)}

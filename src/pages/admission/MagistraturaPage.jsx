@@ -398,13 +398,15 @@ export default function MagistraturaPage() {
                 </p>
               </div>
               <div className="mt-8 relative z-10">
-                <button 
-                  onClick={() => setActivePreviewDoc({ id: 5, name: trans.resOnlineApply })}
+                <a 
+                  href="https://my.edu.uz/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full py-3 bg-white hover:bg-slate-100 text-[#0c1f4a] font-extrabold rounded-xl text-xs tracking-wider uppercase transition shadow-md flex items-center justify-center gap-1.5"
                 >
                   <span>{trans.btnApply}</span>
                   <ExternalLink className="w-4 h-4" />
-                </button>
+                </a>
               </div>
             </div>
 

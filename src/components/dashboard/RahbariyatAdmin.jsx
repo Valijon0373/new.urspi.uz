@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check } from 'lucide-react';
-import rektorImg from '../../assets/men.jpg'; 
+import rektorImg from '../../assets/men.jpg';
 
 export default function RahbariyatAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,9 +43,9 @@ export default function RahbariyatAdmin() {
   const handleSave = () => {
     setIsModalOpen(false);
     if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
+      showNotification("Muvaffaqiyatli tahrirlandi.");
     } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+      showNotification("Muvaffaqiyatli qo'shildi.");
     }
   };
 
@@ -95,8 +95,8 @@ export default function RahbariyatAdmin() {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Rahbariyat</h2>
-        
-        <button 
+
+        <button
           onClick={openAddModal}
           className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
         >
@@ -108,7 +108,7 @@ export default function RahbariyatAdmin() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {mockRahbariyat.map((person) => (
           <div key={person.id} className="w-full bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col items-center transition-all duration-300 hover:shadow-lg">
-            
+
             {/* Top Gradient Header */}
             <div className="h-24 w-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
 
@@ -145,21 +145,21 @@ export default function RahbariyatAdmin() {
 
             {/* Actions Footer */}
             <div className="grid grid-cols-3 gap-2 w-full p-4 border-t border-slate-100 dark:border-slate-800">
-              <button 
+              <button
                 onClick={() => { setSelectedPerson(person); setViewModalOpen(true); }}
                 className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#3b82f6] border border-[#3b82f6]/30 dark:border-[#3b82f6]/40 rounded-lg hover:bg-blue-50 dark:hover:bg-[#3b82f6]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
               >
                 <Eye className="w-4 h-4" />
                 <span>Ko'rish</span>
               </button>
-              <button 
+              <button
                 onClick={() => openEditModal(person)}
                 className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#10b981] border border-[#10b981]/30 dark:border-[#10b981]/40 rounded-lg hover:bg-emerald-50 dark:hover:bg-[#10b981]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
               >
                 <Edit2 className="w-4 h-4" />
                 <span>Tahrirlash</span>
               </button>
-              <button 
+              <button
                 onClick={() => { setSelectedPerson(person); setDeleteModalOpen(true); }}
                 className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#ef4444] border border-[#ef4444]/30 dark:border-[#ef4444]/40 rounded-lg hover:bg-red-50 dark:hover:bg-[#ef4444]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
               >
@@ -175,20 +175,20 @@ export default function RahbariyatAdmin() {
       {viewModalOpen && selectedPerson && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
           <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[20px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col md:flex-row p-5 md:p-7 gap-6 md:gap-10">
-            <button 
-              onClick={() => setViewModalOpen(false)} 
+            <button
+              onClick={() => setViewModalOpen(false)}
               className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 transition-colors z-10"
             >
               <X className="w-5 h-5" />
             </button>
-            
+
             {/* Left: Image Frame */}
             <div className="w-full md:w-[240px] shrink-0 mt-6 md:mt-0">
               <div className="w-full md:w-[240px] aspect-[4/5] mx-auto rounded-2xl border-[3px] border-[#0c1f4a] dark:border-blue-500 p-1 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden">
                 <img src={selectedPerson.image} alt={selectedPerson.fullName} className="w-full h-full object-cover rounded-xl object-top" />
               </div>
             </div>
-            
+
             {/* Right: Content */}
             <div className="w-full flex flex-col justify-center py-2">
               <div className="mb-6 text-center md:text-left">
@@ -199,7 +199,7 @@ export default function RahbariyatAdmin() {
                   {selectedPerson.fullName}
                 </h2>
               </div>
-              
+
               <div className="space-y-4 text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-[#3b82f6] shrink-0 mt-0.5" />
@@ -226,14 +226,8 @@ export default function RahbariyatAdmin() {
       {/* Delete Modal */}
       {deleteModalOpen && selectedPerson && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-slate-200 dark:border-slate-700">
-            <button 
-              onClick={() => setDeleteModalOpen(false)} 
-              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4 mt-2">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-slate-200 dark:border-slate-700">
+            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
               <Trash2 className="w-8 h-8 text-red-500" />
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
@@ -241,14 +235,14 @@ export default function RahbariyatAdmin() {
               Siz rostdan ham <span className="text-red-500 font-bold">{selectedPerson.fullName}</span> ni o'chirmoqchimisiz?
             </p>
             <div className="flex items-center justify-center gap-3">
-              <button 
-                onClick={() => setDeleteModalOpen(false)} 
+              <button
+                onClick={() => setDeleteModalOpen(false)}
                 className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors"
               >
                 Yo'q
               </button>
-              <button 
-                onClick={handleDelete} 
+              <button
+                onClick={handleDelete}
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -285,11 +279,10 @@ export default function RahbariyatAdmin() {
                     key={lang.id}
                     type="button"
                     onClick={() => setActiveLang(lang.id)}
-                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-                      activeLang === lang.id
-                        ? 'border-[#0eb99c] text-[#0eb99c]'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${activeLang === lang.id
+                      ? 'border-[#0eb99c] text-[#0eb99c]'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
                   >
                     {lang.label}
                   </button>
