@@ -201,7 +201,7 @@ export default function MagistraturaPage() {
   const trans = localTranslations[currentLang] || localTranslations.uz;
 
   // States
-  const [selectedYear, setSelectedYear] = useState('2024/2025');
+  const [selectedYear, setSelectedYear] = useState('2026/2027');
   const [selectedLevel, setSelectedLevel] = useState('magistratura');
   const [selectedSpec, setSelectedSpec] = useState('math'); // 'math', 'physics', 'philology', 'primary', 'history'
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -222,16 +222,39 @@ export default function MagistraturaPage() {
     { key: 'history', label: trans.specs.history }
   ];
 
+  // Year offset configurations for Magistratura
+  const yearOffsets = {
+    '2026/2027': { quotaMul: 1.15, scoreAdd: 2.2, directionsCount: 14, quotaCount: 520, mandateCount: 96, averageVal: '84.2' },
+    '2025/2026': { quotaMul: 1.05, scoreAdd: 1.1, directionsCount: 13, quotaCount: 480, mandateCount: 90, averageVal: '83.1' },
+    '2024/2025': { quotaMul: 1.0, scoreAdd: 0.0, directionsCount: 12, quotaCount: 450, mandateCount: 84, averageVal: '82.5' },
+    '2023/2024': { quotaMul: 0.9, scoreAdd: -2.0, directionsCount: 11, quotaCount: 410, mandateCount: 75, averageVal: '80.8' },
+  };
+
+  const currentOffset = yearOffsets[selectedYear] || yearOffsets['2026/2027'];
+
+  const getDynamicStat = (val, originalNumber, newNumber) => {
+    return val.replace(String(originalNumber), String(newNumber));
+  };
+
   const resources = [
     { id: 1, name: trans.resQuota },
-    { id: 2, name: trans.resResults },
+    { id: 2, name: trans.resResults.replace('2024/2025', selectedYear) },
     { id: 3, name: trans.resCertificates },
     { id: 4, name: trans.resCenter },
     { id: 5, name: trans.resOnlineApply },
     { id: 6, name: trans.resList }
   ];
 
-  const currentQuotaData = quotaDetailsMock[selectedSpec] || quotaDetailsMock.math;
+  const baseQuotaData = quotaDetailsMock[selectedSpec] || quotaDetailsMock.math;
+  const currentQuotaData = {
+    ...baseQuotaData,
+    quota: Math.round(baseQuotaData.quota * currentOffset.quotaMul),
+    grantQuota: baseQuotaData.grantQuota > 0 ? Math.round(baseQuotaData.grantQuota * currentOffset.quotaMul) : 0,
+    contractQuota: Math.round(baseQuotaData.quota * currentOffset.quotaMul) - (baseQuotaData.grantQuota > 0 ? Math.round(baseQuotaData.grantQuota * currentOffset.quotaMul) : 0),
+    grantMinScore: typeof baseQuotaData.grantMinScore === 'number' ? parseFloat((baseQuotaData.grantMinScore + currentOffset.scoreAdd).toFixed(1)) : baseQuotaData.grantMinScore,
+    contractMinScore: typeof baseQuotaData.contractMinScore === 'number' ? parseFloat((baseQuotaData.contractMinScore + currentOffset.scoreAdd).toFixed(1)) : baseQuotaData.contractMinScore,
+    mandate: Math.round(baseQuotaData.mandate * currentOffset.quotaMul)
+  };
 
   return (
     <main className="flex-1 bg-slate-50 min-h-screen">
@@ -281,6 +304,8 @@ export default function MagistraturaPage() {
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="appearance-none bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 pr-10 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0c1f4a]/10 focus:border-[#0c1f4a] transition cursor-pointer shadow-sm"
               >
+                <option value="2026/2027">2026/2027</option>
+                <option value="2025/2026">2025/2026</option>
                 <option value="2024/2025">2024/2025</option>
                 <option value="2023/2024">2023/2024</option>
               </select>
@@ -318,7 +343,9 @@ export default function MagistraturaPage() {
             </div>
             <div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statDirections}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{trans.statDirectionsVal}</div>
+              <div className="text-lg font-black text-slate-900 mt-1">
+                {getDynamicStat(trans.statDirectionsVal, 12, currentOffset.directionsCount)}
+              </div>
             </div>
           </div>
 
@@ -329,7 +356,9 @@ export default function MagistraturaPage() {
             </div>
             <div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statQuota}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{trans.statQuotaVal}</div>
+              <div className="text-lg font-black text-slate-900 mt-1">
+                {getDynamicStat(trans.statQuotaVal, 450, currentOffset.quotaCount)}
+              </div>
             </div>
           </div>
 
@@ -340,7 +369,9 @@ export default function MagistraturaPage() {
             </div>
             <div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statMandate}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{trans.statMandateVal}</div>
+              <div className="text-lg font-black text-slate-900 mt-1">
+                {getDynamicStat(trans.statMandateVal, 84, currentOffset.mandateCount)}
+              </div>
             </div>
           </div>
 
@@ -351,7 +382,9 @@ export default function MagistraturaPage() {
             </div>
             <div>
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statAverage}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">{trans.statAverageVal}</div>
+              <div className="text-lg font-black text-slate-900 mt-1">
+                {getDynamicStat(trans.statAverageVal, '82.5', currentOffset.averageVal)}
+              </div>
             </div>
           </div>
         </div>
@@ -545,7 +578,7 @@ export default function MagistraturaPage() {
               {activePreviewDoc.id === 1 && (
                 <div className="space-y-4 text-sm">
                   <p className="text-slate-500 font-medium">
-                    Tashkil etilgan qabul yili (2024/2025) bo'yicha mutaxassislik kvotalari taqsimoti:
+                    Tashkil etilgan qabul yili ({selectedYear}) bo'yicha mutaxassislik kvotalari taqsimoti:
                   </p>
                   <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
                     <div className="flex justify-between border-b border-slate-200/50 pb-2.5">

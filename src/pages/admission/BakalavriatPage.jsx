@@ -243,6 +243,7 @@ export default function BakalavriatPage() {
   // Filters state
   const [educationMode, setEducationMode] = useState('kunduzgi'); // 'kunduzgi', 'sirtqi', 'kechki'
   const [languageMode, setLanguageMode] = useState('uz'); // 'uz', 'ru'
+  const [selectedYear, setSelectedYear] = useState('2026/2027');
   const [selectedDirection, setSelectedDirection] = useState(null);
 
   // Resource interaction states
@@ -250,8 +251,42 @@ export default function BakalavriatPage() {
   const [mandatePassport, setMandatePassport] = useState('');
   const [mandateResult, setMandateResult] = useState(null);
 
+  // Year offset configurations for dynamic statistics and table scaling
+  const yearOffsets = {
+    '2026/2027': { quotaMul: 1.15, scoreAdd: 2.5, registered: 4890, avgScore: 158.5, totalQuota: 1420 },
+    '2025/2026': { quotaMul: 1.0, scoreAdd: 0.0, registered: 4522, avgScore: 156.4, totalQuota: 1380 },
+    '2024/2025': { quotaMul: 0.95, scoreAdd: -1.5, registered: 4120, avgScore: 154.2, totalQuota: 1310 },
+    '2023/2024': { quotaMul: 0.9, scoreAdd: -3.0, registered: 3850, avgScore: 152.0, totalQuota: 1250 },
+  };
+
+  const currentOffset = yearOffsets[selectedYear] || yearOffsets['2026/2027'];
+
   // Dynamic table data
-  const directions = (directionData[educationMode] && directionData[educationMode][languageMode]) || [];
+  const rawDirections = (directionData[educationMode] && directionData[educationMode][languageMode]) || [];
+  const directions = rawDirections.map(dir => {
+    const scale = currentOffset.quotaMul;
+    const scoreDiff = currentOffset.scoreAdd;
+    
+    const quota = Math.round(dir.quota * scale);
+    const grant = dir.grant > 0 ? Math.round(dir.grant * scale) : 0;
+    const contract = quota - grant;
+    
+    const scoreGrant = typeof dir.scoreGrant === 'number' 
+      ? parseFloat((dir.scoreGrant + scoreDiff).toFixed(1)) 
+      : dir.scoreGrant;
+    const scoreContract = typeof dir.scoreContract === 'number' 
+      ? parseFloat((dir.scoreContract + scoreDiff).toFixed(1)) 
+      : dir.scoreContract;
+      
+    return {
+      ...dir,
+      quota,
+      grant,
+      contract,
+      scoreGrant,
+      scoreContract
+    };
+  });
 
   const handleCheckMandate = (e) => {
     e.preventDefault();
@@ -323,7 +358,7 @@ export default function BakalavriatPage() {
               </div>
             </div>
             <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">1,380</h3>
+              <h3 className="text-3xl font-black text-slate-900">{currentOffset.totalQuota.toLocaleString()}</h3>
               <p className="text-xs text-slate-400 mt-1">{trans.statTotalQuotaSub}</p>
             </div>
           </div>
@@ -337,24 +372,22 @@ export default function BakalavriatPage() {
               </div>
             </div>
             <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">4,522</h3>
-              <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs mt-1">
-                <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                <span>{trans.statRegisteredSub}</span>
-              </div>
+              <h3 className="text-3xl font-black text-slate-900">{currentOffset.registered.toLocaleString()}</h3>
             </div>
           </div>
 
           {/* Card 3: O'rtacha Ball */}
           <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(12,31,74,0.06)] transition-all duration-300">
             <div className="flex justify-between items-start">
-              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{trans.statAvgScore}</span>
+              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">
+                {trans.statAvgScore.replace('(2023)', `(${parseInt(selectedYear.split('/')[0]) - 1})`)}
+              </span>
               <div className="p-2.5 rounded-xl bg-slate-50 text-[#0c1f4a]">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">156.4</h3>
+              <h3 className="text-3xl font-black text-slate-900">{currentOffset.avgScore.toFixed(1)}</h3>
               <p className="text-xs text-slate-400 mt-1">{trans.statAvgScoreSub}</p>
             </div>
           </div>
@@ -406,7 +439,22 @@ export default function BakalavriatPage() {
                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
 
-              {/* Filter 2: Language Mode */}
+              {/* Filter 2: Academic Year */}
+              <div className="relative">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="appearance-none bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2.5 pr-10 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0c1f4a]/10 focus:border-[#0c1f4a] transition cursor-pointer"
+                >
+                  <option value="2026/2027">2026/2027</option>
+                  <option value="2025/2026">2025/2026</option>
+                  <option value="2024/2025">2024/2025</option>
+                  <option value="2023/2024">2023/2024</option>
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              </div>
+
+              {/* Filter 3: Language Mode */}
               <div className="relative">
                 <select
                   value={languageMode}
@@ -588,7 +636,7 @@ export default function BakalavriatPage() {
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold uppercase text-slate-400 tracking-wider flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-[#0c1f4a]" />
-                    <span>{trans.modalPassingScores}</span>
+                    <span>{trans.modalPassingScores.replace('(2023)', `(${parseInt(selectedYear.split('/')[0]) - 1})`)}</span>
                   </h4>
                   <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 text-sm">
                     <div className="flex justify-between">
