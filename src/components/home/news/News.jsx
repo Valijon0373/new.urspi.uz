@@ -99,7 +99,7 @@ export default function News() {
 
                     {/* Left Column: Large Featured Card */}
                     {featuredItem && (
-                        <Link to={`/news/${featuredItem.id}`} className="block group relative aspect-[4/3] min-h-[380px] overflow-hidden rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full lg:min-h-[500px] reveal-on-scroll opacity-0">
+                        <Link to={`/news/${featuredItem.id}`} className="block group relative aspect-[4/3] min-h-[180px] lg:min-h-[500px] overflow-hidden rounded-2xl lg:rounded-3xl shadow-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl lg:h-full reveal-on-scroll opacity-0">
                             {/* Image */}
                             <img
                                 src={featuredItem.image}
@@ -110,26 +110,26 @@ export default function News() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
                             {/* Bottom Overlay Info */}
-                            <div className="absolute bottom-0 left-0 right-0 flex items-stretch min-h-[140px] sm:min-h-[160px]">
+                            <div className="absolute bottom-0 left-0 right-0 flex items-stretch min-h-[110px] lg:min-h-[160px]">
                                 {/* Vertical Blue Bar */}
-                                <div className="bg-[#1d4ed8] text-white font-bold uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center w-10 sm:w-12 shrink-0 select-none [writing-mode:vertical-lr] rotate-180 border-r border-white/10">
+                                <div className="bg-[#1d4ed8] text-white font-bold uppercase tracking-wider text-[9px] lg:text-xs flex items-center justify-center w-8 lg:w-12 shrink-0 select-none [writing-mode:vertical-lr] rotate-180 border-r border-white/10">
                                     {t('home.news.label')}
                                 </div>
 
                                 {/* Content Panel */}
-                                <div className="flex-1 bg-black/20 backdrop-blur-sm p-4 sm:p-6 flex flex-col justify-between text-white">
-                                    <h3 className="text-sm sm:text-base md:text-lg font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-3">
+                                <div className="flex-1 bg-black/20 backdrop-blur-sm p-3 lg:p-6 flex flex-col justify-between text-white">
+                                    <h3 className="text-xs md:text-sm lg:text-lg font-bold leading-snug group-hover:text-blue-300 transition-colors line-clamp-2 lg:line-clamp-3">
                                         {featuredItem.title}
                                     </h3>
 
                                     {/* Meta details */}
-                                    <div className="flex items-center gap-2 mt-3">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/40 border border-white/20 text-xs font-medium text-white">
-                                            <Eye className="h-3.5 w-3.5 shrink-0" />
+                                    <div className="flex items-center gap-2 mt-2 lg:mt-3">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-md bg-black/40 border border-white/20 text-[11px] lg:text-xs font-medium text-white">
+                                            <Eye className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" />
                                             {featuredItem.views}
                                         </span>
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/40 border border-white/20 text-xs font-medium text-white">
-                                            <FaRegCalendarAlt className="h-4 w-4 shrink-0" />
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-md bg-black/40 border border-white/20 text-[11px] lg:text-xs font-medium text-white">
+                                            <FaRegCalendarAlt className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" />
                                             {featuredItem.date}
                                         </span>
                                     </div>

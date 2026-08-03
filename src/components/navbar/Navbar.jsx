@@ -149,10 +149,12 @@ function Navbar() {
             <span>{t('navbar.address')}</span>
           </p>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
-            <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
-            <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
-            <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
+            <div className="hidden lg:flex items-center gap-2 lg:gap-3">
+              <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
+              <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
+              <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
+              <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
+            </div>
 
             <div className="relative">
               <button
@@ -186,13 +188,37 @@ function Navbar() {
             <button
               type="button"
               onClick={() => setAccessibilityOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500"
+              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500"
               aria-label={t('navbar.accessibility')}
             >
               <IoAccessibilityOutline className="h-4 w-4" />
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── MOBILE FLOATING SOCIALS & ACCESSIBILITY ── */}
+      <div className="lg:hidden fixed left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[60]">
+        <a href="#" aria-label="Telegram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-sky-500 hover:opacity-90">
+          <BsTelegram className="h-4 w-4" />
+        </a>
+        <a href="#" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-500 hover:opacity-90">
+          <FaInstagram className="h-4 w-4" />
+        </a>
+        <a href="#" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-blue-600 hover:opacity-90">
+          <FaFacebookF className="h-4 w-4" />
+        </a>
+        <a href="#" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-600 hover:opacity-90">
+          <TfiYoutube className="h-4 w-4" />
+        </a>
+        <button
+          type="button"
+          onClick={() => setAccessibilityOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-green-500 hover:opacity-90"
+          aria-label={t('navbar.accessibility')}
+        >
+          <IoAccessibilityOutline className="h-5 w-5" />
+        </button>
       </div>
 
       {/* ── 2. LOGO ── */}
@@ -320,6 +346,15 @@ function Navbar() {
               {menuOpen && (
                 <div className="border-t border-white/15 px-4 py-3 lg:hidden">
                   <ul className="flex flex-col gap-1">
+                    <li>
+                      <a
+                        href="/"
+                        className={`block rounded-lg px-2 py-2.5 text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Bosh sahifa
+                      </a>
+                    </li>
                     {navLinks.map((link, idx) => (
                       <li key={link.labelKey}>
                         {link.dropdown ? (
