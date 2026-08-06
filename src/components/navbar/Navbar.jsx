@@ -79,10 +79,10 @@ const navLinks = [
       { labelKey: 'navbar.links.visa', href: '#' },
     ],
   },
-  { 
-    labelKey: 'navbar.links.anticorruption', 
-    href: '/anti-corruption', 
-    dropdown: null 
+  {
+    labelKey: 'navbar.links.anticorruption',
+    href: '/anti-corruption',
+    dropdown: null
   },
   { labelKey: 'navbar.links.stats', href: '#', dropdown: null },
 ]
@@ -106,7 +106,7 @@ function Navbar() {
   const { t, i18n } = useTranslation()
   const location = useLocation()
   const isGreenTheme = location.pathname.includes('/green-institute')
-  
+
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpenIdx, setMobileOpenIdx] = useState(null)
   const [mobileSubOpenKey, setMobileSubOpenKey] = useState(null)
@@ -118,6 +118,17 @@ function Navbar() {
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus()
   }, [searchOpen])
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
 
   const glassNavClass =
     `rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.25)] backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/80' : 'bg-[#1a2f55]/70'}`
@@ -144,10 +155,24 @@ function Navbar() {
       {/* ── 1. TOP BAR ── */}
       <div className={`sticky top-0 z-50 px-4 py-3 lg:px-8 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
-          <p className="flex items-start gap-1.5 text-left text-[11px] leading-snug text-white sm:items-center sm:text-xs">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:mt-0" />
-            <span>{t('navbar.address')}</span>
-          </p>
+          <div className="flex items-center gap-3">
+            {/* Burger icon on mobile top bar */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20"
+              aria-label={t('navbar.menu')}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Address hidden on mobile, shown on desktop */}
+            <p className="hidden lg:flex items-center gap-1.5 text-left text-[11px] leading-snug text-white sm:text-xs">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span>{t('navbar.address')}</span>
+            </p>
+          </div>
+
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <div className="hidden lg:flex items-center gap-2 lg:gap-3">
               <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
@@ -227,7 +252,7 @@ function Navbar() {
         style={{ backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <div className={`absolute inset-0 transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/50' : 'bg-[#0c1f4a]/30'}`} />
-        <div className="relative z-10 mx-auto flex max-w-[1400px] justify-start">
+        <div className="relative z-10 mx-auto flex max-w-[1400px] items-center justify-between">
           <a href="#">
             <img src={logoImg} alt="URSPI Logo" className="h-22 w-auto" />
           </a>
@@ -256,183 +281,217 @@ function Navbar() {
               </button>
             </div>
           ) : (
-            <>
-              <div className="flex items-center gap-1.5 px-4 py-3 lg:px-5 lg:py-3.5">
-                {/* Hamburger */}
+            <div className="flex items-center gap-1.5 px-4 py-3 lg:px-5 lg:py-3.5">
+              {/* Hamburger button on navbar */}
+              <button
+                type="button"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 lg:h-11 lg:w-11"
+                aria-label={t('navbar.menu')}
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+
+              {/* Desktop nav links */}
+              <ul className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex xl:gap-1.5">
+                {navLinks.map((link) => (
+                  <li key={link.labelKey} className="group relative">
+                    {link.dropdown ? (
+                      <>
+                        <button
+                          type="button"
+                          className={`flex items-center gap-1 rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
+                        >
+                          <span className="whitespace-nowrap">{t(link.labelKey)}</span>
+                          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80 transition-transform group-hover:rotate-180" />
+                        </button>
+                        <ul className={`invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
+                          {link.dropdown.map((item) => (
+                            <li key={item.labelKey} className={item.submenu ? "relative group/submenu" : ""}>
+                              {item.submenu ? (
+                                <>
+                                  <div
+                                    className={`flex items-center justify-between px-4 py-2.5 text-left text-[13px] normal-case cursor-pointer transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                  >
+                                    <span>{t(item.labelKey)}</span>
+                                    <ChevronRight className="h-3.5 w-3.5 opacity-80" />
+                                  </div>
+                                  <ul className={`invisible absolute left-full top-0 z-50 min-w-[220px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover/submenu:visible group-hover/submenu:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
+                                    {item.submenu.map((subItem) => (
+                                      <li key={subItem.labelKey}>
+                                        <a
+                                          href={subItem.href}
+                                          className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                        >
+                                          {t(subItem.labelKey)}
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : (
+                                <a
+                                  href={item.href}
+                                  className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
+                                >
+                                  {t(item.labelKey)}
+                                </a>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className={`block rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition whitespace-nowrap xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
+                      >
+                        {t(link.labelKey)}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Search */}
+              <div className="ml-auto flex shrink-0 items-center">
                 <button
                   type="button"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 lg:h-11 lg:w-11"
-                  aria-label={t('navbar.menu')}
-                  onClick={() => setMenuOpen(!menuOpen)}
+                  onClick={openSearch}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white transition hover:bg-white/10 lg:h-11 lg:w-11"
+                  aria-label={t('navbar.search_placeholder')}
                 >
-                  {menuOpen ? <X className="h-5 w-5 lg:hidden" /> : <Menu className="h-5 w-5" />}
+                  <Search className="h-5 w-5" />
                 </button>
-
-                {/* Desktop nav links */}
-                <ul className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex xl:gap-1.5">
-                  {navLinks.map((link) => (
-                    <li key={link.labelKey} className="group relative">
-                      {link.dropdown ? (
-                        <>
-                          <button
-                            type="button"
-                            className={`flex items-center gap-1 rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
-                          >
-                            <span className="whitespace-nowrap">{t(link.labelKey)}</span>
-                            <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80 transition-transform group-hover:rotate-180" />
-                          </button>
-                          <ul className={`invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
-                            {link.dropdown.map((item) => (
-                              <li key={item.labelKey} className={item.submenu ? "relative group/submenu" : ""}>
-                                {item.submenu ? (
-                                  <>
-                                    <div
-                                      className={`flex items-center justify-between px-4 py-2.5 text-left text-[13px] normal-case cursor-pointer transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
-                                    >
-                                      <span>{t(item.labelKey)}</span>
-                                      <ChevronRight className="h-3.5 w-3.5 opacity-80" />
-                                    </div>
-                                    <ul className={`invisible absolute left-full top-0 z-50 min-w-[220px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover/submenu:visible group-hover/submenu:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
-                                      {item.submenu.map((subItem) => (
-                                        <li key={subItem.labelKey}>
-                                          <a
-                                            href={subItem.href}
-                                            className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
-                                          >
-                                            {t(subItem.labelKey)}
-                                          </a>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </>
-                                ) : (
-                                  <a
-                                    href={item.href}
-                                    className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
-                                  >
-                                    {t(item.labelKey)}
-                                  </a>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : (
-                        <a
-                          href={link.href}
-                          className={`block rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition whitespace-nowrap xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
-                        >
-                          {t(link.labelKey)}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Search */}
-                <div className="ml-auto flex shrink-0 items-center">
-                  <button
-                    type="button"
-                    onClick={openSearch}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg text-white transition hover:bg-white/10 lg:h-11 lg:w-11"
-                    aria-label={t('navbar.search_placeholder')}
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
               </div>
-
-              {/* Mobile menu */}
-              {menuOpen && (
-                <div className="border-t border-white/15 px-4 py-3 lg:hidden">
-                  <ul className="flex flex-col gap-1">
-                    <li>
-                      <a
-                        href="/"
-                        className={`block rounded-lg px-2 py-2.5 text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Bosh sahifa
-                      </a>
-                    </li>
-                    {navLinks.map((link, idx) => (
-                      <li key={link.labelKey}>
-                        {link.dropdown ? (
-                          <>
-                            <button
-                              type="button"
-                              className={`flex w-full items-center justify-between rounded-lg px-2 py-2.5 text-left text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
-                              onClick={() => setMobileOpenIdx(mobileOpenIdx === idx ? null : idx)}
-                            >
-                              {t(link.labelKey)}
-                              <ChevronDown
-                                className={`h-4 w-4 transition-transform ${mobileOpenIdx === idx ? 'rotate-180' : ''}`}
-                              />
-                            </button>
-                            {mobileOpenIdx === idx && (
-                              <ul className="mb-1 ml-2 border-l border-white/15 pl-3">
-                                {link.dropdown.map((item) => (
-                                  <li key={item.labelKey}>
-                                    {item.submenu ? (
-                                      <>
-                                        <button
-                                          type="button"
-                                          className={`flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
-                                          onClick={() => setMobileSubOpenKey(mobileSubOpenKey === item.labelKey ? null : item.labelKey)}
-                                        >
-                                          <span>{t(item.labelKey)}</span>
-                                          <ChevronDown
-                                            className={`h-3.5 w-3.5 transition-transform ${mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''}`}
-                                          />
-                                        </button>
-                                        {mobileSubOpenKey === item.labelKey && (
-                                          <ul className="mb-1 ml-3 border-l border-white/10 pl-3">
-                                            {item.submenu.map((subItem) => (
-                                              <li key={subItem.labelKey}>
-                                                <a
-                                                  href={subItem.href}
-                                                  className={`block rounded-lg px-2 py-1.5 text-xs normal-case transition ${isGreenTheme ? 'text-emerald-100/80 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
-                                                  onClick={() => setMenuOpen(false)}
-                                                >
-                                                  {t(subItem.labelKey)}
-                                                </a>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <a
-                                        href={item.href}
-                                        className={`block rounded-lg px-2 py-2 text-sm normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
-                                        onClick={() => setMenuOpen(false)}
-                                      >
-                                        {t(item.labelKey)}
-                                      </a>
-                                    )}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </>
-                        ) : (
-                          <a
-                            href={link.href}
-                            className={`block rounded-lg px-2 py-2.5 text-sm font-semibold uppercase tracking-wide transition ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            {t(link.labelKey)}
-                          </a>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
+            </div>
           )}
         </nav>
       </div>
+
+      {/* ── MOBILE SIDE DRAWER MENU ── */}
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* Side Drawer */}
+      <aside
+        className={`fixed top-0 left-0 bottom-0 z-[101] w-[300px] max-w-[85vw] flex flex-col transition-transform duration-300 ease-in-out lg:hidden shadow-2xl ${
+          isGreenTheme ? 'bg-[#011a14]' : 'bg-[#0c1f4a]'
+        } ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/15">
+          <h2 className="text-xl font-bold text-white tracking-wide">Menyu</h2>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(false)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white"
+            aria-label="Close menu"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Drawer Links Content */}
+        <div className="flex-1 overflow-y-auto px-4 py-5 scrollbar-thin scrollbar-thumb-white/20">
+          <ul className="flex flex-col gap-1 text-white">
+            <li>
+              <a
+                href="/"
+                className="block rounded-xl px-4 py-3 text-base font-semibold transition hover:bg-white/10"
+                onClick={() => setMenuOpen(false)}
+              >
+                Asosiy sahifa
+              </a>
+            </li>
+
+            {navLinks.map((link, idx) => (
+              <li key={link.labelKey}>
+                {link.dropdown ? (
+                  <>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-base font-semibold transition hover:bg-white/10"
+                      onClick={() => setMobileOpenIdx(mobileOpenIdx === idx ? null : idx)}
+                    >
+                      <span>{t(link.labelKey)}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          mobileOpenIdx === idx ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    {mobileOpenIdx === idx && (
+                      <ul className="my-1 ml-4 border-l border-white/15 pl-3 flex flex-col gap-1">
+                        {link.dropdown.map((item) => (
+                          <li key={item.labelKey}>
+                            {item.submenu ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-white/90 transition hover:bg-white/10 hover:text-white"
+                                  onClick={() =>
+                                    setMobileSubOpenKey(
+                                      mobileSubOpenKey === item.labelKey ? null : item.labelKey
+                                    )
+                                  }
+                                >
+                                  <span>{t(item.labelKey)}</span>
+                                  <ChevronDown
+                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                                      mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''
+                                    }`}
+                                  />
+                                </button>
+                                {mobileSubOpenKey === item.labelKey && (
+                                  <ul className="my-1 ml-3 border-l border-white/10 pl-3 flex flex-col gap-1">
+                                    {item.submenu.map((subItem) => (
+                                      <li key={subItem.labelKey}>
+                                        <a
+                                          href={subItem.href}
+                                          className="block rounded-lg px-3 py-1.5 text-xs text-white/75 transition hover:bg-white/10 hover:text-white"
+                                          onClick={() => setMenuOpen(false)}
+                                        >
+                                          {t(subItem.labelKey)}
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </>
+                            ) : (
+                              <a
+                                href={item.href}
+                                className="block rounded-lg px-3 py-2 text-sm text-white/90 transition hover:bg-white/10 hover:text-white"
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                {t(item.labelKey)}
+                              </a>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <a
+                    href={link.href}
+                    className="block rounded-xl px-4 py-3 text-base font-semibold transition hover:bg-white/10"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t(link.labelKey)}
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
 
       {/* ── 4. ACCESSIBILITY DRAWER ── */}
       <AccessibilityDrawer

@@ -79,19 +79,16 @@ export default function News() {
             <div className="container mx-auto w-full px-4 sm:px-6 lg:px-8">
 
                 {/* Header section */}
-                <div className="relative flex flex-col items-center justify-center mb-8 gap-6 text-center reveal-on-scroll opacity-0">
-                    <div className="relative w-full flex justify-center">
-                        <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
-                            -
-                            <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-                            {t('home.news.title')}
-                            -
-                        </h2>
-                        <Link to="/news" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
-                            {t('home.news.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
-                        </Link>
-                    </div>
-
+                <div className="relative flex flex-col items-center justify-center mb-8 gap-4 text-center reveal-on-scroll opacity-0">
+                    <h2 id="news-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
+                        -
+                        <PiNewspaperClipping style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
+                        {t('home.news.title')}
+                        -
+                    </h2>
+                    <Link to="/news" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                        {t('home.news.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
+                    </Link>
                 </div>
 
                 {/* Grid Layout */}
