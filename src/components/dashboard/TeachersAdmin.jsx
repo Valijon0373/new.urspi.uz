@@ -4,8 +4,7 @@ import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import menImg from '../../assets/men.jpg';
-import { teachersAPI, getFileUrl } from '../../api';
+import { teachersAPI, facultiesAPI, departmentsAPI, getFileUrl } from '../../api';
 
 
 export default function TeachersAdmin() {
@@ -23,7 +22,22 @@ export default function TeachersAdmin() {
   const [notification, setNotification] = useState({ show: false, message: '' });
 
   const [imagePreview, setImagePreview] = useState(null);
-  const [phone, setPhone] = useState('+998 ');
+  const [faculties, setFaculties] = useState([]);
+  const [departments, setDepartments] = useState([]);
+
+  // Filter states
+  const [filterFaculty, setFilterFaculty] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Form states
+  const [fullNameUz, setFullNameUz] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('+998 ');
+  const [email, setEmail] = useState('');
+  const [facultyId, setFacultyId] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
+  const [positionTitle, setPositionTitle] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
 
   const [articles, setArticles] = useState({
     1: [
@@ -91,7 +105,7 @@ export default function TeachersAdmin() {
     if (val.startsWith('998')) {
       val = val.substring(3);
     } else if (val.length === 0) {
-      setPhone('+998 ');
+      setPhoneNumber('+998 ');
       return;
     }
     val = val.substring(0, 9);
@@ -102,7 +116,7 @@ export default function TeachersAdmin() {
     if (val.length > 5) formatted += ' ' + val.substring(5, 7);
     if (val.length > 7) formatted += ' ' + val.substring(7, 9);
     
-    setPhone(formatted);
+    setPhoneNumber(formatted);
   };
   const [teachersList, setTeachersList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,8 +146,24 @@ export default function TeachersAdmin() {
     }
   };
 
+  const fetchFacultiesAndDepartments = async () => {
+    try {
+      const [facRes, deptRes] = await Promise.all([
+        facultiesAPI.getAll(),
+        departmentsAPI.getAll()
+      ]);
+      const rawFac = Array.isArray(facRes) ? facRes : (facRes?.data || []);
+      const rawDept = Array.isArray(deptRes) ? deptRes : (deptRes?.data || []);
+      setFaculties(rawFac);
+      setDepartments(rawDept);
+    } catch (e) {
+      console.warn("Failed to fetch faculties and departments:", e.message);
+    }
+  };
+
   useEffect(() => {
     fetchTeachers();
+    fetchFacultiesAndDepartments();
   }, []);
 
   useEffect(() => {
@@ -157,24 +187,74 @@ export default function TeachersAdmin() {
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const handleSave = async () => {
+    if (!fullNameUz) {
+      showNotification("Iltimos, ism-sharifni kiriting", "error");
+      return;
+    }
+    try {
+      const fd = new FormData();
+      fd.append('fullNameUz', fullNameUz);
+      fd.append('fullNameRu', fullNameUz);
+      fd.append('fullNameEn', fullNameUz);
+      fd.append('phoneNumber', phoneNumber);
+      fd.append('email', email);
+      fd.append('positionTitle', positionTitle);
+      fd.append('positionTitleUz', positionTitle);
+      fd.append('positionTitleRu', positionTitle);
+      fd.append('positionTitleEn', positionTitle);
+      if (facultyId) {
+        fd.append('facultyId', facultyId);
+      }
+      if (departmentId) {
+        fd.append('departmentId', departmentId);
+      }
+      if (photoFile) {
+        fd.append('file', photoFile);
+        fd.append('photo', photoFile);
+      }
+
+      if (editMode && selectedItem) {
+        await teachersAPI.update(selectedItem.id, fd);
+        showNotification("Muvaffaqiyatli tahrirlandi");
+      } else {
+        await teachersAPI.create(fd);
+        showNotification("Muvaffaqiyatli qo'shildi");
+      }
+      setIsModalOpen(false);
+      fetchTeachers();
+    } catch (e) {
+      console.error(e);
+      showNotification(e.message || "Xatolik yuz berdi", "error");
     }
   };
 
-  const handleDelete = () => {
-    setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
+  const handleDelete = async () => {
+    try {
+      await teachersAPI.delete(selectedItem.id);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchTeachers();
+    } catch (e) {
+      console.error(e);
+      showNotification(e.message || "O'chirishda xatolik", "error");
+    } finally {
+      setDeleteModalOpen(false);
+    }
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
     setSelectedItem(item);
     setImagePreview(item.image || null);
+    setPhotoFile(null);
+
+    setFullNameUz(item.fullName || '');
+    setPhoneNumber(item.phone || '+998 ');
+    setEmail(item.email || '');
+    setFacultyId(item.rawItem?.faculty?.id || item.rawItem?.facultyId || '');
+    setDepartmentId(item.rawItem?.department?.id || item.rawItem?.departmentId || '');
+    setPositionTitle(item.position || '');
+
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
@@ -183,9 +263,34 @@ export default function TeachersAdmin() {
     setEditMode(false);
     setSelectedItem(null);
     setImagePreview(null);
+    setPhotoFile(null);
+
+    setFullNameUz('');
+    setPhoneNumber('+998 ');
+    setEmail('');
+    setFacultyId('');
+    setDepartmentId('');
+    setPositionTitle('');
+
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
+
+  const filteredTeachers = teachersList.filter(t => {
+    const matchesFaculty = !filterFaculty || 
+      String(t.rawItem?.faculty?.id || t.rawItem?.facultyId) === String(filterFaculty);
+    
+    const matchesDepartment = !filterDepartment || 
+      String(t.rawItem?.department?.id || t.rawItem?.departmentId) === String(filterDepartment);
+    
+    const matchesSearch = !searchQuery || 
+      (t.fullName && t.fullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (t.position && t.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (t.email && t.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (t.phone && t.phone.includes(searchQuery));
+      
+    return matchesFaculty && matchesDepartment && matchesSearch;
+  });
 
   return (
     <div className="space-y-6 animate-fade-in relative">
@@ -217,23 +322,39 @@ export default function TeachersAdmin() {
       {/* Filters section */}
       <div className="flex flex-wrap gap-4 items-center w-full">
         <div className="flex-1 min-w-[200px] relative">
-          <select className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors appearance-none cursor-pointer">
+          <select 
+            value={filterFaculty}
+            onChange={(e) => {
+              setFilterFaculty(e.target.value);
+              setFilterDepartment('');
+            }}
+            className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors appearance-none cursor-pointer"
+          >
             <option value="">Barcha fakultetlar</option>
-            <option value="boshlangich">Boshlang'ich ta'lim fakulteti</option>
-            <option value="fizika-matematika">Fizika-matematika fakulteti</option>
-            <option value="pedagogika">Pedagogika fakulteti</option>
-            <option value="xorijiy-tillar">Xorijiy tillar fakulteti</option>
+            {faculties.map(f => (
+              <option key={f.id} value={f.id}>
+                {f.nameUz || f.name || "Fakultet"}
+              </option>
+            ))}
           </select>
           <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
         
         <div className="flex-1 min-w-[200px] relative">
-          <select className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors appearance-none cursor-pointer">
+          <select 
+            value={filterDepartment}
+            onChange={(e) => setFilterDepartment(e.target.value)}
+            className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors appearance-none cursor-pointer"
+          >
             <option value="">Barcha kafedralar</option>
-            <option value="metodika">Boshlang'ich ta'lim metodikasi kafedrasi</option>
-            <option value="matematika">Matematika kafedrasi</option>
-            <option value="umumiy">Umumiy pedagogika kafedrasi</option>
-            <option value="ingliz">Ingliz tili nazariyasi kafedrasi</option>
+            {departments
+              .filter(d => !filterFaculty || String(d.faculty?.id || d.facultyId) === String(filterFaculty))
+              .map(d => (
+                <option key={d.id} value={d.id}>
+                  {d.nameUz || d.name || "Kafedra"}
+                </option>
+              ))
+            }
           </select>
           <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
@@ -241,14 +362,12 @@ export default function TeachersAdmin() {
         <div className="flex-1 min-w-[200px] relative">
           <input 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="O'qituvchini izlash" 
             className="w-full h-11 pl-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors placeholder:text-slate-400"
           />
         </div>
-
-        <button className="h-11 px-6 rounded-lg border border-[#0eb99c] text-[#0eb99c] font-medium hover:bg-[#0eb99c]/5 transition-colors">
-          Qidirish
-        </button>
       </div>
 
       {/* Table section */}
@@ -267,7 +386,7 @@ export default function TeachersAdmin() {
               </tr>
             </thead>
             <tbody className="text-sm">
-              {teachersList.map((teacher, index) => (
+              {filteredTeachers.map((teacher, index) => (
                 <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium text-center">{index + 1}</td>
                   <td className="border border-slate-200 dark:border-slate-700 p-0 text-center w-20">
@@ -475,7 +594,9 @@ export default function TeachersAdmin() {
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
-                        setImagePreview(URL.createObjectURL(e.target.files[0]));
+                        const file = e.target.files[0];
+                        setPhotoFile(file);
+                        setImagePreview(URL.createObjectURL(file));
                       }
                     }}
                   />
@@ -498,7 +619,8 @@ export default function TeachersAdmin() {
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      defaultValue={selectedItem?.fullName || ''}
+                      value={fullNameUz}
+                      onChange={(e) => setFullNameUz(e.target.value)}
                       placeholder="To'liq ism-sharifi" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
@@ -510,7 +632,7 @@ export default function TeachersAdmin() {
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={editMode && selectedItem ? selectedItem.phone : phone}
+                      value={phoneNumber}
                       onChange={handlePhoneChange}
                       placeholder="+998 94 237 03 73" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
@@ -523,20 +645,10 @@ export default function TeachersAdmin() {
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="email" 
-                      defaultValue={selectedItem?.email || ''}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="misol@urspi.uz" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV yuklash (PDF)</label>
-                  <div className="relative">
-                    <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <input 
-                      type="file" 
-                      accept=".pdf" 
-                      className="w-full h-11 pl-11 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                     />
                   </div>
                 </div>
@@ -544,12 +656,19 @@ export default function TeachersAdmin() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Fakultet</label>
                   <div className="relative">
                     <select 
-                      defaultValue={selectedItem?.faculty || ''}
+                      value={facultyId}
+                      onChange={(e) => {
+                        setFacultyId(e.target.value);
+                        setDepartmentId('');
+                      }}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
                       <option value="">Fakultetni tanlang</option>
-                      <option value="Boshlang'ich ta'lim fakulteti">Boshlang'ich ta'lim fakulteti</option>
-                      <option value="Fizika-matematika fakulteti">Fizika-matematika fakulteti</option>
+                      {faculties.map(f => (
+                        <option key={f.id} value={f.id}>
+                          {f.nameUz || f.name || "Fakultet"}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -558,12 +677,19 @@ export default function TeachersAdmin() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Kafedra</label>
                   <div className="relative">
                     <select 
-                      defaultValue={selectedItem?.department || ''}
+                      value={departmentId}
+                      onChange={(e) => setDepartmentId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
                       <option value="">Kafedrani tanlang</option>
-                      <option value="Boshlang'ich ta'lim metodikasi kafedrasi">Boshlang'ich ta'lim metodikasi kafedrasi</option>
-                      <option value="Matematika kafedrasi">Matematika kafedrasi</option>
+                      {departments
+                        .filter(d => !facultyId || String(d.faculty?.id || d.facultyId) === String(facultyId))
+                        .map(d => (
+                          <option key={d.id} value={d.id}>
+                            {d.nameUz || d.name || "Kafedra"}
+                          </option>
+                        ))
+                      }
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -572,7 +698,8 @@ export default function TeachersAdmin() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lavozimi</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedItem?.position || ''}
+                    value={positionTitle}
+                    onChange={(e) => setPositionTitle(e.target.value)}
                     placeholder="Masalan: O'qituvchi" 
                     className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                   />
