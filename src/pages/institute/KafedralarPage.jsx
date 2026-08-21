@@ -1,54 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-
-const facultiesWithDepartments = [
-  {
-    id: 1,
-    name: 'FILOLOGIYA FAKULTETI',
-    departments: [
-      'RUS TILI VA ADABIYOTI KAFEDRASI',
-      'O\'ZBEK TILI VA ADABIYOTI KAFEDRASI',
-      'XORIJIY FILOLOGIYA KAFEDRASI'
-    ]
-  },
-  {
-    id: 2,
-    name: 'PEDAGOGIKA FAKULTETI',
-    departments: [
-      'PEDAGOGIKA VA PSIXOLOGIYA KAFEDRASI',
-      'MAKTABGACHA TA\'LIM KAFEDRASI'
-    ]
-  },
-  {
-    id: 3,
-    name: 'ANIQ VA TABIIY FANLAR FAKULTETI',
-    departments: [
-      'MATEMATIKA VA KOMPYUTER TEXNOLOGIYALARI KAFEDRASI',
-      'TABIIY FANLAR KAFEDRASI',
-      'FIZIKA VA ASTRONOMIYA KAFEDRASI',
-      'TEXNOLOGIK TA\'LIM KAFEDRASI'
-    ]
-  },
-  {
-    id: 4,
-    name: 'BOSHLANG\'ICH TA\'LIM FAKULTETI',
-    departments: [
-      'BOSHLANG\'ICH TA\'LIM METODIKASI KAFEDRASI',
-      'BOSHLANG\'ICH TA\'LIM NAZARIYASI KAFEDRASI'
-    ]
-  },
-  {
-    id: 5,
-    name: 'IJTIMOIY VA AMALIY FANLAR FAKULTETI',
-    departments: [
-      'TARIX KAFEDRASI',
-      'MILLIY G\'OYA VA FALSAFA KAFEDRASI',
-      'SAN\'ATSHUNOSLIK KAFEDRASI',
-      'JISMONIY MADANIYAT KAFEDRASI'
-    ]
-  }
-];
+import { useTranslation } from 'react-i18next'
+import { facultiesAPI, departmentsAPI } from '../../api'
 
 const sidebarLinks = [
   { name: 'Institut tarixi', path: '#' },
@@ -56,11 +10,81 @@ const sidebarLinks = [
   { name: 'Rahbariyat', path: '/rahbariyat' },
   { name: 'Fakultetlar', path: '/fakultetlar' },
   { name: 'Kafedralar', path: '/kafedralar' },
-  { name: 'Markaz va bo\'limlar', path: '#' },
+  { name: 'Markaz va bo\'limlar', path: '/markazlar' },
 ];
 
 export default function KafedralarPage() {
   const location = useLocation();
+  const { i18n } = useTranslation();
+  const [facultiesList, setFacultiesList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      setLoading(true);
+      let rawFac = [];
+      let rawDept = [];
+      try {
+        const [facRes, deptRes] = await Promise.allSettled([
+          facultiesAPI.getLanding(0, 50),
+          departmentsAPI.getLanding(0, 50)
+        ]);
+
+        rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
+        rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || deptRes.value?.data || []) : [];
+      } catch (err) {
+        console.warn('Failed to load landing departments from API:', err.message);
+      }
+
+      let localFac = [];
+      let localDept = [];
+      try {
+        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
+        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
+      } catch (e) {}
+
+      const facMap = new Map();
+      localFac.forEach(item => facMap.set(item.id, item));
+      rawFac.forEach(item => {
+        if (!facMap.has(item.id)) facMap.set(item.id, item);
+      });
+
+      const deptMap = new Map();
+      localDept.forEach(item => deptMap.set(item.id, item));
+      rawDept.forEach(item => {
+        if (!deptMap.has(item.id)) deptMap.set(item.id, item);
+      });
+
+      const combinedFac = Array.from(facMap.values());
+      const combinedDept = Array.from(deptMap.values());
+
+      if (isMounted) {
+        const formatted = combinedFac.map(fac => {
+          const langKey = i18n.language ? (i18n.language.charAt(0).toUpperCase() + i18n.language.slice(1).toLowerCase()) : 'Uz';
+          const facName = fac[`name${langKey}`] || fac.name || fac.nameUz || fac.title || "FAKULTET";
+
+          const depts = combinedDept
+            .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
+            .map(d => ({
+              id: d.id,
+              name: d[`name${langKey}`] || d.name || d.nameUz || d.title || "Kafedra"
+            }));
+
+          return {
+            id: fac.id,
+            name: facName,
+            departments: depts
+          };
+        });
+        setFacultiesList(formatted);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => { isMounted = false; };
+  }, [i18n.language]);
 
   return (
     <div className="flex-grow bg-white flex flex-col min-h-[calc(100vh-200px)]">
@@ -121,29 +145,35 @@ export default function KafedralarPage() {
                 <h1 className="text-2xl md:text-[28px] font-bold text-[#0c1f4a]">Kafedralar</h1>
               </div>
 
-              <div className="flex flex-col gap-8">
-                {facultiesWithDepartments.map((faculty) => (
-                  <div key={faculty.id} className="flex flex-col w-full">
-                    {/* Faculty Header */}
-                    <div className="bg-[#0c1f4a] text-white px-5 py-3.5 font-medium text-[14px] sm:text-[15px] uppercase tracking-wide rounded-xl mb-4 shadow-sm">
-                      {faculty.name}
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-8">
+                  {facultiesList.map((faculty) => (
+                    <div key={faculty.id} className="flex flex-col w-full">
+                      {/* Faculty Header */}
+                      <div className="bg-[#0c1f4a] text-white px-5 py-3.5 font-medium text-[14px] sm:text-[15px] uppercase tracking-wide rounded-xl mb-4 shadow-sm">
+                        {faculty.name}
+                      </div>
+                      {/* Departments List */}
+                      <div className="flex flex-col w-full gap-3">
+                        {faculty.departments.map((dep, idx) => (
+                          <Link 
+                            to="/kafedra-xodimlari"
+                            key={dep.id || idx} 
+                            className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[13px] sm:text-[14px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"
+                          >
+                            <ChevronRight className="w-5 h-5 text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
+                            <span>{typeof dep === 'string' ? dep : dep.name}</span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                    {/* Departments List */}
-                    <div className="flex flex-col w-full gap-3">
-                      {faculty.departments.map((dep, idx) => (
-                        <Link 
-                          to="/kafedra-xodimlari"
-                          key={idx} 
-                          className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[13px] sm:text-[14px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"
-                        >
-                          <ChevronRight className="w-5 h-5 text-blue-500 shrink-0 transition-transform group-hover:translate-x-1" />
-                          <span>{dep}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>

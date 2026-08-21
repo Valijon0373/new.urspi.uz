@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check } from 'lucide-react';
 import rektorImg from '../../assets/men.jpg';
+import { leadersAPI, getFileUrl } from '../../api';
 
 export default function RahbariyatAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -9,6 +10,8 @@ export default function RahbariyatAdmin() {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
+  const [leadersList, setLeadersList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
@@ -20,18 +23,33 @@ export default function RahbariyatAdmin() {
     phone: ''
   });
 
-  const mockRahbariyat = [
-    {
-      id: 1,
-      fullName: "ABDULLAYEV DIYORJON",
-      position: "Rektor v.b",
-      address: "Xorazm viloyati, Urganch shahri, Gurlan ko'chasi 1A-uy",
-      reception: "Seshanba, Juma 14:00 - 16:00",
-      email: "adn20@mail.ru",
-      phone: "+998622261840",
-      image: rektorImg
+  const fetchLeaders = async () => {
+    setLoading(true);
+    try {
+      const res = await leadersAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map(item => ({
+        id: item.id,
+        fullName: item.fullNameUz || item.fullName || "Rahbar",
+        position: item.positionTitleUz || item.positionTitle || "Lavozim",
+        address: item.addressUz || item.address || "Urganch shahri",
+        reception: item.receptionTimeUz || item.receptionTime || "09:00 - 17:00",
+        email: item.email || "info@urspi.uz",
+        phone: item.phoneNumber || "+998622261840",
+        image: getFileUrl(item.photoLink || item.photo) || rektorImg
+      }));
+      setLeadersList(formatted);
+    } catch (e) {
+      console.warn('API error in fetchLeaders:', e.message);
+      setLeadersList([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchLeaders();
+  }, []);
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
@@ -40,18 +58,48 @@ export default function RahbariyatAdmin() {
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi.");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi.");
+  const handleSave = async () => {
+    try {
+      const dto = {
+        fullNameUz: formData.fullName.uz || 'Rahbar',
+        fullNameRu: formData.fullName.ru || '',
+        fullNameEn: formData.fullName.en || '',
+        positionTitleUz: formData.position.uz || 'Lavozim',
+        positionTitleRu: formData.position.ru || '',
+        positionTitleEn: formData.position.en || '',
+        addressUz: formData.address.uz || '',
+        receptionTimeUz: formData.reception.uz || '',
+        email: formData.email,
+        phoneNumber: formData.phone
+      };
+
+      if (editMode && selectedPerson) {
+        await leadersAPI.update(selectedPerson.id, dto);
+        showNotification("Muvaffaqiyatli tahrirlandi.");
+      } else {
+        await leadersAPI.create(dto);
+        showNotification("Muvaffaqiyatli qo'shildi.");
+      }
+      fetchLeaders();
+    } catch (e) {
+      showNotification(editMode ? "Tahrirlandi (demo mode)" : "Qo'shildi (demo mode)");
+    } finally {
+      setIsModalOpen(false);
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteConfirm = async () => {
+    if (selectedPerson) {
+      try {
+        await leadersAPI.delete(selectedPerson.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchLeaders();
+      } catch (e) {
+        setLeadersList(prev => prev.filter(item => item.id !== selectedPerson.id));
+        showNotification("Muvaffaqiyatli o'chirildi");
+      }
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (person) => {

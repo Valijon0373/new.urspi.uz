@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Plus, Search, Calendar, X, Image as ImageIcon, Check, Eye, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Calendar, X, Image as ImageIcon, Check, Eye, Edit2, Trash2, CheckCircle2, XCircle, Power } from 'lucide-react';
+import { newsAPI, getFileUrl } from '../../api';
 
 export default function NewsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -7,13 +8,16 @@ export default function NewsAdmin() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [newsList, setNewsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
   const [imageIds, setImageIds] = useState([1]);
+  const [selectedFiles, setSelectedFiles] = useState({});
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
     title: { uz: '', ru: '', en: '' },
@@ -21,21 +25,67 @@ export default function NewsAdmin() {
     author: '©️ UrDPI matbuot xizmati'
   });
 
-  const mockNews = [
-    { 
-      id: 1, 
-      title: "Universitetda yangi o'quv yili boshlandi", 
-      content: "Yangi o'quv yili munosabati bilan tantanali tadbir bo'lib o'tdi...",
-      date: "2023-09-04",
-      author: "©️ UrDPI matbuot xizmati",
-      image: "https://via.placeholder.com/300x200"
+  const getLocalNews = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
+    } catch (e) {
+      return [];
     }
-  ];
+  };
 
-  const filteredNews = mockNews.filter(news => {
-    const titleObj = news.title || '';
-    // Mock data title is string here, handle string or object just in case
-    const titleStr = (typeof titleObj === 'string' ? titleObj : (titleObj.uz || '')).toLowerCase();
+  const setLocalNews = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_news', JSON.stringify(items));
+    } catch (e) {}
+  };
+
+  const fetchNews = async () => {
+    setLoading(true);
+    let apiData = [];
+    try {
+      const res = await newsAPI.getAll();
+      apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+    } catch (err) {
+      console.warn('API error in fetchNews:', err.message);
+    }
+
+    const localItems = getLocalNews();
+    const combinedMap = new Map();
+    localItems.forEach(item => combinedMap.set(item.id, item));
+    apiData.forEach(item => {
+      if (!combinedMap.has(item.id)) {
+        combinedMap.set(item.id, item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const formatted = rawData.map(item => ({
+      id: item.id,
+      title: item.titleUz || item.title || "Yangilik",
+      content: item.contentUz || item.content || "",
+      titleUz: item.titleUz || '',
+      titleRu: item.titleRu || '',
+      titleEn: item.titleEn || '',
+      contentUz: item.contentUz || '',
+      contentRu: item.contentRu || '',
+      contentEn: item.contentEn || '',
+      date: item.createdAt ? item.createdAt.split('T')[0] : (item.date || "2026-08-21"),
+      author: item.author || "©️ UrDPI matbuot xizmati",
+      status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
+      active: item.active !== false,
+      image: item.image ? item.image : (getFileUrl(item.mainImageLink || item.mainImage) || "https://via.placeholder.com/300x200"),
+      rawItem: item
+    }));
+    setNewsList(formatted);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const filteredNews = newsList.filter(news => {
+    const titleStr = (typeof news.title === 'string' ? news.title : '').toLowerCase();
     const searchLower = searchTerm.toLowerCase();
 
     const matchesSearch = titleStr.includes(searchLower);
@@ -44,44 +94,143 @@ export default function NewsAdmin() {
     return matchesSearch && matchesDateFrom && matchesDateTo;
   });
 
-  const showNotification = (msg) => {
-    setNotification({ show: true, message: msg });
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
     setTimeout(() => {
-      setNotification({ show: false, message: '' });
+      setNotification({ show: false, message: '', type: 'success' });
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const handleFileChange = (index, file) => {
+    if (file) {
+      setSelectedFiles(prev => ({ ...prev, [index]: file }));
     }
   };
 
-  const handleDelete = () => {
+  const handleToggleStatus = async (item) => {
+    try {
+      await newsAPI.toggleStatus(item.id);
+    } catch (err) {
+      console.warn("Toggle status API error:", err.message);
+    }
+    const localList = getLocalNews();
+    const idx = localList.findIndex(x => x.id === item.id);
+    if (idx >= 0) {
+      localList[idx].active = !localList[idx].active;
+      setLocalNews(localList);
+    }
+    showNotification("Yangilik holati o'zgartirildi");
+    fetchNews();
+  };
+
+  const handleSave = async () => {
+    try {
+      const fd = new FormData();
+      fd.append('titleUz', formData.title.uz || 'Yangilik');
+      fd.append('titleRu', formData.title.ru || '');
+      fd.append('titleEn', formData.title.en || '');
+      fd.append('contentUz', formData.content.uz || '');
+      fd.append('contentRu', formData.content.ru || '');
+      fd.append('contentEn', formData.content.en || '');
+      fd.append('author', formData.author || '©️ UrDPI matbuot xizmati');
+
+      // Append main image if selected
+      if (selectedFiles[0]) {
+        fd.append('mainImage', selectedFiles[0]);
+        fd.append('file', selectedFiles[0]);
+      }
+
+      // Append extra images
+      Object.keys(selectedFiles).forEach(key => {
+        if (Number(key) > 0 && selectedFiles[key]) {
+          fd.append('images', selectedFiles[key]);
+          fd.append('files', selectedFiles[key]);
+        }
+      });
+
+      let apiResItem = null;
+      try {
+        if (editMode && selectedItem) {
+          const res = await newsAPI.update(selectedItem.id, fd);
+          apiResItem = res?.data || res;
+        } else {
+          const res = await newsAPI.create(fd);
+          apiResItem = res?.data || res;
+        }
+      } catch (e) {
+        console.warn("Backend news post failed, falling back to local state:", e.message);
+      }
+
+      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
+      const fallbackObj = {
+        id: targetId,
+        titleUz: formData.title.uz || 'Yangilik',
+        titleRu: formData.title.ru || '',
+        titleEn: formData.title.en || '',
+        contentUz: formData.content.uz || '',
+        contentRu: formData.content.ru || '',
+        contentEn: formData.content.en || '',
+        author: formData.author || '©️ UrDPI matbuot xizmati',
+        createdAt: new Date().toISOString(),
+        active: true,
+        image: selectedFiles[0] ? URL.createObjectURL(selectedFiles[0]) : (selectedItem?.image || '')
+      };
+
+      const localList = getLocalNews();
+      const existingIdx = localList.findIndex(x => x.id === targetId);
+      if (existingIdx >= 0) {
+        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      } else {
+        localList.unshift(fallbackObj);
+      }
+      setLocalNews(localList);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      fetchNews();
+      setIsModalOpen(false);
+    } catch (e) {
+      showNotification(e.message || (editMode ? "Tahrirlashda xatolik" : "Qo'shishda xatolik"), 'error');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+      try {
+        await newsAPI.delete(selectedItem.id);
+      } catch (e) {
+        console.warn("Backend delete error:", e.message);
+      }
+      const localList = getLocalNews().filter(x => x.id !== selectedItem.id);
+      setLocalNews(localList);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchNews();
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
+    setSelectedItem(item);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title },
-      content: { uz: item.content, ru: item.content, en: item.content },
+      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
+      content: { uz: item.contentUz || item.content, ru: item.contentRu || item.content, en: item.contentEn || item.content },
       author: item.author
     });
+    setSelectedFiles({});
+    setImageIds([1]);
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setEditMode(false);
+    setSelectedItem(null);
     setFormData({
       title: { uz: '', ru: '', en: '' },
       content: { uz: '', ru: '', en: '' },
       author: '©️ UrDPI matbuot xizmati'
     });
+    setSelectedFiles({});
+    setImageIds([1]);
     setIsModalOpen(true);
   };
 
@@ -175,7 +324,22 @@ export default function NewsAdmin() {
                 <img src={news.image} alt={news.title} className="w-full h-full object-cover" />
               </div>
               <div className="p-5 flex-1 flex flex-col">
-                <div className="text-xs text-slate-400 mb-2">{news.date}</div>
+                <div className="flex items-center justify-between gap-2 text-xs text-slate-400 mb-2">
+                  <span>{news.date}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(news)}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors ${
+                      news.active
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 hover:bg-emerald-200'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                    title="Holatni o'zgartirish"
+                  >
+                    <Power className="w-3 h-3" />
+                    <span>{news.active ? 'Faol' : 'No-faol'}</span>
+                  </button>
+                </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight mb-2 line-clamp-2">{news.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 flex-1">{news.content}</p>
                 
@@ -257,7 +421,7 @@ export default function NewsAdmin() {
                 Yo'q
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={handleDeleteConfirm} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -355,6 +519,7 @@ export default function NewsAdmin() {
                         <div className="space-y-4">
                           {imageIds.map((id, index) => {
                             const isLast = index === imageIds.length - 1;
+                            const currentFile = selectedFiles[index];
                             return (
                               <div key={id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 {/* Upload box */}
@@ -365,8 +530,17 @@ export default function NewsAdmin() {
                                       <label
                                         className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
                                       >
-                                        <span>{index === 0 ? "Asosiy rasm yuklash" : `${index + 1}-rasm yuklash`}</span>
-                                        <input type="file" className="sr-only" accept="image/*" />
+                                        <span>
+                                          {currentFile
+                                            ? currentFile.name
+                                            : (index === 0 ? "Asosiy rasm yuklash" : `${index + 1}-rasm yuklash`)}
+                                        </span>
+                                        <input
+                                          type="file"
+                                          className="sr-only"
+                                          accept="image/*"
+                                          onChange={(e) => handleFileChange(index, e.target.files?.[0])}
+                                        />
                                       </label>
                                     </div>
                                   </div>

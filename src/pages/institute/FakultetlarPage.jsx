@@ -1,56 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronRight, Users, Layers, ChevronDown } from 'lucide-react'
 import { BsInfoCircle } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
-import facultyImg from '../../assets/images/logo1.jpg' // Generic placeholder for faculty image
+import { useTranslation } from 'react-i18next'
+import facultyImg from '../../assets/images/logo1.jpg'
+import { facultiesAPI, departmentsAPI, getFileUrl } from '../../api'
 
-const faculties = [
-  { 
-    id: 1, 
-    name: 'Filologiya Fakulteti',
-    departments: [
-      'RUS TILI VA ADABIYOTI KAFEDRASI',
-      'O\'ZBEK TILI VA ADABIYOTI KAFEDRASI',
-      'XORIJIY FILOLOGIYA KAFEDRASI'
-    ]
-  },
-  { 
-    id: 2, 
-    name: 'Pedagogika Fakulteti',
-    departments: [
-      'PEDAGOGIKA VA PSIXOLOGIYA KAFEDRASI',
-      'MAKTABGACHA TA\'LIM KAFEDRASI'
-    ]
-  },
-  { 
-    id: 3, 
-    name: 'Aniq va tabiiy fanlar Fakulteti',
-    departments: [
-      'MATEMATIKA VA KOMPYUTER TEXNOLOGIYALARI KAFEDRASI',
-      'TABIIY FANLAR KAFEDRASI',
-      'FIZIKA VA ASTRONOMIYA KAFEDRASI',
-      'TEXNOLOGIK TA\'LIM KAFEDRASI'
-    ]
-  },
-  { 
-    id: 4, 
-    name: 'Ijtimoiy va amaliy fanlar Fakulteti',
-    departments: [
-      'TARIX KAFEDRASI',
-      'MILLIY G\'OYA VA FALSAFA KAFEDRASI',
-      'SAN\'ATSHUNOSLIK KAFEDRASI',
-      'JISMONIY MADANIYAT KAFEDRASI'
-    ]
-  },
-  { 
-    id: 5, 
-    name: 'Boshlang\'ich ta\'lim Fakulteti',
-    departments: [
-      'BOSHLANG\'ICH TA\'LIM METODIKASI KAFEDRASI',
-      'BOSHLANG\'ICH TA\'LIM NAZARIYASI KAFEDRASI'
-    ]
-  },
-]
+
 
 const FacultyCard = ({ faculty }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -93,7 +49,7 @@ const FacultyCard = ({ faculty }) => {
               Kafedralar
               <ChevronDown size={16} className={`ml-auto transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
-            <Link to="/fakultet-haqida" className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+            <Link to="/fakultet-haqida" state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <BsInfoCircle size={16} />
               Batafsil
             </Link>
@@ -123,6 +79,77 @@ const FacultyCard = ({ faculty }) => {
 }
 
 export default function FakultetlarPage() {
+  const { i18n } = useTranslation();
+  const [facultiesList, setFacultiesList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFaculties = async () => {
+      setLoading(true);
+      let rawFac = [];
+      let rawDept = [];
+      try {
+        const [facRes, deptRes] = await Promise.allSettled([
+          facultiesAPI.getLanding(0, 50),
+          departmentsAPI.getLanding(0, 50)
+        ]);
+
+        rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
+        rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || deptRes.value?.data || []) : [];
+      } catch (err) {
+        console.warn('Failed to load landing faculties/departments from API:', err.message);
+      }
+
+      let localFac = [];
+      let localDept = [];
+      try {
+        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
+        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
+      } catch (e) {}
+
+      const facMap = new Map();
+      localFac.forEach(item => facMap.set(item.id, item));
+      rawFac.forEach(item => {
+        if (!facMap.has(item.id)) facMap.set(item.id, item);
+      });
+
+      const deptMap = new Map();
+      localDept.forEach(item => deptMap.set(item.id, item));
+      rawDept.forEach(item => {
+        if (!deptMap.has(item.id)) deptMap.set(item.id, item);
+      });
+
+      const combinedFac = Array.from(facMap.values());
+      const combinedDept = Array.from(deptMap.values());
+
+      if (isMounted) {
+        const formatted = combinedFac.map(fac => {
+          const langKey = i18n.language ? (i18n.language.charAt(0).toUpperCase() + i18n.language.slice(1).toLowerCase()) : 'Uz';
+          const name = fac[`name${langKey}`] || fac.name || fac.nameUz || fac.title || "Fakultet";
+          const desc = fac[`description${langKey}`] || fac.description || fac.descriptionUz || "Fakultet haqida batafsil ma'lumot";
+
+          const facDepts = combinedDept
+            .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
+            .map(d => d[`name${langKey}`] || d.name || d.nameUz || d.title || "Kafedra");
+
+          return {
+            id: fac.id,
+            name,
+            description: desc,
+            logo: fac.logo ? fac.logo : (getFileUrl(fac.logoLink || fac.logo) || facultyImg),
+            departments: facDepts
+          };
+        });
+        setFacultiesList(formatted);
+        setLoading(false);
+      }
+    };
+
+    fetchFaculties();
+    return () => { isMounted = false; };
+  }, [i18n.language]);
+
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
       {/* Header Banner */}
@@ -154,20 +181,17 @@ export default function FakultetlarPage() {
             <p className="text-slate-500 mt-3 max-w-2xl mx-auto">Urganch davlat pedagogika institutidagi mavjud fakultetlar va ularning tuzilmasi bilan tanishing.</p>
           </div>
 
-          {/* 4 ta card - 2 tadan 2 ta ustun shaklida */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 items-start">
-            <FacultyCard faculty={faculties[0]} />
-            <FacultyCard faculty={faculties[1]} />
-            <FacultyCard faculty={faculties[2]} />
-            <FacultyCard faculty={faculties[3]} />
-          </div>
-
-          {/* 5-chi card - o'rtada */}
-          <div className="flex justify-center mt-6 xl:mt-8">
-            <div className="w-full lg:w-1/2">
-              <FacultyCard faculty={faculties[4]} />
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 items-start">
+              {facultiesList.map(faculty => (
+                <FacultyCard key={faculty.id} faculty={faculty} />
+              ))}
+            </div>
+          )}
 
         </div>
       </div>

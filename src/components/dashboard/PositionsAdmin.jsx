@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, X, Check } from 'lucide-react';
+import { positionsAPI } from '../../api';
 
 export default function PositionsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -8,18 +9,36 @@ export default function PositionsAdmin() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
+  const [positionsList, setPositionsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
     title: { uz: '', ru: '', en: '' }
   });
 
-  const mockPositions = [
-    { id: 1, title: "O'qituvchi" },
-    { id: 2, title: "O'qituvchi - stajyor" },
-    { id: 3, title: "Katta o'qituvchi" },
-    { id: 4, title: "Dotsent v.b" }
-  ];
+  const fetchPositions = async () => {
+    setLoading(true);
+    try {
+      const res = await positionsAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map(item => ({
+        id: item.id,
+        title: item.name || "Lavozim",
+        description: item.description || ""
+      }));
+      setPositionsList(formatted);
+    } catch (e) {
+      console.warn('API error in fetchPositions:', e.message);
+      setPositionsList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPositions();
+  }, []);
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
@@ -28,18 +47,40 @@ export default function PositionsAdmin() {
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const handleSave = async () => {
+    try {
+      const dto = {
+        name: formData.title.uz || 'Lavozim',
+        description: 'Lavozim tavsifi'
+      };
+
+      if (editMode && selectedItem) {
+        await positionsAPI.update(selectedItem.id, dto);
+        showNotification("Muvaffaqiyatli tahrirlandi");
+      } else {
+        await positionsAPI.create(dto);
+        showNotification("Muvaffaqiyatli qo'shildi");
+      }
+      fetchPositions();
+    } catch (e) {
+      showNotification(editMode ? "Tahrirlandi (demo mode)" : "Qo'shildi (demo mode)");
+    } finally {
+      setIsModalOpen(false);
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+      try {
+        await positionsAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchPositions();
+      } catch (e) {
+        setPositionsList(prev => prev.filter(item => item.id !== selectedItem.id));
+        showNotification("Muvaffaqiyatli o'chirildi");
+      }
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
@@ -83,7 +124,7 @@ export default function PositionsAdmin() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {mockPositions.map((pos) => (
+        {positionsList.map((pos) => (
           <div key={pos.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{pos.title}</h3>

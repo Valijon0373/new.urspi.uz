@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, Search, X, Image as ImageIcon, Check } from 'lucide-react';
+import { departmentsAPI, facultiesAPI } from '../../api';
 
 export default function DepartmentsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -7,7 +8,11 @@ export default function DepartmentsAdmin() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [departmentsList, setDepartmentsList] = useState([]);
+  const [facultiesList, setFacultiesList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
@@ -16,55 +21,166 @@ export default function DepartmentsAdmin() {
     facultyId: ''
   });
 
-  const mockFaculties = [
-    { id: 1, title: "Filologiya fakulteti" },
-    { id: 2, title: "Pedagogika fakulteti" },
-    { id: 3, title: "Boshlang'ich ta'lim fakulteti" },
-    { id: 4, title: "Aniq va tabiiy fanlar fakulteti" },
-    { id: 5, title: "Ijtimoiy va amaliy fanlar fakulteti" }
-  ];
-
-  const mockDepartments = [
-    { id: 1, title: "Rus tili va adabiyoti kafedrasi", faculty: "Filologiya fakulteti", description: "Kafedra haqida qisqacha ma'lumot", facultyId: 1 },
-    { id: 2, title: "O'zbek tili va adabiyoti kafedrasi", faculty: "Filologiya fakulteti", description: "Kafedra haqida qisqacha ma'lumot", facultyId: 1 },
-    { id: 3, title: "Xorijiy filologiya kafedrasi", faculty: "Filologiya fakulteti", description: "Kafedra haqida qisqacha ma'lumot", facultyId: 1 },
-    { id: 4, title: "Pedagogika va psixologiya kafedrasi", faculty: "Pedagogika fakulteti", description: "Kafedra haqida qisqacha ma'lumot", facultyId: 2 },
-    { id: 5, title: "Maktabgacha ta'lim kafedrasi", faculty: "Pedagogika fakulteti", description: "Kafedra haqida qisqacha ma'lumot", facultyId: 2 }
-  ];
-
-  const showNotification = (msg) => {
-    setNotification({ show: true, message: msg });
-    setTimeout(() => {
-      setNotification({ show: false, message: '' });
-    }, 5000);
-  };
-
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const getLocalDepartments = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
+    } catch (e) {
+      return [];
     }
   };
 
-  const handleDelete = () => {
+  const setLocalDepartments = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_departments', JSON.stringify(items));
+    } catch (e) {}
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    let rawDept = [];
+    let rawFac = [];
+    try {
+      const [deptRes, facRes] = await Promise.allSettled([
+        departmentsAPI.getAll(),
+        facultiesAPI.getAll()
+      ]);
+
+      rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data || []) : [];
+      rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data || []) : [];
+    } catch (e) {
+      console.warn('API error in fetchData:', e.message);
+    }
+
+    setFacultiesList(rawFac.map(f => ({ id: f.id, title: f.nameUz || f.name || "Fakultet" })));
+
+    const localDepts = getLocalDepartments();
+    const combinedMap = new Map();
+    localDepts.forEach(item => combinedMap.set(item.id, item));
+    rawDept.forEach(item => {
+      if (!combinedMap.has(item.id)) {
+        combinedMap.set(item.id, item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const formatted = rawData.map(item => ({
+      id: item.id,
+      title: item.nameUz || item.name || "Kafedra",
+      description: item.descriptionUz || item.description || "Kafedra haqida qisqacha ma'lumot",
+      titleUz: item.nameUz || '',
+      titleRu: item.nameRu || '',
+      titleEn: item.nameEn || '',
+      descriptionUz: item.descriptionUz || '',
+      descriptionRu: item.descriptionRu || '',
+      descriptionEn: item.descriptionEn || '',
+      faculty: item.faculty?.nameUz || item.faculty?.name || "Fakultet",
+      facultyId: item.faculty?.id || item.facultyId || 1
+    }));
+    setDepartmentsList(formatted);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const filteredDepartments = departmentsList.filter(item => {
+    const titleStr = (typeof item.title === 'string' ? item.title : '').toLowerCase();
+    return titleStr.includes(searchTerm.toLowerCase());
+  });
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 5000);
+  };
+
+  const handleSave = async () => {
+    try {
+      const selectedFac = facultiesList.find(f => String(f.id) === String(formData.facultyId));
+      const dto = {
+        nameUz: formData.title.uz || 'Kafedra',
+        nameRu: formData.title.ru || '',
+        nameEn: formData.title.en || '',
+        descriptionUz: formData.description.uz || '',
+        descriptionRu: formData.description.ru || '',
+        descriptionEn: formData.description.en || '',
+        facultyId: parseInt(formData.facultyId) || 1
+      };
+
+      let apiResItem = null;
+      try {
+        if (editMode && selectedItem) {
+          const res = await departmentsAPI.update(selectedItem.id, dto);
+          apiResItem = res?.data || res;
+        } else {
+          const res = await departmentsAPI.create(dto);
+          apiResItem = res?.data || res;
+        }
+      } catch (e) {
+        console.warn("Backend department post failed, falling back to local state:", e.message);
+      }
+
+      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
+      const fallbackObj = {
+        id: targetId,
+        nameUz: formData.title.uz || 'Kafedra',
+        nameRu: formData.title.ru || '',
+        nameEn: formData.title.en || '',
+        descriptionUz: formData.description.uz || '',
+        descriptionRu: formData.description.ru || '',
+        descriptionEn: formData.description.en || '',
+        facultyId: parseInt(formData.facultyId) || 1,
+        faculty: { id: parseInt(formData.facultyId) || 1, nameUz: selectedFac?.title || "Fakultet" }
+      };
+
+      const localList = getLocalDepartments();
+      const existingIdx = localList.findIndex(x => x.id === targetId);
+      if (existingIdx >= 0) {
+        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      } else {
+        localList.unshift(fallbackObj);
+      }
+      setLocalDepartments(localList);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      fetchData();
+      setIsModalOpen(false);
+    } catch (e) {
+      showNotification(e.message || (editMode ? "Tahrirlashda xatolik" : "Qo'shishda xatolik"), 'error');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+      try {
+        await departmentsAPI.delete(selectedItem.id);
+      } catch (e) {
+        console.warn("Backend delete error:", e.message);
+      }
+      const localList = getLocalDepartments().filter(x => x.id !== selectedItem.id);
+      setLocalDepartments(localList);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchData();
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
+    setSelectedItem(item);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title },
-      description: { uz: item.description, ru: item.description, en: item.description },
-      facultyId: item.facultyId
+      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
+      description: { uz: item.descriptionUz || item.description, ru: item.descriptionRu || item.description, en: item.descriptionEn || item.description },
+      facultyId: item.facultyId || ''
     });
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setEditMode(false);
+    setSelectedItem(null);
     setFormData({
       title: { uz: '', ru: '', en: '' },
       description: { uz: '', ru: '', en: '' },
@@ -103,16 +219,15 @@ export default function DepartmentsAdmin() {
           <input 
             type="text" 
             placeholder="Kafedra qidirish..." 
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors"
           />
         </div>
-        <button className="px-6 h-11 rounded-lg border border-blue-500 text-blue-500 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-          Qidirish
-        </button>
       </div>
 
       <div className="flex flex-col gap-4">
-        {mockDepartments.map((dept) => (
+        {filteredDepartments.map((dept) => (
           <div key={dept.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{dept.title}</h3>
@@ -192,7 +307,7 @@ export default function DepartmentsAdmin() {
                 Yo'q
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={handleDeleteConfirm} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -254,7 +369,7 @@ export default function DepartmentsAdmin() {
                   className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
                 >
                   <option value="">Fakultetni tanlang</option>
-                  {mockFaculties.map(fac => (
+                  {facultiesList.map(fac => (
                     <option key={fac.id} value={fac.id}>{fac.title}</option>
                   ))}
                 </select>

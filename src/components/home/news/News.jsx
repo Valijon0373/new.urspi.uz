@@ -1,60 +1,84 @@
-import { Eye, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { FaRegCalendarAlt } from 'react-icons/fa'
 import { PiNewspaperClipping } from 'react-icons/pi'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-
-
-const newsItems = [
-    {
-        id: 1,
-        title: "Oliy ta'lim, fan va innovatsiyalar vaziri Qo'ng'irotboy Sharipov UrDPI yangi o'quv binosi va zamonaviy sharoitlari bilan tanishdi",
-        image: urspiImage,
-        views: 356,
-        date: "20-06-2026",
-        isFeatured: true,
-    },
-    {
-        id: 2,
-        title: "URDPI REKTORI XITOYNING NANKIN AUDIT UNIVERSITETI VAKILLARI BILAN HAMKORLIKNI MUHOKAMA QILDI",
-        image: urspiImage,
-        views: 358,
-        date: "17-06-2026",
-        isFeatured: false,
-    },
-    {
-        id: 3,
-        title: "UrDPI va TDYU o'rtasida strategik hamkorlik memorandumi imzolandi",
-        image: urspiImage,
-        views: 329,
-        date: "17-06-2026",
-        isFeatured: false,
-    },
-    {
-        id: 4,
-        title: "URGANCH DAVLAT PEDAGOGIKA INSTITUTI YANA RESPUBLIKA MINBARIDA ET'IROF ETILDI",
-        image: urspiImage,
-        views: 151,
-        date: "15-06-2026",
-        isFeatured: false,
-    },
-    {
-        id: 5,
-        title: "UrDPIda \"TALABA FEST\" FESTIVALI YUQORI SAVIYADA O'TKAZILDI",
-        image: urspiImage,
-        views: 506,
-        date: "12-06-2026",
-        isFeatured: false,
-    }
-]
+import { newsAPI, getFileUrl } from '../../../api'
 
 export default function News() {
-    const { t } = useTranslation()
-    const featuredItem = newsItems.find(item => item.isFeatured)
-    const regularItems = newsItems.filter(item => !item.isFeatured)
+    const { t, i18n } = useTranslation()
+    const [newsList, setNewsList] = useState([])
+    const [loading, setLoading] = useState(true)
     const sectionRef = useRef(null)
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchNews = async () => {
+            setLoading(true);
+            let apiData = [];
+            const lang = i18n.language || 'uz';
+            try {
+                const landingRes = await newsAPI.getLanding(0, 10);
+                apiData = landingRes?.data?.content || landingRes?.data || landingRes?.content || (Array.isArray(landingRes) ? landingRes : []);
+            } catch (err) {
+                console.warn('Failed to load landing news from API:', err.message);
+                try {
+                    const res = await newsAPI.getAll(lang);
+                    apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+                } catch (e) {
+                    console.warn('Failed to load news fallback from API:', e.message);
+                }
+            }
+
+            let localItems = [];
+            try {
+                localItems = JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
+            } catch (e) {}
+
+            const combinedMap = new Map();
+            localItems.forEach(item => combinedMap.set(item.id, item));
+            apiData.forEach(item => {
+                if (!combinedMap.has(item.id)) {
+                    combinedMap.set(item.id, item);
+                }
+            });
+
+            const rawData = Array.from(combinedMap.values());
+            // Sort by latest first
+            rawData.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+            if (isMounted) {
+                const formatted = rawData.map((item, index) => {
+                    const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+                    const title = item[`title${langKey}`] || item.title || item.titleUz || item.titleRu || item.titleEn || "Yangilik";
+                    let dateStr = "2026-08-21";
+                    if (item.createdAt) {
+                        dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');
+                    } else if (item.date) {
+                        dateStr = item.date;
+                    }
+                    return {
+                        id: item.id || index + 1,
+                        title,
+                        image: item.image ? item.image : (getFileUrl(item.mainImageLink || item.mainImage) || urspiImage),
+                        date: dateStr,
+                        isFeatured: index === 0
+                    };
+                });
+                setNewsList(formatted.slice(0, 5));
+                setLoading(false);
+            }
+        };
+
+        fetchNews();
+        return () => { isMounted = false; };
+    }, [i18n.language]);
+
+    const displayNews = newsList.slice(0, 5)
+    const featuredItem = displayNews[0]
+    const regularItems = displayNews.slice(1, 5)
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -72,7 +96,7 @@ export default function News() {
         }
 
         return () => observer.disconnect()
-    }, [])
+    }, [newsList])
 
     return (
         <section ref={sectionRef} className="w-full bg-white py-12 md:py-16 text-left" aria-labelledby="news-heading">
@@ -122,10 +146,6 @@ export default function News() {
                                     {/* Meta details */}
                                     <div className="flex items-center gap-2 mt-2 lg:mt-3">
                                         <span className="inline-flex items-center gap-1.5 px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-md bg-black/40 border border-white/20 text-[11px] lg:text-xs font-medium text-white">
-                                            <Eye className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" />
-                                            {featuredItem.views}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-md bg-black/40 border border-white/20 text-[11px] lg:text-xs font-medium text-white">
                                             <FaRegCalendarAlt className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" />
                                             {featuredItem.date}
                                         </span>
@@ -168,10 +188,6 @@ export default function News() {
 
                                         {/* Meta details */}
                                         <div className="flex items-center gap-2 mt-2">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/40 border border-white/20 text-[11px] font-medium text-white">
-                                                <Eye className="h-3 w-3 shrink-0" />
-                                                {item.views}
-                                            </span>
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/40 border border-white/20 text-[11px] font-medium text-white">
                                                 <FaRegCalendarAlt className="h-3.5 w-3.5 shrink-0" />
                                                 {item.date}

@@ -1,41 +1,108 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import slider1 from '../../assets/images/slider1.jpg';
-import slider2 from '../../assets/images/slider2.jpg';
 import urspiImage from '../../assets/images/urspi_new.png';
+import { newsAPI, getFileUrl } from '../../api';
 
 export default function NewsDetailPage() {
     const { id } = useParams();
+    const { i18n } = useTranslation();
     const [currentImageIdx, setCurrentImageIdx] = useState(0);
+    const [news, setNews] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data for the specific news
-    const news = {
-        id,
-        title: "Oliy ta'lim, fan va innovatsiyalar vaziri Qo'ng'irotboy Sharipov UrDPI yangi o'quv binosi bilan tanishdi",
-        date: "20.06.2026",
-        images: [slider1, slider2, urspiImage],
-        content: `Oliy ta'lim, fan va innovatsiyalar vaziri Qo'ng'irotboy Sharipov boshchiligidagi ishchi guruh Urganch davlat pedagogika institutining yangi binosida olib borilayotgan qurilish va ta'mirlash ishlari bilan yaqindan tanishdi.
+    useEffect(() => {
+        let isMounted = true;
+        const fetchNewsDetail = async () => {
+            if (!id) return;
+            setLoading(true);
+            let data = null;
+            try {
+                const res = await newsAPI.getLandingById(id);
+                data = res?.data || res;
+            } catch (err) {
+                console.warn('Failed to load landing news detail from API:', err.message);
+                try {
+                    const res = await newsAPI.getById(id);
+                    data = res?.data || res;
+                } catch (e) {
+                    console.warn('Failed to load fallback news detail from API:', e.message);
+                }
+            }
 
-Tashrif doirasida vazir talabalar uchun yaratilayotgan zamonaviy sharoitlar, o'quv xonalarining jihozlanishi va laboratoriya uskunalari bilan ta'minlanishi holatini ko'zdan kechirdi. Shuningdek, pudratchi tashkilot vakillari bilan suhbatlashib, qurilish ishlarini belgilangan muddatda va sifatli yakunlash bo'yicha tegishli topshiriqlar berdi.
+            if (!data) {
+                try {
+                    const localList = JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
+                    data = localList.find(x => String(x.id) === String(id));
+                } catch (e) {}
+            }
 
-Institut rektor Diyorjon Abdullayev vazirga yangi bino imkoniyatlari hamda kelgusida amalga oshirilishi rejalashtirilgan istiqbolli loyihalar yuzasidan batafsil ma'lumot berdi.
+            if (isMounted && data) {
+                const imgList = [];
+                if (data.image) {
+                    imgList.push(data.image);
+                } else if (data.mainImageLink || data.mainImage) {
+                    imgList.push(getFileUrl(data.mainImageLink || data.mainImage));
+                }
+                if (Array.isArray(data.imageLinks)) {
+                    data.imageLinks.forEach(img => {
+                        const url = getFileUrl(img);
+                        if (url && !imgList.includes(url)) imgList.push(url);
+                    });
+                }
+                if (imgList.length === 0) {
+                    imgList.push(urspiImage);
+                }
 
-Yangi o'quv binosi 2026-2027 o'quv yili boshidan foydalanishga topshirilishi kutilmoqda.`,
-        views: 356
-    };
+                const lang = i18n.language || 'uz';
+                const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+                const title = data[`title${langKey}`] || data.title || data.titleUz || data.titleRu || data.titleEn || "Yangilik";
+                const content = data[`content${langKey}`] || data.content || data.contentUz || data.contentRu || data.contentEn || "";
+
+                setNews({
+                    id: data.id,
+                    title,
+                    content,
+                    date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('uz-UZ') : (data.date || "2026-08-21"),
+                    images: imgList,
+                    views: data.views || data.viewCount || 0
+                });
+            }
+            if (isMounted) setLoading(false);
+        };
+
+        fetchNewsDetail();
+        return () => { isMounted = false; };
+    }, [id, i18n.language]);
 
     // Auto-slide effect
     useEffect(() => {
-        if (!news.images || news.images.length <= 1) return;
+        if (!news?.images || news.images.length <= 1) return;
         
         const timer = setInterval(() => {
             setCurrentImageIdx((prev) => (prev + 1) % news.images.length);
         }, 3000);
         
         return () => clearInterval(timer);
-    }, [news.images]);
+    }, [news?.images]);
+
+    if (loading) {
+        return (
+            <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">
+                Yuklanmoqda...
+            </main>
+        );
+    }
+
+    if (!news) {
+        return (
+            <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">
+                Yangilik topilmadi
+            </main>
+        );
+    }
 
     return (
         <main className="flex-1 bg-slate-50 pb-16">
@@ -86,6 +153,7 @@ Yangi o'quv binosi 2026-2027 o'quv yili boshidan foydalanishga topshirilishi kut
                                         src={img} 
                                         alt={`Slide ${idx + 1}`}
                                         className="w-full h-full object-cover flex-shrink-0"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = urspiImage; }}
                                     />
                                 ))}
                             </div>

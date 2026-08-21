@@ -3,39 +3,77 @@ import { GrAnnounce } from 'react-icons/gr'
 import { FaRegCalendarAlt } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-
-const announcements = [
-    {
-        id: 1,
-        date: "09.06.2026",
-        title: "Rajabov Tolib Toshtemir o'g'lining biologiya fanlari bo'yicha falsafa...",
-        image: urspiImage
-    },
-    {
-        id: 2,
-        date: "04.06.2026",
-        title: "Adizova Zuhro Ma'rif qizining texnika fanlari bo'yicha falsafa doktor...",
-        image: urspiImage
-    },
-    {
-        id: 3,
-        date: "03.06.2026",
-        title: "Jabbarova Aziza Shixnazarovnaning pedagogika fanlari bo'yicha falsafa...",
-        image: urspiImage
-    },
-    {
-        id: 4,
-        date: "03.06.2026",
-        title: "Jo'rayeva Laylo Jiyanqul qizining filologiya fanlari bo'yicha falsafa...",
-        image: urspiImage
-    }
-]
+import { announcementsAPI, getFileUrl } from '../../../api'
 
 export default function Announcement() {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const [announcementsList, setAnnouncementsList] = useState([])
+    const [loading, setLoading] = useState(true)
     const sectionRef = useRef(null)
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchAnnouncements = async () => {
+            setLoading(true);
+            let apiData = [];
+            const lang = i18n.language || 'uz';
+            try {
+                const landingRes = await announcementsAPI.getLanding(0, 10);
+                apiData = landingRes?.data?.content || landingRes?.data || landingRes?.content || (Array.isArray(landingRes) ? landingRes : []);
+            } catch (err) {
+                console.warn('Failed to load landing announcements from API:', err.message);
+                try {
+                    const res = await announcementsAPI.getAll(lang);
+                    apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+                } catch (e) {
+                    console.warn('Failed to load announcements fallback from API:', e.message);
+                }
+            }
+
+            let localItems = [];
+            try {
+                localItems = JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
+            } catch (e) {}
+
+            const combinedMap = new Map();
+            localItems.forEach(item => combinedMap.set(item.id, item));
+            apiData.forEach(item => {
+                if (!combinedMap.has(item.id)) {
+                    combinedMap.set(item.id, item);
+                }
+            });
+
+            const rawData = Array.from(combinedMap.values());
+            // Sort by latest first
+            rawData.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+            if (isMounted) {
+                const formatted = rawData.map((item, index) => {
+                    const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+                    const title = item[`title${langKey}`] || item.title || item.titleUz || item.titleRu || item.titleEn || "E'lon";
+                    let dateStr = "2026-08-21";
+                    if (item.createdAt) {
+                        dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');
+                    } else if (item.date) {
+                        dateStr = item.date;
+                    }
+                    return {
+                        id: item.id || index + 1,
+                        date: dateStr,
+                        title,
+                        image: item.image ? item.image : (getFileUrl(item.imageLink || item.image) || urspiImage)
+                    };
+                });
+                setAnnouncementsList(formatted.slice(0, 5));
+                setLoading(false);
+            }
+        };
+
+        fetchAnnouncements();
+        return () => { isMounted = false; };
+    }, [i18n.language]);
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -53,7 +91,7 @@ export default function Announcement() {
         }
 
         return () => observer.disconnect()
-    }, [])
+    }, [announcementsList])
 
     return (
         <section ref={sectionRef} className="w-full bg-slate-50 py-12 md:py-16 text-left" aria-labelledby="announcement-heading">
@@ -73,7 +111,7 @@ export default function Announcement() {
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {announcements.map((item, idx) => (
+                    {announcementsList.map((item, idx) => (
                         <Link 
                             to={`/announcements/${item.id}`}
                             key={item.id}

@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
 import { Link } from 'react-router-dom'
 import menImg from '../../assets/men.jpg'
-import placeholderImg from '../../assets/images/bg23.jpg' // Use as fallback for other staff
+import placeholderImg from '../../assets/images/bg23.jpg'
+import { teachersAPI, getFileUrl } from '../../api'
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -48,6 +49,43 @@ const StaffCard = ({ name, degree, position, img }) => (
 )
 
 export default function KafedraXodimlariPage() {
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTeachers = async () => {
+      setLoading(true);
+      try {
+        const res = await teachersAPI.getAll('uz');
+        const rawData = Array.isArray(res) ? res : (res?.data || []);
+        if (isMounted) {
+          const formatted = rawData.map(t => ({
+            id: t.id,
+            name: t.fullNameUz || t.fullName || "O'qituvchi",
+            position: t.position?.name || t.positionTitleUz || "O'qituvchi",
+            degree: t.academicDegree?.name || "O'qituvchi",
+            phone: t.phoneNumber || "+998 90 123 45 67",
+            email: t.email || "info@urspi.uz",
+            img: getFileUrl(t.photoLink || t.photo) || menImg
+          }));
+          setTeachers(formatted);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch department teachers from API:', err.message);
+        if (isMounted) setTeachers([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchTeachers();
+    return () => { isMounted = false; };
+  }, []);
+
+  const mudir = teachers.find(t => t.position.toLowerCase().includes('mudir')) || teachers[0];
+  const otherTeachers = teachers.filter(t => t !== mudir);
+
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
       {/* Header Banner */}
@@ -82,121 +120,88 @@ export default function KafedraXodimlariPage() {
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Kafedra mudiri Section */}
-          <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-            Kafedra mudiri
-          </div>
-
-          <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative">
-            
-            {/* Top Right Badge (Qabul vaqtlari) */}
-            <div className="absolute top-5 right-6 hidden md:block bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-right border border-blue-100">
-              <div className="text-[12px] font-medium opacity-80">Qabul vaqtlari:</div>
-              <div className="font-bold text-[14px]">10:00-18:00</div>
-            </div>
-
-            {/* Left Image */}
-            <div className="w-[180px] md:w-[220px] shrink-0 mx-auto md:mx-0">
-              <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                <img
-                  src={menImg}
-                  alt="Mudir"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-            </div>
-
-            {/* Right Content */}
-            <div className="flex-1 flex flex-col h-full w-full">
-              <div className="mb-6 mt-2 text-center md:text-left pr-0 md:pr-[120px]">
-                <h3 className="text-[20px] md:text-[24px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                  ABDULLAYEV ALISHER
-                </h3>
-                <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                  Kafedra mudiri, Dotsent
-                </p>
-              </div>
-
-              {/* Contact Info Grid */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
-                <div>
-                  <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <DeskPhoneIcon size={18} /> Telefon raqam:
+          {loading ? (
+            <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
+          ) : teachers.length === 0 ? (
+            <div className="text-center py-12 text-slate-500 font-medium">O'qituvchilar topilmadi</div>
+          ) : (
+            <>
+              {/* Kafedra mudiri Section */}
+              {mudir && (
+                <>
+                  <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
+                    Kafedra mudiri
                   </div>
-                  <div className="text-slate-700 font-semibold">+998 90 123 45 67</div>
-                </div>
-                <div>
-                  <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <HiOutlineMail size={20} /> Elektron pochta:
+
+                  <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative mb-12">
+                    <div className="w-[180px] md:w-[220px] shrink-0 mx-auto md:mx-0">
+                      <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                        <img
+                          src={mudir.img}
+                          alt={mudir.name}
+                          className="w-full h-full object-cover object-top"
+                          onError={(e) => { e.target.onerror = null; e.target.src = menImg; }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col h-full w-full">
+                      <div className="mb-6 mt-2 text-center md:text-left">
+                        <h3 className="text-[20px] md:text-[24px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
+                          {mudir.name}
+                        </h3>
+                        <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
+                          {mudir.position}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
+                        <div>
+                          <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <DeskPhoneIcon size={18} /> Telefon raqam:
+                          </div>
+                          <div className="text-slate-700 font-semibold">{mudir.phone}</div>
+                        </div>
+                        <div>
+                          <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <HiOutlineMail size={20} /> Elektron pochta:
+                          </div>
+                          <div className="text-slate-700 font-semibold">{mudir.email}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
+                        <Link to={`/xodim/${mudir.id}`} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
+                          Batafsil <ArrowRight size={16} />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-slate-700 font-semibold">alisher.a@gmail.com</div>
-                </div>
-              </div>
+                </>
+              )}
 
-              {/* Bottom Buttons */}
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                <Link to="/xodim/teacher1" className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
-                  Batafsil <ArrowRight size={16} />
-                </Link>
-              </div>
-            </div>
-          </div>
+              {/* Kafedra o'qituvchilari Section */}
+              {otherTeachers.length > 0 && (
+                <>
+                  <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
+                    Kafedra o'qituvchilari
+                  </div>
 
-          {/* Kafedra o'qituvchilari Section */}
-          <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 mt-12 text-[18px] sm:text-[20px]">
-            Kafedra o'qituvchilari
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StaffCard 
-              name="BAXTIYOROV SARDOR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
-              img={menImg}
-            />
-            <StaffCard 
-              name="JALOLOV RUSTAM"
-              degree="Falsafa doktori (PhD)"
-              position="O'qituvchi"
-              img={menImg}
-            />
-            <StaffCard 
-              name="YUSUPOV NODIR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
-              img={menImg}
-            />
-            <StaffCard 
-              name="KARIMOV AZIZ"
-              degree="Magistr"
-              position="Assistent"
-              img={menImg}
-            />
-            <StaffCard 
-              name="XOLMATOV ELDOR"
-              degree="Falsafa doktori (PhD)"
-              position="Dotsent"
-              img={menImg}
-            />
-            <StaffCard 
-              name="RAHIMOV BOTIR"
-              degree="Falsafa doktori (PhD)"
-              position="Katta o'qituvchi"
-              img={menImg}
-            />
-            <StaffCard 
-              name="TOSHEV QODIR"
-              degree="Magistr"
-              position="O'qituvchi"
-              img={menImg}
-            />
-            <StaffCard 
-              name="USMONOV ALISHER"
-              degree="Magistr"
-              position="Stajyor-o'qituvchi"
-              img={menImg}
-            />
-          </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    {otherTeachers.map((teacher) => (
+                      <StaffCard
+                        key={teacher.id}
+                        name={teacher.name}
+                        degree={teacher.degree}
+                        position={teacher.position}
+                        img={teacher.img}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
 
         </div>
       </div>

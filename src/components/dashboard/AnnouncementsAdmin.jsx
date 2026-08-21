@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Plus, Search, Calendar, X, Image as ImageIcon, Check, Eye, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Calendar, X, Image as ImageIcon, Check, Eye, Edit2, Trash2, Power } from 'lucide-react';
+import { announcementsAPI, getFileUrl } from '../../api';
 
 export default function AnnouncementsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -7,8 +8,15 @@ export default function AnnouncementsAdmin() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [announcementsList, setAnnouncementsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const [imageFile, setImageFile] = useState(null);
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
     title: { uz: '', ru: '', en: '' },
@@ -16,55 +24,195 @@ export default function AnnouncementsAdmin() {
     author: '©️ UrDPI matbuot xizmati'
   });
 
-  const mockAnnouncements = [
-    { 
-      id: 1, 
-      title: "Diqqat e'lon!", 
-      content: "Barcha talabalar va o'qituvchilar diqqatiga...",
-      date: "2023-09-05",
-      author: "©️ UrDPI matbuot xizmati",
-      image: "https://via.placeholder.com/300x200"
+  const getLocalAnnouncements = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
+    } catch (e) {
+      return [];
     }
-  ];
+  };
 
-  const showNotification = (msg) => {
-    setNotification({ show: true, message: msg });
+  const setLocalAnnouncements = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_announcements', JSON.stringify(items));
+    } catch (e) {}
+  };
+
+  const fetchAnnouncements = async () => {
+    setLoading(true);
+    let apiData = [];
+    try {
+      const res = await announcementsAPI.getAll();
+      apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+    } catch (e) {
+      console.warn('API error in fetchAnnouncements:', e.message);
+    }
+
+    const localItems = getLocalAnnouncements();
+    const combinedMap = new Map();
+    localItems.forEach(item => combinedMap.set(item.id, item));
+    apiData.forEach(item => {
+      if (!combinedMap.has(item.id)) {
+        combinedMap.set(item.id, item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const formatted = rawData.map(item => ({
+      id: item.id,
+      title: item.titleUz || item.title || "E'lon",
+      content: item.contentUz || item.content || "",
+      titleUz: item.titleUz || '',
+      titleRu: item.titleRu || '',
+      titleEn: item.titleEn || '',
+      contentUz: item.contentUz || '',
+      contentRu: item.contentRu || '',
+      contentEn: item.contentEn || '',
+      date: item.createdAt ? item.createdAt.split('T')[0] : (item.date || "2026-08-21"),
+      author: item.author || "©️ UrDPI matbuot xizmati",
+      status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
+      active: item.active !== false,
+      image: item.image ? item.image : (getFileUrl(item.imageLink || item.image) || "https://via.placeholder.com/300x200"),
+      rawItem: item
+    }));
+    setAnnouncementsList(formatted);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
+  const filteredAnnouncements = announcementsList.filter(item => {
+    const titleStr = (typeof item.title === 'string' ? item.title : '').toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+
+    const matchesSearch = titleStr.includes(searchLower);
+    const matchesDateFrom = dateFrom ? item.date >= dateFrom : true;
+    const matchesDateTo = dateTo ? item.date <= dateTo : true;
+    return matchesSearch && matchesDateFrom && matchesDateTo;
+  });
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
     setTimeout(() => {
-      setNotification({ show: false, message: '' });
+      setNotification({ show: false, message: '', type: 'success' });
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const handleToggleStatus = async (item) => {
+    try {
+      await announcementsAPI.toggleStatus(item.id);
+    } catch (err) {
+      console.warn("Toggle status API error:", err.message);
+    }
+    const localList = getLocalAnnouncements();
+    const idx = localList.findIndex(x => x.id === item.id);
+    if (idx >= 0) {
+      localList[idx].active = !localList[idx].active;
+      setLocalAnnouncements(localList);
+    }
+    showNotification("E'lon holati o'zgartirildi");
+    fetchAnnouncements();
+  };
+
+  const handleSave = async () => {
+    try {
+      const fd = new FormData();
+      fd.append('titleUz', formData.title.uz || "E'lon");
+      fd.append('titleRu', formData.title.ru || '');
+      fd.append('titleEn', formData.title.en || '');
+      fd.append('contentUz', formData.content.uz || '');
+      fd.append('contentRu', formData.content.ru || '');
+      fd.append('contentEn', formData.content.en || '');
+      fd.append('author', formData.author || '©️ UrDPI matbuot xizmati');
+
+      if (imageFile) {
+        fd.append('file', imageFile);
+        fd.append('image', imageFile);
+      }
+
+      let apiResItem = null;
+      try {
+        if (editMode && selectedItem) {
+          const res = await announcementsAPI.update(selectedItem.id, fd);
+          apiResItem = res?.data || res;
+        } else {
+          const res = await announcementsAPI.create(fd);
+          apiResItem = res?.data || res;
+        }
+      } catch (e) {
+        console.warn("Backend announcement post failed, falling back to local storage:", e.message);
+      }
+
+      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
+      const fallbackObj = {
+        id: targetId,
+        titleUz: formData.title.uz || "E'lon",
+        titleRu: formData.title.ru || '',
+        titleEn: formData.title.en || '',
+        contentUz: formData.content.uz || '',
+        contentRu: formData.content.ru || '',
+        contentEn: formData.content.en || '',
+        author: formData.author || '©️ UrDPI matbuot xizmati',
+        createdAt: new Date().toISOString(),
+        active: true,
+        image: imageFile ? URL.createObjectURL(imageFile) : (selectedItem?.image || '')
+      };
+
+      const localList = getLocalAnnouncements();
+      const existingIdx = localList.findIndex(x => x.id === targetId);
+      if (existingIdx >= 0) {
+        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      } else {
+        localList.unshift(fallbackObj);
+      }
+      setLocalAnnouncements(localList);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      fetchAnnouncements();
+      setIsModalOpen(false);
+    } catch (e) {
+      showNotification(e.message || (editMode ? "Tahrirlashda xatolik" : "Qo'shishda xatolik"), 'error');
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+      try {
+        await announcementsAPI.delete(selectedItem.id);
+      } catch (e) {
+        console.warn("Backend delete error:", e.message);
+      }
+      const localList = getLocalAnnouncements().filter(x => x.id !== selectedItem.id);
+      setLocalAnnouncements(localList);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchAnnouncements();
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
+    setSelectedItem(item);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title },
-      content: { uz: item.content, ru: item.content, en: item.content },
+      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
+      content: { uz: item.contentUz || item.content, ru: item.contentRu || item.content, en: item.contentEn || item.content },
       author: item.author
     });
+    setImageFile(null);
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setEditMode(false);
+    setSelectedItem(null);
     setFormData({
       title: { uz: '', ru: '', en: '' },
       content: { uz: '', ru: '', en: '' },
       author: '©️ UrDPI matbuot xizmati'
     });
+    setImageFile(null);
     setIsModalOpen(true);
   };
 
@@ -107,6 +255,8 @@ export default function AnnouncementsAdmin() {
             </div>
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Qidirish..."
               className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
@@ -122,6 +272,8 @@ export default function AnnouncementsAdmin() {
             <span className="text-sm text-slate-500 dark:text-slate-400">Dan:</span>
             <input
               type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
               className="block w-full sm:w-auto px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
           </div>
@@ -129,6 +281,8 @@ export default function AnnouncementsAdmin() {
             <span className="text-sm text-slate-500 dark:text-slate-400">Gacha:</span>
             <input
               type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
               className="block w-full sm:w-auto px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] sm:text-sm transition-colors"
             />
           </div>
@@ -136,23 +290,38 @@ export default function AnnouncementsAdmin() {
       </div>
 
       {/* Content area */}
-      {mockAnnouncements.length === 0 ? (
+      {filteredAnnouncements.length === 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-100 dark:border-slate-700 text-center flex flex-col items-center justify-center min-h-[300px]">
           <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4">
             <Calendar className="w-8 h-8 text-slate-400" />
           </div>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Hozircha e'lonlar yo'q</p>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Yangi e'lon qo'shish uchun yuqoridagi "Qo'shish" tugmasini bosing.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Yangi e'lon qo'shish uchun yuqoridagi "Qo'shish" tugmasini bosing hamda qidiruvni tekshiring.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockAnnouncements.map((announcement) => (
+          {filteredAnnouncements.map((announcement) => (
             <div key={announcement.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
               <div className="h-48 w-full bg-slate-100 dark:bg-slate-700">
                 <img src={announcement.image} alt={announcement.title} className="w-full h-full object-cover" />
               </div>
               <div className="p-5 flex-1 flex flex-col">
-                <div className="text-xs text-slate-400 mb-2">{announcement.date}</div>
+                <div className="flex items-center justify-between gap-2 text-xs text-slate-400 mb-2">
+                  <span>{announcement.date}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(announcement)}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors ${
+                      announcement.active
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 hover:bg-emerald-200'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                    title="Holatni o'zgartirish"
+                  >
+                    <Power className="w-3 h-3" />
+                    <span>{announcement.active ? 'Faol' : 'No-faol'}</span>
+                  </button>
+                </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight mb-2 line-clamp-2">{announcement.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 flex-1">{announcement.content}</p>
                 
@@ -234,7 +403,7 @@ export default function AnnouncementsAdmin() {
                 Yo'q
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={handleDeleteConfirm} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -336,8 +505,13 @@ export default function AnnouncementsAdmin() {
                               <label
                                 className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
                               >
-                                <span>Rasm yuklash</span>
-                                <input type="file" className="sr-only" accept="image/*" />
+                                <span>{imageFile ? imageFile.name : "Rasm yuklash"}</span>
+                                <input
+                                  type="file"
+                                  className="sr-only"
+                                  accept="image/*"
+                                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                                />
                               </label>
                             </div>
                           </div>

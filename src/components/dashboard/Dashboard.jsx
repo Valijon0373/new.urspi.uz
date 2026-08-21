@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, FileText,
   User, Users, CheckSquare, Info, Moon, Sun, ChevronDown,
-  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf
+  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf, Shield, Calendar, Award, Activity
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
 import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
@@ -29,6 +29,12 @@ import DormitoryAdmin from './DormitoryAdmin';
 import RentAdmin from './RentAdmin';
 import GreenInstituteAdmin from './GreenInstituteAdmin';
 import AdmissionAdmin from './AdmissionAdmin';
+import AcademicDegreesAdmin from './AcademicDegreesAdmin';
+import StudyYearsAdmin from './StudyYearsAdmin';
+import RolesAdmin from './RolesAdmin';
+import AuditAdmin from './AuditAdmin';
+import { facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI } from '../../api';
+
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
   {
@@ -38,7 +44,9 @@ const NAV_ITEMS = [
       { label: 'Fakultetlar', icon: FaLandmarkFlag },
       { label: 'Kafedralar', icon: GraduationCap },
       { label: "Markaz va Bo'limlar", icon: FaNetworkWired },
-      { label: 'Lavozimlar', icon: LiaBlackTie }
+      { label: 'Lavozimlar', icon: LiaBlackTie },
+      { label: 'Ilmiy darajalar', icon: Award },
+      { label: "O'quv yillari", icon: Calendar }
     ]
   },
   { icon: User, label: 'Rahbariyat' },
@@ -61,7 +69,15 @@ const NAV_ITEMS = [
   { icon: CheckSquare, label: 'Yangiliklar' },
   { icon: IoMegaphoneOutline, label: "E'lonlar" },
   { icon: ImageIcon, label: 'Fotogalereya' },
-  { icon: IoSettingsOutline, label: 'Sozlamalar' },
+  {
+    icon: IoSettingsOutline,
+    label: 'Sozlamalar',
+    subItems: [
+      { label: 'Tizim Fasllari', icon: IoSettingsOutline },
+      { label: 'Rollar va Ruxsatlar', icon: Shield },
+      { label: 'Audit Loglar', icon: Activity }
+    ]
+  },
   { icon: FileText, label: 'Qabul (Abituriyent)' },
   { icon: Leaf, label: 'Yashil institut' },
   { icon: HiOutlineMailOpen, label: 'Korporativ pochta', href: 'http://webmail.urspi.uz:4040/admin' },
@@ -98,9 +114,14 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setAdminOpen(false);
-    navigate('/');
+    try {
+      await authAPI.logout();
+    } catch (e) {
+      // clear tokens anyway
+    }
+    navigate('/admin');
   };
 
   const navLinkClass = (active) =>
@@ -380,6 +401,12 @@ export default function Dashboard() {
           {activeTab === 'Lavozimlar' && (
             <PositionsAdmin />
           )}
+          {activeTab === 'Ilmiy darajalar' && (
+            <AcademicDegreesAdmin />
+          )}
+          {activeTab === "O'quv yillari" && (
+            <StudyYearsAdmin />
+          )}
           {activeTab === 'Fakultetlar' && (
             <FacultiesAdmin />
           )}
@@ -398,6 +425,15 @@ export default function Dashboard() {
           {activeTab === "E'lonlar" && (
             <AnnouncementsAdmin />
           )}
+          {activeTab === 'Rollar va Ruxsatlar' && (
+            <Settings activeSubTab="roles" />
+          )}
+          {activeTab === 'Audit Loglar' && (
+            <Settings activeSubTab="audit" />
+          )}
+          {(activeTab === 'Sozlamalar' || activeTab === 'Tizim Fasllari') && (
+            <Settings activeSubTab="fasllar" />
+          )}
           {activeTab === 'Fotogalereya' && (
             <GalleryAdmin />
           )}
@@ -415,9 +451,6 @@ export default function Dashboard() {
           )}
           {activeTab === 'Qabul (Abituriyent)' && (
             <AdmissionAdmin />
-          )}
-          {activeTab === 'Sozlamalar' && (
-            <Settings />
           )}
         </div>
       </main>

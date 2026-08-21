@@ -5,6 +5,7 @@ import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
 import menImg from '../../assets/men.jpg';
+import { teachersAPI, getFileUrl } from '../../api';
 
 
 export default function TeachersAdmin() {
@@ -103,39 +104,37 @@ export default function TeachersAdmin() {
     
     setPhone(formatted);
   };
+  const [teachersList, setTeachersList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const mockTeachers = [
-    { 
-      id: 1, 
-      faculty: "Boshlang'ich ta'lim fakulteti", 
-      department: "Boshlang'ich ta'lim metodikasi kafedrasi", 
-      position: "O'qituvchi", 
-      fullName: "Sobirova Aziza Farxodovna",
-      phone: "+998 90 123 45 67",
-      email: "aziza@urspi.uz",
-      image: menImg
-    },
-    { 
-      id: 2, 
-      faculty: "Boshlang'ich ta'lim fakulteti", 
-      department: "Boshlang'ich ta'lim metodikasi kafedrasi", 
-      position: "O'qituvchi - stajyor", 
-      fullName: "Sabirov Azizbek Azad o'g'li",
-      phone: "+998 91 234 56 78",
-      email: "azizbek@urspi.uz",
-      image: menImg
-    },
-    { 
-      id: 3, 
-      faculty: "Boshlang'ich ta'lim fakulteti", 
-      department: "Boshlang'ich ta'lim metodikasi kafedrasi", 
-      position: "O'qituvchi", 
-      fullName: "Otamuradova Aziza Sultonmurodovna",
-      phone: "+998 93 456 78 90",
-      email: "otamuradova@urspi.uz",
-      image: menImg
-    },
-  ];
+  const fetchTeachers = async () => {
+    setLoading(true);
+    try {
+      const res = await teachersAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map(t => ({
+        id: t.id,
+        faculty: t.faculty?.nameUz || t.faculty?.name || "Fakultet",
+        department: t.department?.nameUz || t.department?.name || "Kafedra",
+        position: t.position?.name || t.positionTitle || "O'qituvchi",
+        fullName: t.fullNameUz || t.fullName || "O'qituvchi",
+        phone: t.phoneNumber || "+998 90 123 45 67",
+        email: t.email || "info@urspi.uz",
+        image: getFileUrl(t.photoLink || t.photo) || menImg,
+        rawItem: t
+      }));
+      setTeachersList(formatted);
+    } catch (e) {
+      console.warn('API error in fetchTeachers:', e.message);
+      setTeachersList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -268,7 +267,7 @@ export default function TeachersAdmin() {
               </tr>
             </thead>
             <tbody className="text-sm">
-              {mockTeachers.map((teacher, index) => (
+              {teachersList.map((teacher, index) => (
                 <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium text-center">{index + 1}</td>
                   <td className="border border-slate-200 dark:border-slate-700 p-0 text-center w-20">

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, Check } from 'lucide-react';
+import { facultiesAPI, getFileUrl } from '../../api';
 
 export default function FacultiesAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -7,58 +8,171 @@ export default function FacultiesAdmin() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [facultiesList, setFacultiesList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const [logoFile, setLogoFile] = useState(null);
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
     title: { uz: '', ru: '', en: '' },
     description: { uz: '', ru: '', en: '' }
   });
 
-  const mockFaculties = [
-    { id: 1, title: "Filologiya fakulteti", description: "Fakultet haqida qisqacha ma'lumot" },
-    { id: 2, title: "Pedagogika fakulteti", description: "Fakultet haqida qisqacha ma'lumot" },
-    { id: 3, title: "Boshlang'ich ta'lim fakulteti", description: "Fakultet haqida qisqacha ma'lumot" },
-    { id: 4, title: "Aniq va tabiiy fanlar fakulteti", description: "Fakultet haqida qisqacha ma'lumot" },
-    { id: 5, title: "Ijtimoiy va amaliy fanlar fakulteti", description: "Fakultet haqida qisqacha ma'lumot" }
-  ];
-
-  const showNotification = (msg) => {
-    setNotification({ show: true, message: msg });
-    setTimeout(() => {
-      setNotification({ show: false, message: '' });
-    }, 5000);
-  };
-
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const getLocalFaculties = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
+    } catch (e) {
+      return [];
     }
   };
 
-  const handleDelete = () => {
+  const setLocalFaculties = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_faculties', JSON.stringify(items));
+    } catch (e) {}
+  };
+
+  const fetchFaculties = async () => {
+    setLoading(true);
+    let apiData = [];
+    try {
+      const res = await facultiesAPI.getAll();
+      apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+    } catch (e) {
+      console.warn('API error in fetchFaculties:', e.message);
+    }
+
+    const localItems = getLocalFaculties();
+    const combinedMap = new Map();
+    localItems.forEach(item => combinedMap.set(item.id, item));
+    apiData.forEach(item => {
+      if (!combinedMap.has(item.id)) {
+        combinedMap.set(item.id, item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const formatted = rawData.map(item => ({
+      id: item.id,
+      code: item.code || `FAC_${item.id}`,
+      title: item.nameUz || item.name || "Fakultet",
+      description: item.descriptionUz || item.description || "Fakultet haqida qisqacha ma'lumot",
+      titleUz: item.nameUz || '',
+      titleRu: item.nameRu || '',
+      titleEn: item.nameEn || '',
+      descriptionUz: item.descriptionUz || '',
+      descriptionRu: item.descriptionRu || '',
+      descriptionEn: item.descriptionEn || '',
+      logo: item.logo ? item.logo : (getFileUrl(item.logoLink || item.logo) || "https://via.placeholder.com/150")
+    }));
+    setFacultiesList(formatted);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchFaculties();
+  }, []);
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 5000);
+  };
+
+  const handleSave = async () => {
+    try {
+      const fd = new FormData();
+      fd.append('code', selectedItem?.code || `FAC_${Date.now()}`);
+      fd.append('nameUz', formData.title.uz || 'Fakultet');
+      fd.append('nameRu', formData.title.ru || '');
+      fd.append('nameEn', formData.title.en || '');
+      fd.append('descriptionUz', formData.description.uz || '');
+      fd.append('descriptionRu', formData.description.ru || '');
+      fd.append('descriptionEn', formData.description.en || '');
+
+      if (logoFile) {
+        fd.append('file', logoFile);
+        fd.append('logo', logoFile);
+      }
+
+      let apiResItem = null;
+      try {
+        if (editMode && selectedItem) {
+          const res = await facultiesAPI.update(selectedItem.id, fd);
+          apiResItem = res?.data || res;
+        } else {
+          const res = await facultiesAPI.create(fd);
+          apiResItem = res?.data || res;
+        }
+      } catch (e) {
+        console.warn("Backend faculty post failed, falling back to local state:", e.message);
+      }
+
+      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
+      const fallbackObj = {
+        id: targetId,
+        nameUz: formData.title.uz || 'Fakultet',
+        nameRu: formData.title.ru || '',
+        nameEn: formData.title.en || '',
+        descriptionUz: formData.description.uz || '',
+        descriptionRu: formData.description.ru || '',
+        descriptionEn: formData.description.en || '',
+        logo: logoFile ? URL.createObjectURL(logoFile) : (selectedItem?.logo || '')
+      };
+
+      const localList = getLocalFaculties();
+      const existingIdx = localList.findIndex(x => x.id === targetId);
+      if (existingIdx >= 0) {
+        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      } else {
+        localList.unshift(fallbackObj);
+      }
+      setLocalFaculties(localList);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      fetchFaculties();
+      setIsModalOpen(false);
+    } catch (e) {
+      showNotification(e.message || (editMode ? "Tahrirlashda xatolik" : "Qo'shishda xatolik"), 'error');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedItem) {
+      try {
+        await facultiesAPI.delete(selectedItem.id);
+      } catch (e) {
+        console.warn("Backend delete error:", e.message);
+      }
+      const localList = getLocalFaculties().filter(x => x.id !== selectedItem.id);
+      setLocalFaculties(localList);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchFaculties();
+    }
     setDeleteModalOpen(false);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
+    setSelectedItem(item);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title },
-      description: { uz: item.description, ru: item.description, en: item.description }
+      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
+      description: { uz: item.descriptionUz || item.description, ru: item.descriptionRu || item.description, en: item.descriptionEn || item.description }
     });
+    setLogoFile(null);
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setEditMode(false);
+    setSelectedItem(null);
     setFormData({
       title: { uz: '', ru: '', en: '' },
       description: { uz: '', ru: '', en: '' }
     });
+    setLogoFile(null);
     setIsModalOpen(true);
   };
 
@@ -87,10 +201,13 @@ export default function FacultiesAdmin() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {mockFaculties.map((fac) => (
+        {facultiesList.map((fac) => (
           <div key={fac.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{fac.title}</h3>
+            <div className="flex items-center gap-4">
+              <img src={fac.logo} alt={fac.title} className="w-12 h-12 rounded-full object-cover border border-slate-200" />
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{fac.title}</h3>
+              </div>
             </div>
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0">
@@ -163,7 +280,7 @@ export default function FacultiesAdmin() {
                 Yo'q
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={handleDeleteConfirm} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -263,8 +380,13 @@ export default function FacultiesAdmin() {
                       <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
                       <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
                         <label className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]">
-                          <span>Rasm yuklash</span>
-                          <input type="file" className="sr-only" accept="image/*" />
+                          <span>{logoFile ? logoFile.name : "Rasm yuklash"}</span>
+                          <input
+                            type="file"
+                            className="sr-only"
+                            accept="image/*"
+                            onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                          />
                         </label>
                       </div>
                     </div>

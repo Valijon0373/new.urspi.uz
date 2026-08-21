@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getStoredCenters, renderCenterIcon, initialCenters } from '../../data/centersData'
+import { centersAPI } from '../../api'
 
 export const centers = initialCenters;
 
@@ -18,9 +19,23 @@ export default function MarkazlarPage() {
     return () => window.removeEventListener('urspi_centers_updated', handleUpdate);
   }, []);
 
-  const loadCenters = () => {
-    const data = getStoredCenters();
-    setCenterList(data);
+  const loadCenters = async () => {
+    try {
+      const res = await centersAPI.getAll(currentLang);
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map((c) => ({
+        id: c.id,
+        title: c.name || c.nameUz || "MARKAZ",
+        description: c.description || c.descriptionUz || "",
+        borderColor: "border-t-blue-500",
+        iconBg: "bg-blue-50",
+        iconName: "Building2"
+      }));
+      setCenterList(formatted);
+    } catch (e) {
+      console.warn('Failed to load centers from API:', e.message);
+      setCenterList([]);
+    }
   };
 
   const getTitle = (center) => {

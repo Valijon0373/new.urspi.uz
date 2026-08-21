@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight, Phone } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { getStoredCenters } from '../../data/centersData'
 import menImg from '../../assets/men.jpg'
+import { employeesAPI, centersAPI, getFileUrl } from '../../api'
 
 const StaffCard = ({ id = '1', name, phone, position, img }) => (
   <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
     <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
-      <img src={img || menImg} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" />
+      <img src={img || menImg} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} />
     </div>
     <div className="p-5 flex flex-col flex-grow">
       <h4 className="text-[13px] md:text-[14px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-snug mb-2">
@@ -37,7 +38,52 @@ export default function MarkazXodimlariPage() {
   const { id } = useParams();
   const allCenters = getStoredCenters();
   const centerInfo = allCenters.find(c => c.id === parseInt(id));
-  
+
+  const [staffList, setStaffList] = useState([]);
+  const [centerData, setCenterData] = useState(centerInfo);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchEmployees = async () => {
+      if (!id) return;
+      try {
+        const [empRes, centerRes] = await Promise.allSettled([
+          employeesAPI.getByCenter(id, 'uz'),
+          centersAPI.getById(id)
+        ]);
+
+        if (isMounted && centerRes.status === 'fulfilled' && centerRes.value) {
+          const c = centerRes.value.data || centerRes.value;
+          setCenterData({
+            ...centerInfo,
+            title: c.nameUz || c.name || centerInfo?.title,
+            description: c.descriptionUz || c.description || centerInfo?.description
+          });
+        }
+
+        if (isMounted && empRes.status === 'fulfilled' && empRes.value) {
+          const rawEmps = Array.isArray(empRes.value) ? empRes.value : (empRes.value?.data || []);
+          const formatted = rawEmps.map(emp => ({
+            id: emp.id,
+            name: emp.fullName || emp.fullNameUz || "Xodim",
+            position: emp.positionTitle || emp.positionTitleUz || "Xodim",
+            phone: emp.phoneNumber || "",
+            img: getFileUrl(emp.photoLink || emp.photo) || menImg
+          }));
+          setStaffList(formatted);
+        } else if (isMounted) {
+          setStaffList([]);
+        }
+      } catch (err) {
+        console.warn('Failed to load center employees from API:', err.message);
+        if (isMounted) setStaffList([]);
+      }
+    };
+
+    fetchEmployees();
+    return () => { isMounted = false; };
+  }, [id]);
+
   const getTitle = (c) => {
     if (!c) return "Bo'lim nomi topilmadi";
     if (typeof c.title === 'string') return c.title;
@@ -50,12 +96,8 @@ export default function MarkazXodimlariPage() {
     return c.description?.uz || c.description?.ru || c.description?.en || "";
   };
 
-  const centerTitle = getTitle(centerInfo);
-  const centerDesc = getDesc(centerInfo);
-
-  const staffList = centerInfo?.staff || [
-    { id: "1", name: centerInfo?.headName || "BO'LIM BOSHLIG'I", position: "Bo'lim boshlig'i", phone: centerInfo?.phone || "+998 62 224 81 00" }
-  ];
+  const centerTitle = getTitle(centerData);
+  const centerDesc = getDesc(centerData);
 
   const taskList = centerInfo?.tasks || [
     "Institutdagi barcha ta'lim va boshqaruv jarayonlarini samarali muvofiqlashtirish.",

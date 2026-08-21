@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, Search, X, Check, Phone, Mail, Clock, User, Building } from 'lucide-react';
 import { getStoredCenters, saveStoredCenters, renderCenterIcon } from '../../data/centersData';
+import { centersAPI } from '../../api';
 
 const AVAILABLE_ICONS = [
   { name: 'BookOpen', label: "Kitob (Ta'lim)" },
@@ -57,9 +58,23 @@ export default function CentersAdmin() {
     return () => window.removeEventListener('urspi_centers_updated', handleUpdate);
   }, []);
 
-  const loadCenters = () => {
-    const data = getStoredCenters();
-    setCenters(data);
+  const loadCenters = async () => {
+    try {
+      const res = await centersAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map(c => ({
+        id: c.id,
+        title: { uz: c.nameUz || c.name, ru: c.nameRu || c.name, en: c.nameEn || c.name },
+        description: { uz: c.descriptionUz || c.description, ru: c.descriptionRu || c.description, en: c.descriptionEn || c.description },
+        iconName: 'BookOpen',
+        borderColor: 'border-t-blue-500',
+        iconBg: 'bg-blue-50'
+      }));
+      setCenters(formatted);
+    } catch (e) {
+      console.warn('API error in loadCenters:', e.message);
+      setCenters([]);
+    }
   };
 
   const showNotification = (msg) => {
@@ -69,41 +84,48 @@ export default function CentersAdmin() {
     }, 4000);
   };
 
-  const handleSave = () => {
-    // Validation
+  const handleSave = async () => {
     const currentTitle = formData.title.uz || formData.title.ru || formData.title.en;
     if (!currentTitle.trim()) {
       alert("Iltimos, bo'lim nomini kiriting!");
       return;
     }
 
-    let updatedList;
-    if (editMode) {
-      updatedList = centers.map(item => item.id === formData.id ? { ...formData } : item);
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      const newId = centers.length > 0 ? Math.max(...centers.map(c => c.id || 0)) + 1 : 1;
-      const newItem = {
-        ...formData,
-        id: newId,
-        title: {
-          uz: formData.title.uz || formData.title.ru || formData.title.en,
-          ru: formData.title.ru || formData.title.uz,
-          en: formData.title.en || formData.title.uz
-        },
-        description: {
-          uz: formData.description.uz || formData.description.ru || formData.description.en,
-          ru: formData.description.ru || formData.description.uz,
-          en: formData.description.en || formData.description.uz
-        }
+    try {
+      const dto = {
+        nameUz: formData.title.uz || currentTitle,
+        nameRu: formData.title.ru || '',
+        nameEn: formData.title.en || '',
+        descriptionUz: formData.description.uz || '',
+        descriptionRu: formData.description.ru || '',
+        descriptionEn: formData.description.en || ''
       };
-      updatedList = [...centers, newItem];
-      showNotification("Muvaffaqiyatli qo'shildi");
-    }
 
-    setCenters(updatedList);
-    saveStoredCenters(updatedList);
-    setIsModalOpen(false);
+      if (editMode && formData.id) {
+        await centersAPI.update(formData.id, dto);
+        showNotification("Muvaffaqiyatli tahrirlandi");
+      } else {
+        await centersAPI.create(dto);
+        showNotification("Muvaffaqiyatli qo'shildi");
+      }
+      loadCenters();
+    } catch (e) {
+      // Fallback local save
+      let updatedList;
+      if (editMode) {
+        updatedList = centers.map(item => item.id === formData.id ? { ...formData } : item);
+        showNotification("Muvaffaqiyatli tahrirlandi");
+      } else {
+        const newId = centers.length > 0 ? Math.max(...centers.map(c => c.id || 0)) + 1 : 1;
+        const newItem = { ...formData, id: newId };
+        updatedList = [...centers, newItem];
+        showNotification("Muvaffaqiyatli qo'shildi");
+      }
+      setCenters(updatedList);
+      saveStoredCenters(updatedList);
+    } finally {
+      setIsModalOpen(false);
+    }
   };
 
   const handleDelete = () => {

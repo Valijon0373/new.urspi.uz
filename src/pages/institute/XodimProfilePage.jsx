@@ -1,27 +1,64 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import menImg from '../../assets/men.jpg'
-
-export const allStaff = [
-  { id: '1', name: "MATSAPAYEV ODILBEK BAXTIYOR O'G'LI", position: "Markaz boshlig'i", phone: "+998 90 123 45 67", email: "odilbek.m@urspi.uz", bio: "Axborot texnologiyalari sohasida ko'p yillik tajribaga ega mutaxassis. Raqamli ta'lim tizimlarini joriy qilish va rivojlantirish bo'yicha qator loyihalar muallifi.", officeHours: "Dushanba - Juma: 10:00 - 16:00", img: menImg, hasScience: false },
-  { id: 'davlatmuratov', name: "Davlatmuratov Valijon To'lqin o'g'li", position: "Muxandis dasturchi 1- toifa", phone: "+998 94 237 03 73", email: "vdavlatmuratov@gmail.com", bio: "Institut axborot tizimlarini rivojlantirish va dasturiy ta'minot yaratish boyicha mutaxassis.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'matyaqubov', name: "Matyaqubov Odilbek O‘ktamovich", position: "Muhandis-dasturchi 1-toifali", phone: "+998 97 606 14 21", email: "Matyaqubov098@gmail.com", bio: "Institut axborot tizimlarini rivojlantirish va dasturiy ta'minot yaratish boyicha mutaxassis.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'bobojonov', name: "Bobojonov Ahmad Anvar o'g'li", position: "Tarmoq administratori", phone: "+998 93 745 06 15", email: "ahmadbobojonov2002@gmail.com", bio: "Institut lokal va global tarmoq infratuzilmasini boshqarish va xavfsizligini ta'minlash mutaxassisi.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'jumaniyozov', name: "Jumaniyozov Jahongir Polvonovich", position: "Kontent menejer", phone: "+998 99 745 91 20", email: "jjahongir@exp.com", bio: "Institut rasmiy veb-sayti va ijtimoiy tarmoqlaridagi sahifalarini yuritish bo'yicha mas'ul.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'baltabayev', name: "Baltabayev Doniyor Marat o'g'li", position: "Bo‘lim boshlig‘i", phone: "+998 99 022 81 28", email: "bdoniyor@exp.com", bio: "Bo'lim faoliyatini muvofiqlashtirish va axborot texnologiyalarini joriy etish mas'uli.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'abdullayev', name: "Abdullayev Otajon Otabek o'g'li", position: "Tarmoq administratori", phone: "+998 88 357 95 65", email: "otashabdullayev@gmail.com", bio: "Institut lokal va global tarmoq infratuzilmasini boshqarish va xavfsizligini ta'minlash mutaxassisi.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'ismailov', name: "Ismailov Umrbek Ravshanovich", position: "Bo'lim boshlig'i", phone: "+998 91 422 41 44", email: "umrbekismailov@inbox.ru", bio: "Bo'lim faoliyatini muvofiqlashtirish va axborot texnologiyalarini joriy etish mas'uli.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'otaboyev', name: "Otaboyev Akbar Ilxambek o`g`li", position: "Muxandis dasturchi 1- toifa", phone: "+998-97-221-88-96", email: "otaboevakbar96@gmail.com", bio: "Institut axborot tizimlarini rivojlantirish va dasturiy ta'minot yaratish boyicha mutaxassis.", officeHours: "Dushanba - Juma: 09:00 - 17:00", hasScience: false },
-  { id: 'teacher1', name: "ABDULLAYEV ALISHER", position: "Kafedra mudiri, Dotsent", phone: "+998 90 123 45 67", email: "alisher.a@gmail.com", bio: "Ta'lim sifatini oshirish boyicha ilmiy ishlar olib boruvchi mutaxassis.", officeHours: "10:00 - 18:00", img: menImg, hasScience: true }
-];
+import { teachersAPI, employeesAPI, getFileUrl } from '../../api'
 
 export default function XodimProfilePage() {
   const { id } = useParams()
   const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
+  const [employeeData, setEmployeeData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const foundStaff = allStaff.find(s => s.id === id);
-  const employeeData = foundStaff || allStaff[0];
+  useEffect(() => {
+    let isMounted = true;
+    const fetchEmployee = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const [teacherRes, empRes] = await Promise.allSettled([
+          teachersAPI.getById(id),
+          employeesAPI.getById(id)
+        ]);
+
+        let data = null;
+        if (teacherRes.status === 'fulfilled' && teacherRes.value) {
+          data = teacherRes.value.data || teacherRes.value;
+        } else if (empRes.status === 'fulfilled' && empRes.value) {
+          data = empRes.value.data || empRes.value;
+        }
+
+        if (isMounted && data) {
+          setEmployeeData({
+            id: data.id,
+            name: data.fullNameUz || data.fullName || "Xodim",
+            position: data.positionTitleUz || data.positionTitle || data.position?.name || "Xodim",
+            phone: data.phoneNumber || "",
+            email: data.email || "info@urspi.uz",
+            bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
+            officeHours: "Dushanba - Juma: 09:00 - 17:00",
+            img: getFileUrl(data.photoLink || data.photo) || menImg,
+            hasScience: !!data.academicDegree
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load profile from API:', err.message);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchEmployee();
+    return () => { isMounted = false; };
+  }, [id]);
+
+  if (loading) {
+    return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">Yuklanmoqda...</main>;
+  }
+
+  if (!employeeData) {
+    return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">Xodim topilmadi</main>;
+  }
 
   const displayImg = employeeData.img || menImg;
 

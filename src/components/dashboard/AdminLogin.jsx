@@ -3,6 +3,8 @@ import { Eye, EyeOff, Loader2, X } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import logoImg from "../../assets/images/urspi_new.png"
 
+import { authAPI } from "../../api"
+
 export default function AdminLogin({ onSuccess }) {
     const navigate = useNavigate()
     const [form, setForm] = useState({ username: "", password: "" })
@@ -22,13 +24,9 @@ export default function AdminLogin({ onSuccess }) {
         setBusy(true)
         setError("")
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1500))
-            if (username === "admin" && password === "admin123") {
-                onSuccess?.()
-                navigate("/dashboard")
-            } else {
-                throw new Error("Noto'g'ri login yoki parol")
-            }
+            await authAPI.login(username, password)
+            onSuccess?.()
+            navigate("/dashboard")
         } catch (err) {
             setError(err instanceof Error ? err.message : "Kirish amalga oshmadi")
         } finally {

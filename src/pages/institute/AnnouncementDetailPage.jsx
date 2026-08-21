@@ -1,23 +1,75 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
+import { announcementsAPI, getFileUrl } from '../../api';
 
 export default function AnnouncementDetailPage() {
     const { id } = useParams();
+    const { i18n } = useTranslation();
 
-    // Mock data for the specific announcement
-    const announcement = {
-        id,
-        title: "Raximova Shaxnoza Raximovnaning filologiya fanlari bo'yicha falsafa doktori (PhD) dissertatsiyasi ishi himoyasi to'g'risida",
-        date: "02.06.2026",
-        content: `«Kolum Makkenn prozasida tarixiy mojarolar va shaxsiy tajriba ruhiy jarohatlar triggeri sifatida» mavzusida
-**Raximova Shaxnoza Raximovnaning** 10.00.04 - Yevropa, Amerika va Avstraliya xalqlari tili va adabiyoti ixtisosligidagi **«Kolum Makkenn prozasida tarixiy mojarolar va shaxsiy tajriba ruhiy jarohatlar triggeri sifatida»** mavzusidagi filologiya fanlari bo'yicha falsafa doktori (PhD) dissertatsiyasining himoyasi Buxoro davlat universiteti huzuridagi ilmiy darajalar beruvchi DSc.03/2025.27.12.Fil.08.08 raqamli Ilmiy kengashning 2026-yil 23-iyun kuni soat 11:30 dagi majlisida bo'lib o'tadi.`,
-        address: "200118, Buxoro shahri, M. Iqbol ko'chasi, 11-uy. Buxoro davlat universiteti, Bosh binosi, kichik majlislar yig'ingohi.",
-        tel: "(99865) 221-29-14",
-        fax: "(99865) 221-57-27",
-        email: "buxdu_rektor@buxdu.uz"
-    };
+    const [announcement, setAnnouncement] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchDetail = async () => {
+            if (!id) return;
+            setLoading(true);
+            let data = null;
+            try {
+                const res = await announcementsAPI.getLandingById(id);
+                data = res?.data || res;
+            } catch (err) {
+                console.warn('Failed to fetch landing announcement detail from API:', err.message);
+                try {
+                    const res = await announcementsAPI.getById(id);
+                    data = res?.data || res;
+                } catch (e) {
+                    console.warn('Failed to fetch fallback announcement detail from API:', e.message);
+                }
+            }
+
+            if (!data) {
+                try {
+                    const localList = JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
+                    data = localList.find(x => String(x.id) === String(id));
+                } catch (e) {}
+            }
+
+            if (isMounted && data) {
+                const lang = i18n.language || 'uz';
+                const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+                const title = data[`title${langKey}`] || data.title || data.titleUz || data.titleRu || data.titleEn || "E'lon";
+                const content = data[`content${langKey}`] || data.content || data.contentUz || data.contentRu || data.contentEn || "";
+
+                setAnnouncement({
+                    id: data.id,
+                    title,
+                    date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('uz-UZ') : (data.date || "2026-08-21"),
+                    content,
+                    address: data.address || "Urganch davlat pedagogika instituti",
+                    tel: data.tel || "+998 62 224 81 11",
+                    fax: data.fax || "",
+                    email: data.email || "info@urspi.uz",
+                    image: data.image ? data.image : getFileUrl(data.imageLink || data.image)
+                });
+            }
+            if (isMounted) setLoading(false);
+        };
+
+        fetchDetail();
+        return () => { isMounted = false; };
+    }, [id, i18n.language]);
+
+    if (loading) {
+        return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">Yuklanmoqda...</main>;
+    }
+
+    if (!announcement) {
+        return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">E'lon topilmadi</main>;
+    }
 
     return (
         <main className="flex-1 bg-slate-50 pb-16">
@@ -55,6 +107,16 @@ export default function AnnouncementDetailPage() {
             <div className="px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto py-8">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 md:p-10">
                     
+                    {announcement.image && (
+                        <div className="relative w-full aspect-[16/9] md:aspect-[2/1] rounded-xl overflow-hidden mb-8">
+                            <img 
+                                src={announcement.image} 
+                                alt={announcement.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    )}
+
                     {/* Date Badge */}
                     <div className="inline-flex items-center px-4 py-2 rounded-md border border-gray-200 text-blue-600 font-medium mb-6">
                         <FaRegCalendarAlt className="mr-2" />
@@ -70,22 +132,8 @@ export default function AnnouncementDetailPage() {
                     <hr className="border-gray-200 mb-6" />
 
                     {/* Body Text */}
-                    <div className="text-gray-700 leading-relaxed space-y-4 text-[15px]">
-                        <p>
-                            «Kolum Makkenn prozasida tarixiy mojarolar va shaxsiy tajriba ruhiy jarohatlar triggeri sifatida» mavzusida
-                            <br />
-                            <strong>Raximova Shaxnoza Raximovnaning</strong> 10.00.04 – Yevropa, Amerika va Avstraliya xalqlari tili va adabiyoti ixtisosligidagi <strong>«Kolum Makkenn prozasida tarixiy mojarolar va shaxsiy tajriba ruhiy jarohatlar triggeri sifatida»</strong> mavzusidagi filologiya fanlari bo'yicha falsafa doktori (PhD) dissertatsiyasining himoyasi Buxoro davlat universiteti huzuridagi ilmiy darajalar beruvchi DSc.03/2025.27.12.Fil.08.08 raqamli Ilmiy kengashning 2026-yil 23-iyun kuni soat 11:30 dagi majlisida bo'lib o'tadi.
-                        </p>
-                        
-                        <p>
-                            <strong>Manzil:</strong> {announcement.address}
-                        </p>
-                        <p>
-                            <strong>Tel.:</strong> {announcement.tel}; <strong>faks:</strong> {announcement.fax}
-                        </p>
-                        <p>
-                            <strong>e-mail:</strong> <a href={`mailto:${announcement.email}`} className="text-blue-600 hover:underline">{announcement.email}</a>
-                        </p>
+                    <div className="text-gray-700 leading-relaxed space-y-4 text-[15px] whitespace-pre-wrap">
+                        {announcement.content}
                     </div>
                 </div>
             </div>

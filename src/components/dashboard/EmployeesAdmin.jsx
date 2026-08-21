@@ -4,6 +4,7 @@ import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
+import { employeesAPI, getFileUrl } from '../../api';
 
 export default function EmployeesAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,44 +36,35 @@ export default function EmployeesAdmin() {
     setPhone(formatted);
   };
 
-  const mockEmployees = [
-    { 
-      id: 1, 
-      fullName: "Davlatmuratov Valijon", 
-      position: "Dasturchi", 
-      color: "from-blue-500 to-purple-500",
-      phone: "+998 94 237 03 73",
-      email: "valijon@urspi.uz",
-      department: "Axborot texnologiyalari markazi"
-    },
-    { 
-      id: 2, 
-      fullName: "Davlatmuratov Valijon", 
-      position: "Bosh hisobchi", 
-      color: "from-emerald-500 to-teal-500",
-      phone: "+998 90 123 45 67",
-      email: "bux@urspi.uz",
-      department: "Bugalteriya"
-    },
-    { 
-      id: 3, 
-      fullName: "Davlatmuratov Valijon", 
-      position: "Frontend Dasturchi", 
-      color: "from-orange-500 to-rose-500",
-      phone: "+998 91 234 56 78",
-      email: "frontend@urspi.uz",
-      department: "Axborot texnologiyalari markazi"
-    },
-    { 
-      id: 4, 
-      fullName: "Davlatmuratov Valijon", 
-      position: "Backend Dasturchi", 
-      color: "from-indigo-500 to-blue-500",
-      phone: "+998 93 456 78 90",
-      email: "backend@urspi.uz",
-      department: "Axborot texnologiyalari markazi"
-    },
-  ];
+  const [employeesList, setEmployeesList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const res = await employeesAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      const formatted = rawData.map(emp => ({
+        id: emp.id,
+        fullName: emp.fullNameUz || emp.fullName || "Xodim",
+        position: emp.positionTitleUz || emp.positionTitle || "Xodim",
+        phone: emp.phoneNumber || "+998 90 123 45 67",
+        email: emp.email || "info@urspi.uz",
+        department: emp.center?.nameUz || emp.center?.name || "Markaz",
+        image: getFileUrl(emp.photoLink || emp.photo)
+      }));
+      setEmployeesList(formatted);
+    } catch (e) {
+      console.warn('API error in fetchEmployees:', e.message);
+      setEmployeesList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
@@ -166,7 +158,7 @@ export default function EmployeesAdmin() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4">
-        {mockEmployees.map((employee) => (
+        {employeesList.map((employee) => (
           <div key={employee.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
             {/* Top Color Banner */}
             <div className={`h-24 bg-gradient-to-r ${employee.color}`}></div>
