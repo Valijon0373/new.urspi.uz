@@ -188,15 +188,15 @@ export default function NewsAdmin() {
                   </button>
                   <button 
                     onClick={() => openEditModal(news)}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-sm font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                    className="flex-1 flex justify-center items-center gap-1.5 py-1.5 px-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-400 dark:border-emerald-500/60 hover:bg-emerald-100/80 rounded-xl transition duration-200"
                   >
-                    <Edit2 className="w-4 h-4" /> Tahrirlash
+                    <Edit2 className="w-3.5 h-3.5" /> <span>Tahrirlash</span>
                   </button>
                   <button 
                     onClick={() => { setSelectedItem(news); setDeleteModalOpen(true); }}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-sm font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="flex-1 flex justify-center items-center gap-1.5 py-1.5 px-1 text-xs font-semibold text-rose-500 dark:text-rose-400 bg-white dark:bg-slate-800 border border-rose-400 dark:border-rose-500/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition duration-200"
                   >
-                    <Trash2 className="w-4 h-4" /> O'chirish
+                    <Trash2 className="w-3.5 h-3.5" /> <span>O'chirish</span>
                   </button>
                 </div>
               </div>

@@ -28,6 +28,7 @@ import GalleryAdmin from './GalleryAdmin';
 import DormitoryAdmin from './DormitoryAdmin';
 import RentAdmin from './RentAdmin';
 import GreenInstituteAdmin from './GreenInstituteAdmin';
+import AdmissionAdmin from './AdmissionAdmin';
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
   {
@@ -61,6 +62,7 @@ const NAV_ITEMS = [
   { icon: IoMegaphoneOutline, label: "E'lonlar" },
   { icon: ImageIcon, label: 'Fotogalereya' },
   { icon: IoSettingsOutline, label: 'Sozlamalar' },
+  { icon: FileText, label: 'Qabul (Abituriyent)' },
   { icon: Leaf, label: 'Yashil institut' },
   { icon: HiOutlineMailOpen, label: 'Korporativ pochta', href: 'http://webmail.urspi.uz:4040/admin' },
   { icon: Info, label: 'Biz haqimizda' },
@@ -410,6 +412,9 @@ export default function Dashboard() {
           )}
           {activeTab === 'Yashil institut' && (
             <GreenInstituteAdmin />
+          )}
+          {activeTab === 'Qabul (Abituriyent)' && (
+            <AdmissionAdmin />
           )}
           {activeTab === 'Sozlamalar' && (
             <Settings />

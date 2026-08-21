@@ -1,7 +1,34 @@
-import React, { useState } from 'react';
-import { Plus, Eye, Edit2, Trash2, Search, X, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Eye, Edit2, Trash2, Search, X, Check, Phone, Mail, Clock, User, Building } from 'lucide-react';
+import { getStoredCenters, saveStoredCenters, renderCenterIcon } from '../../data/centersData';
+
+const AVAILABLE_ICONS = [
+  { name: 'BookOpen', label: "Kitob (Ta'lim)" },
+  { name: 'GraduationCap', label: "Shapka (Ilm-fan)" },
+  { name: 'Library', label: "Kutubxona (O'quv-uslubiy)" },
+  { name: 'Users', label: "Odamlar (Murojaatlar)" },
+  { name: 'Award', label: "Mukofot (Magistratura)" },
+  { name: 'Heart', label: "Yurak (Xotin-qizlar)" },
+  { name: 'Sparkles', label: "Yulduzchalar (Yoshlar/Ma'naviyat)" },
+  { name: 'Star', label: "Yulduz (Iqtidorli talabalar)" },
+  { name: 'Scale', label: "Tarozi (Yurist)" },
+  { name: 'Globe', label: "Globus (Xalqaro)" },
+  { name: 'Shield', label: "Qalqon (Kasaba uyushmasi)" },
+  { name: 'Monitor', label: "Kompyuter (Raqamli ta'lim)" },
+  { name: 'Calculator', label: "Kalkulyator (Buxgalteriya)" },
+  { name: 'FileText', label: "Hujjat (Axborot resurs)" },
+  { name: 'Landmark', label: "Bino (Kengash)" },
+  { name: 'ShieldCheck', label: "Himoya qalqoni (Komplayens-nazorat)" },
+  { name: 'TrendingUp', label: "O'sish grafikasi (Marketing)" },
+  { name: 'UserCheck', label: "Foydalanuvchi (Xotin-qizlar kengashi)" },
+  { name: 'Briefcase', label: "Portfel (Registrator ofisi)" },
+  { name: 'Cpu', label: "Protsessor (Texnik vositalar)" }
+];
 
 export default function CentersAdmin() {
+  const [centers, setCenters] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -11,42 +38,97 @@ export default function CentersAdmin() {
 
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
+    id: null,
     title: { uz: '', ru: '', en: '' },
-    description: { uz: '', ru: '', en: '' }
+    description: { uz: '', ru: '', en: '' },
+    headName: '',
+    phone: '',
+    email: '',
+    receptionHours: '',
+    iconName: 'BookOpen',
+    borderColor: 'border-t-blue-500',
+    iconBg: 'bg-blue-50'
   });
 
-  const mockCenters = [
-    { id: 1, title: "Axborot texnologiyalari markazi", description: "Universitet IT infratuzilmasini boshqarish markazi" },
-    { id: 2, title: "Xalqaro aloqalar bo'limi", description: "Xorijiy universitetlar bilan hamkorlik bo'limi" },
-    { id: 3, title: "Ilmiy tadqiqotlar bo'limi", description: "Ilmiy ishlarni muvofiqlashtirish bo'limi" }
-  ];
+  useEffect(() => {
+    loadCenters();
+    const handleUpdate = () => loadCenters();
+    window.addEventListener('urspi_centers_updated', handleUpdate);
+    return () => window.removeEventListener('urspi_centers_updated', handleUpdate);
+  }, []);
+
+  const loadCenters = () => {
+    const data = getStoredCenters();
+    setCenters(data);
+  };
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
     setTimeout(() => {
       setNotification({ show: false, message: '' });
-    }, 5000);
+    }, 4000);
   };
 
   const handleSave = () => {
-    setIsModalOpen(false);
+    // Validation
+    const currentTitle = formData.title.uz || formData.title.ru || formData.title.en;
+    if (!currentTitle.trim()) {
+      alert("Iltimos, bo'lim nomini kiriting!");
+      return;
+    }
+
+    let updatedList;
     if (editMode) {
+      updatedList = centers.map(item => item.id === formData.id ? { ...formData } : item);
       showNotification("Muvaffaqiyatli tahrirlandi");
     } else {
+      const newId = centers.length > 0 ? Math.max(...centers.map(c => c.id || 0)) + 1 : 1;
+      const newItem = {
+        ...formData,
+        id: newId,
+        title: {
+          uz: formData.title.uz || formData.title.ru || formData.title.en,
+          ru: formData.title.ru || formData.title.uz,
+          en: formData.title.en || formData.title.uz
+        },
+        description: {
+          uz: formData.description.uz || formData.description.ru || formData.description.en,
+          ru: formData.description.ru || formData.description.uz,
+          en: formData.description.en || formData.description.uz
+        }
+      };
+      updatedList = [...centers, newItem];
       showNotification("Muvaffaqiyatli qo'shildi");
     }
+
+    setCenters(updatedList);
+    saveStoredCenters(updatedList);
+    setIsModalOpen(false);
   };
 
   const handleDelete = () => {
+    if (!selectedItem) return;
+    const updatedList = centers.filter(item => item.id !== selectedItem.id);
+    setCenters(updatedList);
+    saveStoredCenters(updatedList);
     setDeleteModalOpen(false);
+    setSelectedItem(null);
     showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title },
-      description: { uz: item.description, ru: item.description, en: item.description }
+      id: item.id,
+      title: typeof item.title === 'object' ? { ...item.title } : { uz: item.title, ru: item.title, en: item.title },
+      description: typeof item.description === 'object' ? { ...item.description } : { uz: item.description, ru: item.description, en: item.description },
+      headName: item.headName || '',
+      phone: item.phone || '',
+      email: item.email || '',
+      receptionHours: item.receptionHours || '',
+      iconName: item.iconName || 'BookOpen',
+      borderColor: item.borderColor || 'border-t-blue-500',
+      iconBg: item.iconBg || 'bg-blue-50'
     });
     setIsModalOpen(true);
   };
@@ -54,11 +136,38 @@ export default function CentersAdmin() {
   const openAddModal = () => {
     setEditMode(false);
     setFormData({
+      id: null,
       title: { uz: '', ru: '', en: '' },
-      description: { uz: '', ru: '', en: '' }
+      description: { uz: '', ru: '', en: '' },
+      headName: '',
+      phone: '',
+      email: '',
+      receptionHours: '09:00 - 17:00',
+      iconName: 'BookOpen',
+      borderColor: 'border-t-blue-500',
+      iconBg: 'bg-blue-50'
     });
     setIsModalOpen(true);
   };
+
+  const getItemTitle = (item, lang = 'uz') => {
+    if (!item) return '';
+    if (typeof item.title === 'string') return item.title;
+    return item.title?.[lang] || item.title?.uz || item.title?.ru || item.title?.en || '';
+  };
+
+  const getItemDesc = (item, lang = 'uz') => {
+    if (!item) return '';
+    if (typeof item.description === 'string') return item.description;
+    return item.description?.[lang] || item.description?.uz || item.description?.ru || item.description?.en || '';
+  };
+
+  const filteredCenters = centers.filter(center => {
+    const title = getItemTitle(center, activeLang).toLowerCase();
+    const desc = getItemDesc(center, activeLang).toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return title.includes(search) || desc.includes(search);
+  });
 
   return (
     <div className="space-y-6 animate-fade-in relative">
@@ -72,80 +181,161 @@ export default function CentersAdmin() {
         </div>
       )}
 
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Markaz va Bo'limlar</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Markaz va Bo'limlar</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Jami: <span className="font-semibold text-blue-600 dark:text-blue-400">{centers.length}</span> ta markaz va bo'limlar
+          </p>
+        </div>
         
         <button 
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow"
         >
           <Plus className="w-5 h-5" />
-          Qo'shish
+          Yangi bo'lim qo'shish
         </button>
       </div>
 
+      {/* Search Filter */}
       <div className="flex gap-4">
         <div className="relative flex-1">
           <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Qidirish..." 
-            className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Bo'limlar va markazlar orasidan qidirish..." 
+            className="w-full h-11 pl-11 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors"
           />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-        <button className="px-6 h-11 rounded-lg border border-blue-500 text-blue-500 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-          Qidirish
-        </button>
       </div>
 
+      {/* Centers List */}
       <div className="flex flex-col gap-4">
-        {mockCenters.map((center) => (
-          <div key={center.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{center.title}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{center.description}</p>
-            </div>
-            
-            <div className="flex items-center gap-3 mt-4 sm:mt-0">
-              <button 
-                onClick={() => { setSelectedItem(center); setViewModalOpen(true); }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                Ko'rish
-              </button>
-              <button 
-                onClick={() => openEditModal(center)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-              >
-                <Edit2 className="w-4 h-4" />
-                Tahrirlash
-              </button>
-              <button 
-                onClick={() => { setSelectedItem(center); setDeleteModalOpen(true); }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                O'chirish
-              </button>
-            </div>
+        {filteredCenters.length === 0 ? (
+          <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500">
+            Birorta ham markaz yoki bo'lim topilmadi.
           </div>
-        ))}
+        ) : (
+          filteredCenters.map((center) => (
+            <div 
+              key={center.id} 
+              className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow gap-4"
+            >
+              <div className="flex items-start gap-4 flex-1 min-w-0">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${center.iconBg || 'bg-blue-50'} border border-slate-100 dark:border-slate-800`}>
+                  {renderCenterIcon(center.iconName, "w-6 h-6 text-blue-600")}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 truncate">
+                    {getItemTitle(center, activeLang)}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                    {getItemDesc(center, activeLang)}
+                  </p>
+                  {center.headName && (
+                    <div className="flex items-center gap-2 mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+                      <User className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Boshliq: <strong className="text-slate-800 dark:text-slate-200">{center.headName}</strong></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                <button 
+                  onClick={() => { setSelectedItem(center); setViewModalOpen(true); }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-blue-600 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  Ko'rish
+                </button>
+                <button 
+                  onClick={() => openEditModal(center)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-400 dark:border-emerald-500/60 hover:bg-emerald-100/80 rounded-xl transition duration-200"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Tahrirlash</span>
+                </button>
+                <button 
+                  onClick={() => { setSelectedItem(center); setDeleteModalOpen(true); }}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-rose-500 dark:text-rose-400 bg-white dark:bg-slate-800 border border-rose-400 dark:border-rose-500/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition duration-200"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>O'chirish</span>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* View Modal */}
       {viewModalOpen && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8">
+          <div className="relative bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 overflow-hidden">
             <button 
               onClick={() => setViewModalOpen(false)} 
               className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 pr-8">{selectedItem.title}</h2>
-            <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
-              <p>{selectedItem.description}</p>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${selectedItem.iconBg || 'bg-blue-50'}`}>
+                {renderCenterIcon(selectedItem.iconName, "w-8 h-8 text-blue-600")}
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-md">
+                  Markaz / Bo'lim #{selectedItem.id}
+                </span>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                  {getItemTitle(selectedItem, 'uz')}
+                </h2>
+              </div>
+            </div>
+
+            <div className="space-y-4 my-6 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              {selectedItem.headName && (
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <User className="w-4 h-4 text-blue-500" />
+                  <span><strong>Bo'lim boshlig'i:</strong> {selectedItem.headName}</span>
+                </div>
+              )}
+              {selectedItem.phone && (
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <Phone className="w-4 h-4 text-emerald-500" />
+                  <span><strong>Telefon:</strong> {selectedItem.phone}</span>
+                </div>
+              )}
+              {selectedItem.email && (
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <Mail className="w-4 h-4 text-amber-500" />
+                  <span><strong>Email:</strong> {selectedItem.email}</span>
+                </div>
+              )}
+              {selectedItem.receptionHours && (
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <Clock className="w-4 h-4 text-purple-500" />
+                  <span><strong>Qabul vaqtlari:</strong> {selectedItem.receptionHours}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Tavsif:</h4>
+              <p>{getItemDesc(selectedItem, 'uz')}</p>
             </div>
           </div>
         </div>
@@ -165,21 +355,21 @@ export default function CentersAdmin() {
               <Trash2 className="w-8 h-8 text-red-500" />
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-              Siz rostdan ham <span className="text-red-500 font-bold">{selectedItem.title}</span> ni o'chirmoqchimisiz?
+            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed text-sm">
+              Siz rostdan ham <span className="text-red-500 font-bold">{getItemTitle(selectedItem, 'uz')}</span> ni o'chirmoqchimisiz?
             </p>
             <div className="flex items-center justify-center gap-3">
               <button 
                 onClick={() => setDeleteModalOpen(false)} 
-                className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors"
+                className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors text-sm"
               >
                 Yo'q
               </button>
               <button 
                 onClick={handleDelete} 
-                className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
+                className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm text-sm"
               >
-                Ha
+                Ha, o'chirish
               </button>
             </div>
           </div>
@@ -189,11 +379,11 @@ export default function CentersAdmin() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                {editMode ? "Tahrirlash" : "Qo'shish"}
+                {editMode ? "Bo'limni tahrirlash" : "Yangi bo'lim qo'shish"}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -227,25 +417,29 @@ export default function CentersAdmin() {
                 ))}
               </div>
 
+              {/* Multilingual Title & Description */}
               {(() => {
                 const text = {
-                  uz: { titleLabel: "Nomi", titlePl: "Nomini kiriting", descLabel: "Ma'lumot", descPl: "Ma'lumot kiriting" },
-                  ru: { titleLabel: "Название", titlePl: "Введите название", descLabel: "Информация", descPl: "Введите информацию" },
-                  en: { titleLabel: "Name", titlePl: "Enter name", descLabel: "Information", descPl: "Enter information" }
+                  uz: { titleLabel: "Bo'lim / Markaz nomi", titlePl: "Nomi kiriting...", descLabel: "Batafsil ma'lumot (Tavsif)", descPl: "Bo'lim maqsadi va faoliyati haqida ma'lumot..." },
+                  ru: { titleLabel: "Название отдела / центра", titlePl: "Введите название...", descLabel: "Информация (Описание)", descPl: "Информация о целях и деятельности..." },
+                  en: { titleLabel: "Department / Center Name", titlePl: "Enter name...", descLabel: "Detailed Information", descPl: "Information about goals and activities..." }
                 }[activeLang];
 
                 return (
-                  <div className="space-y-5">
+                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        {text.titleLabel}
+                        {text.titleLabel} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
-                        value={formData.title[activeLang]}
-                        onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
+                        value={formData.title[activeLang] || ''}
+                        onChange={e => setFormData({
+                          ...formData,
+                          title: { ...formData.title, [activeLang]: e.target.value }
+                        })}
                         placeholder={text.titlePl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors text-sm"
                       />
                     </div>
                     
@@ -254,16 +448,96 @@ export default function CentersAdmin() {
                         {text.descLabel}
                       </label>
                       <textarea
-                        rows="4"
-                        value={formData.description[activeLang]}
-                        onChange={e => setFormData({ ...formData, description: { ...formData.description, [activeLang]: e.target.value } })}
+                        rows="3"
+                        value={formData.description[activeLang] || ''}
+                        onChange={e => setFormData({
+                          ...formData,
+                          description: { ...formData.description, [activeLang]: e.target.value }
+                        })}
                         placeholder={text.descPl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
+                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors resize-none text-sm"
                       />
                     </div>
                   </div>
                 );
               })()}
+
+              {/* Extra Metadata Section */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Bo'lim rekvizitlari va belgi (Icon)
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Bo'lim boshlig'i (F.I.SH)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.headName}
+                      onChange={e => setFormData({ ...formData, headName: e.target.value })}
+                      placeholder="Masalan: SOLIEV ANVAR"
+                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Telefon raqam
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.phone}
+                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+998 62 224 81 00"
+                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Elektron pochta
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="bolim@urspi.uz"
+                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Qabul vaqtlari
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.receptionHours}
+                      onChange={e => setFormData({ ...formData, receptionHours: e.target.value })}
+                      placeholder="09:00 - 17:00"
+                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                    />
+                  </div>
+                </div>
+
+                {/* Icon selection */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Belgini tanlang (Icon)
+                  </label>
+                  <select
+                    value={formData.iconName}
+                    onChange={e => setFormData({ ...formData, iconName: e.target.value })}
+                    className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                  >
+                    {AVAILABLE_ICONS.map(icon => (
+                      <option key={icon.name} value={icon.name}>{icon.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}

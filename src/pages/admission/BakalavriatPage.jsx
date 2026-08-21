@@ -41,11 +41,11 @@ const localTranslations = {
     tableTitle: "Yo'nalishlar kesimida qabul kvotalari",
     tableSubtitle: "Barcha ta'lim yo'nalishlari bo'yicha batafsil ma'lumotlar",
     colCodeName: "KOD VA YO'NALISH NOMI",
-    colTotalQuota: "UMUMIY KVOTA",
-    colGrant: "DAVLAT GRANTI",
+    colTotalQuota: "Ta'lim shakli",
+    colGrant: "O'quv yili",
     colContract: "TO'LOV-KONTRAKT",
     colAction: "AMAL",
-    btnDetails: "Batafsil",
+    btnDetails: "Ko'rish",
     
     // Filters
     filterFullTime: "Kunduzgi",
@@ -99,11 +99,11 @@ const localTranslations = {
     tableTitle: "Квоты приема по направлениям",
     tableSubtitle: "Детальная информация по всем образовательным направлениям",
     colCodeName: "КОД И НАЗВАНИЕ НАПРАВЛЕНИЯ",
-    colTotalQuota: "ОБЩАЯ КВОТА",
-    colGrant: "ГОСУДАРСТВЕННЫЙ ГРАНТ",
+    colTotalQuota: "Форма обучения",
+    colGrant: "Учебный год",
     colContract: "ПЛАТНЫЙ КОНТРАКТ",
     colAction: "ДЕЙСТВИЕ",
-    btnDetails: "Подробнее",
+    btnDetails: "Ko'rish",
     
     // Filters
     filterFullTime: "Дневное",
@@ -157,11 +157,11 @@ const localTranslations = {
     tableTitle: "Admission Quotas by Directions",
     tableSubtitle: "Detailed information for all fields of study",
     colCodeName: "CODE & DIRECTION NAME",
-    colTotalQuota: "TOTAL QUOTA",
-    colGrant: "STATE GRANT",
+    colTotalQuota: "Education Form",
+    colGrant: "Academic Year",
     colContract: "PAID CONTRACT",
     colAction: "ACTION",
-    btnDetails: "Details",
+    btnDetails: "Ko'rish",
     
     // Filters
     filterFullTime: "Full-time",
@@ -250,6 +250,28 @@ export default function BakalavriatPage() {
   const [activeInfoModal, setActiveInfoModal] = useState(null); // 'contract', 'mandate', 'transfer'
   const [mandatePassport, setMandatePassport] = useState('');
   const [mandateResult, setMandateResult] = useState(null);
+
+  const handleViewPdf = (dir) => {
+    const saved = localStorage.getItem('admission_directions_data');
+    let pdfUrl = null;
+    if (saved) {
+      try {
+        const list = JSON.parse(saved);
+        const match = list.find(item => item.code === dir.code || item.name.toLowerCase().includes(dir.name.toLowerCase()));
+        if (match && match.pdfUrl) {
+          pdfUrl = match.pdfUrl;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    
+    if (!pdfUrl) {
+      pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    }
+
+    window.open(pdfUrl, '_blank');
+  };
 
   // Year offset configurations for dynamic statistics and table scaling
   const yearOffsets = {
@@ -346,70 +368,6 @@ export default function BakalavriatPage() {
 
       <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto space-y-10">
         
-        {/* ── 2. STATISTIC DASHBOARD ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          {/* Card 1: Umumiy Kvota */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(12,31,74,0.06)] transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{trans.statTotalQuota}</span>
-              <div className="p-2.5 rounded-xl bg-slate-50 text-[#0c1f4a]">
-                <Users className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">{currentOffset.totalQuota.toLocaleString()}</h3>
-              <p className="text-xs text-slate-400 mt-1">{trans.statTotalQuotaSub}</p>
-            </div>
-          </div>
-
-          {/* Card 2: Ro'yxatdan o'tganlar */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(12,31,74,0.06)] transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{trans.statRegistered}</span>
-              <div className="p-2.5 rounded-xl bg-slate-50 text-[#0c1f4a]">
-                <UserPlus className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">{currentOffset.registered.toLocaleString()}</h3>
-            </div>
-          </div>
-
-          {/* Card 3: O'rtacha Ball */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(12,31,74,0.06)] transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">
-                {trans.statAvgScore.replace('(2023)', `(${parseInt(selectedYear.split('/')[0]) - 1})`)}
-              </span>
-              <div className="p-2.5 rounded-xl bg-slate-50 text-[#0c1f4a]">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-3xl font-black text-slate-900">{currentOffset.avgScore.toFixed(1)}</h3>
-              <p className="text-xs text-slate-400 mt-1">{trans.statAvgScoreSub}</p>
-            </div>
-          </div>
-
-          {/* Card 4: Grant/Kontrakt */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(12,31,74,0.06)] transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase">{trans.statGrantContract}</span>
-              <div className="p-2.5 rounded-xl bg-slate-50 text-[#0c1f4a]">
-                <PieChart className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-2xl font-black text-slate-900">25% / 75%</h3>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2.5 overflow-hidden">
-                <div className="bg-[#0c1f4a] h-1.5 rounded-full" style={{ width: '25%' }}></div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
         {/* ── 3. QUOTA TABLE SECTION ── */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.015)] overflow-hidden">
           
@@ -478,7 +436,6 @@ export default function BakalavriatPage() {
                     <th className="px-6 py-4.5 font-extrabold">{trans.colCodeName}</th>
                     <th className="px-6 py-4.5 font-extrabold text-center">{trans.colTotalQuota}</th>
                     <th className="px-6 py-4.5 font-extrabold text-center">{trans.colGrant}</th>
-                    <th className="px-6 py-4.5 font-extrabold text-center">{trans.colContract}</th>
                     <th className="px-6 py-4.5 font-extrabold text-center">{trans.colAction}</th>
                   </tr>
                 </thead>
@@ -491,15 +448,17 @@ export default function BakalavriatPage() {
                           <span className="text-slate-800">{dir.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-center text-slate-900">{dir.quota}</td>
-                      <td className="px-6 py-5 text-center text-emerald-600">{dir.grant}</td>
-                      <td className="px-6 py-5 text-center text-slate-700">{dir.contract}</td>
+                      <td className="px-6 py-5 text-center text-slate-900 font-medium">
+                        {educationMode === 'kunduzgi' ? trans.filterFullTime : educationMode === 'sirtqi' ? trans.filterPartTime : trans.filterEvening}
+                      </td>
+                      <td className="px-6 py-5 text-center text-slate-700 font-medium">{selectedYear}</td>
                       <td className="px-6 py-5 text-center">
                         <button
-                          onClick={() => setSelectedDirection(dir)}
-                          className="px-4 py-1.5 bg-slate-100 hover:bg-[#0c1f4a] hover:text-white text-[#0c1f4a] font-bold rounded-lg text-xs transition duration-200"
+                          onClick={() => handleViewPdf(dir)}
+                          className="px-4 py-1.5 bg-[#0c1f4a] hover:bg-[#0c1f4a]/85 text-white font-bold rounded-lg text-xs transition duration-200 flex items-center gap-1.5 mx-auto shadow-xs"
                         >
-                          {trans.btnDetails}
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{trans.btnDetails}</span>
                         </button>
                       </td>
                     </tr>

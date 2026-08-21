@@ -151,116 +151,119 @@ function Navbar() {
   const currentLang = i18n.language || 'uz'
 
   return (
-    <header className="relative w-full z-50">
-      {/* ── 1. TOP BAR ── */}
-      <div className={`sticky top-0 z-50 px-4 py-3 lg:px-8 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {/* Burger icon on mobile top bar */}
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20"
-              aria-label={t('navbar.menu')}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
-            {/* Address hidden on mobile, shown on desktop */}
-            <p className="hidden lg:flex items-center gap-1.5 text-left text-[11px] leading-snug text-white sm:text-xs">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span>{t('navbar.address')}</span>
-            </p>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden lg:flex items-center gap-2 lg:gap-3">
-              <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
-              <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
-              <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
-              <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
-            </div>
-
-            <div className="relative">
+    <>
+      {/* ── 1. TOP BAR & 2. LOGO ── */}
+      <header className="relative w-full">
+        {/* ── 1. TOP BAR ── */}
+        <div className={`px-4 py-3 lg:px-8 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {/* Burger icon on mobile top bar */}
               <button
                 type="button"
-                onClick={() => setLangOpen(!langOpen)}
-                className="flex h-9 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-white transition hover:bg-white/20"
-                aria-label={t('navbar.select_lang')}
+                onClick={() => setMenuOpen(true)}
+                className="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20"
+                aria-label={t('navbar.menu')}
               >
-                <img src={currentLang === 'ru' ? ruFlag : currentLang === 'en' ? enFlag : uzFlag} alt="flag" className="w-5 h-5 rounded-full object-cover" />
-                <span className="text-xs font-semibold uppercase">{currentLang}</span>
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+                <Menu className="h-5 w-5" />
               </button>
 
-              {langOpen && (
-                <div className={`absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 py-1.5 shadow-xl backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/90' : 'bg-[#0c1f4a]/90'}`}>
-                  <button onClick={() => changeLanguage('uz')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
-                    <img src={uzFlag} alt="UZ" className="w-5 h-5 rounded-full object-cover" />
-                    O'zbek
-                  </button>
-                  <button onClick={() => changeLanguage('ru')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
-                    <img src={ruFlag} alt="RU" className="w-5 h-5 rounded-full object-cover" />
-                    Русский
-                  </button>
-                  <button onClick={() => changeLanguage('en')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
-                    <img src={enFlag} alt="EN" className="w-5 h-5 rounded-full object-cover" />
-                    English
-                  </button>
-                </div>
-              )}
+              {/* Address hidden on mobile, shown on desktop */}
+              <p className="hidden lg:flex items-center gap-1.5 text-left text-[11px] leading-snug text-white sm:text-xs">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span>{t('navbar.address')}</span>
+              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setAccessibilityOpen(true)}
-              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500"
-              aria-label={t('navbar.accessibility')}
-            >
-              <IoAccessibilityOutline className="h-4 w-4" />
-            </button>
+
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <div className="hidden lg:flex items-center gap-2 lg:gap-3">
+                <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
+                <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
+                <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
+                <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
+              </div>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setLangOpen(!langOpen)}
+                  className="flex h-9 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-white transition hover:bg-white/20"
+                  aria-label={t('navbar.select_lang')}
+                >
+                  <img src={currentLang === 'ru' ? ruFlag : currentLang === 'en' ? enFlag : uzFlag} alt="flag" className="w-5 h-5 rounded-full object-cover" />
+                  <span className="text-xs font-semibold uppercase">{currentLang}</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {langOpen && (
+                  <div className={`absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 py-1.5 shadow-xl backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/90' : 'bg-[#0c1f4a]/90'}`}>
+                    <button onClick={() => changeLanguage('uz')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
+                      <img src={uzFlag} alt="UZ" className="w-5 h-5 rounded-full object-cover" />
+                      O'zbek
+                    </button>
+                    <button onClick={() => changeLanguage('ru')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
+                      <img src={ruFlag} alt="RU" className="w-5 h-5 rounded-full object-cover" />
+                      Русский
+                    </button>
+                    <button onClick={() => changeLanguage('en')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
+                      <img src={enFlag} alt="EN" className="w-5 h-5 rounded-full object-cover" />
+                      English
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setAccessibilityOpen(true)}
+                className="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-green-500"
+                aria-label={t('navbar.accessibility')}
+              >
+                <IoAccessibilityOutline className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── MOBILE FLOATING SOCIALS & ACCESSIBILITY ── */}
-      <div className="lg:hidden fixed left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[60]">
-        <a href="#" aria-label="Telegram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-sky-500 hover:opacity-90">
-          <BsTelegram className="h-4 w-4" />
-        </a>
-        <a href="#" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-500 hover:opacity-90">
-          <FaInstagram className="h-4 w-4" />
-        </a>
-        <a href="#" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-blue-600 hover:opacity-90">
-          <FaFacebookF className="h-4 w-4" />
-        </a>
-        <a href="#" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-600 hover:opacity-90">
-          <TfiYoutube className="h-4 w-4" />
-        </a>
-        <button
-          type="button"
-          onClick={() => setAccessibilityOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-green-500 hover:opacity-90"
-          aria-label={t('navbar.accessibility')}
-        >
-          <IoAccessibilityOutline className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* ── 2. LOGO ── */}
-      <div
-        className="relative px-4 py-5 lg:px-8 lg:py-6"
-        style={{ backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className={`absolute inset-0 transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/50' : 'bg-[#0c1f4a]/30'}`} />
-        <div className="relative z-10 mx-auto flex max-w-[1400px] items-center justify-between">
-          <a href="#">
-            <img src={logoImg} alt="URSPI Logo" className="h-22 w-auto" />
+        {/* ── MOBILE FLOATING SOCIALS & ACCESSIBILITY ── */}
+        <div className="lg:hidden fixed left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[60]">
+          <a href="#" aria-label="Telegram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-sky-500 hover:opacity-90">
+            <BsTelegram className="h-4 w-4" />
           </a>
+          <a href="#" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-500 hover:opacity-90">
+            <FaInstagram className="h-4 w-4" />
+          </a>
+          <a href="#" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-blue-600 hover:opacity-90">
+            <FaFacebookF className="h-4 w-4" />
+          </a>
+          <a href="#" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-600 hover:opacity-90">
+            <TfiYoutube className="h-4 w-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => setAccessibilityOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-green-500 hover:opacity-90"
+            aria-label={t('navbar.accessibility')}
+          >
+            <IoAccessibilityOutline className="h-5 w-5" />
+          </button>
         </div>
-      </div>
 
-      {/* ── 3. MAIN NAV BAR ── */}
-      <div className={`px-3 py-4 sm:px-4 lg:px-5 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
+        {/* ── 2. LOGO ── */}
+        <div
+          className="relative px-4 py-5 lg:px-8 lg:py-6"
+          style={{ backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        >
+          <div className={`absolute inset-0 transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/50' : 'bg-[#0c1f4a]/30'}`} />
+          <div className="relative z-10 mx-auto flex max-w-[1400px] items-center justify-between">
+            <a href="#">
+              <img src={logoImg} alt="URSPI Logo" className="h-22 w-auto" />
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {/* ── 3. MAIN NAV BAR (STICKY AT VERY TOP ON SCROLL) ── */}
+      <div className={`sticky top-0 z-50 px-3 py-3 sm:px-4 lg:px-5 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
         <nav className={`w-full ${glassNavClass}`}>
           {searchOpen ? (
             <div className="flex items-center gap-3 px-5 py-3.5 lg:px-6 lg:py-4">
@@ -372,17 +375,15 @@ function Navbar() {
       {/* ── MOBILE SIDE DRAWER MENU ── */}
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setMenuOpen(false)}
       />
 
       {/* Side Drawer */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-[101] w-[300px] max-w-[85vw] flex flex-col transition-transform duration-300 ease-in-out lg:hidden shadow-2xl ${
-          isGreenTheme ? 'bg-[#011a14]' : 'bg-[#0c1f4a]'
-        } ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 bottom-0 z-[101] w-[300px] max-w-[85vw] flex flex-col transition-transform duration-300 ease-in-out lg:hidden shadow-2xl ${isGreenTheme ? 'bg-[#011a14]' : 'bg-[#0c1f4a]'
+          } ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/15">
@@ -421,9 +422,8 @@ function Navbar() {
                     >
                       <span>{t(link.labelKey)}</span>
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          mobileOpenIdx === idx ? 'rotate-180' : ''
-                        }`}
+                        className={`h-4 w-4 transition-transform duration-200 ${mobileOpenIdx === idx ? 'rotate-180' : ''
+                          }`}
                       />
                     </button>
                     {mobileOpenIdx === idx && (
@@ -443,9 +443,8 @@ function Navbar() {
                                 >
                                   <span>{t(item.labelKey)}</span>
                                   <ChevronDown
-                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                                      mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''
-                                    }`}
+                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''
+                                      }`}
                                   />
                                 </button>
                                 {mobileSubOpenKey === item.labelKey && (
@@ -498,7 +497,7 @@ function Navbar() {
         isOpen={accessibilityOpen}
         onClose={() => setAccessibilityOpen(false)}
       />
-    </header>
+    </>
   )
 }
 

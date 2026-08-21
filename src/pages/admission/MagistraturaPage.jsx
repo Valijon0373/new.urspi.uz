@@ -334,61 +334,6 @@ export default function MagistraturaPage() {
           </div>
         </div>
 
-        {/* ── 3. FOUR INLINE STAT CARDS ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1: Jami yo'nalishlar */}
-          <div className="bg-sky-55/40 border border-[#0c1f4a]/10 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition shadow-sm">
-            <div className="p-3 bg-[#0c1f4a]/10 text-[#0c1f4a] rounded-xl">
-              <Layers className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statDirections}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">
-                {getDynamicStat(trans.statDirectionsVal, 12, currentOffset.directionsCount)}
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Jami qabul kvotasi */}
-          <div className="bg-sky-55/40 border border-[#0c1f4a]/10 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition shadow-sm">
-            <div className="p-3 bg-[#0c1f4a]/10 text-[#0c1f4a] rounded-xl">
-              <UserCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statQuota}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">
-                {getDynamicStat(trans.statQuotaVal, 450, currentOffset.quotaCount)}
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Mavjud mandatlar */}
-          <div className="bg-sky-55/40 border border-[#0c1f4a]/10 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition shadow-sm">
-            <div className="p-3 bg-[#0c1f4a]/10 text-[#0c1f4a] rounded-xl">
-              <CalendarRange className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statMandate}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">
-                {getDynamicStat(trans.statMandateVal, 84, currentOffset.mandateCount)}
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: O'rtacha to'ldirish */}
-          <div className="bg-sky-55/40 border border-[#0c1f4a]/10 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition shadow-sm">
-            <div className="p-3 bg-[#0c1f4a]/10 text-[#0c1f4a] rounded-xl">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{trans.statAverage}</div>
-              <div className="text-lg font-black text-slate-900 mt-1">
-                {getDynamicStat(trans.statAverageVal, '82.5', currentOffset.averageVal)}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ── 4. TWO-COLUMN SPLIT LAYOUT ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
