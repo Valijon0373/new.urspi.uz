@@ -4,7 +4,7 @@ import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { teachersAPI, facultiesAPI, departmentsAPI, getFileUrl } from '../../api';
+import { teachersAPI, buildTeacherFormData, facultiesAPI, departmentsAPI, positionsAPI, getPositionName, resolvePersonPosition, academicDegreesAPI, getFileUrl, localizedField } from '../../api';
 
 
 export default function TeachersAdmin() {
@@ -24,6 +24,8 @@ export default function TeachersAdmin() {
   const [imagePreview, setImagePreview] = useState(null);
   const [faculties, setFaculties] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [academicDegrees, setAcademicDegrees] = useState([]);
 
   // Filter states
   const [filterFaculty, setFilterFaculty] = useState('');
@@ -31,13 +33,17 @@ export default function TeachersAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Form states
-  const [fullNameUz, setFullNameUz] = useState('');
+  const [activeLang, setActiveLang] = useState('uz');
+  const [fullName, setFullName] = useState({ uz: '', ru: '', en: '' });
   const [phoneNumber, setPhoneNumber] = useState('+998 ');
   const [email, setEmail] = useState('');
   const [facultyId, setFacultyId] = useState('');
   const [departmentId, setDepartmentId] = useState('');
-  const [positionTitle, setPositionTitle] = useState('');
+  const [positionId, setPositionId] = useState('');
+  const [academicDegreeId, setAcademicDegreeId] = useState('');
+  const [sortOrder, setSortOrder] = useState(0);
   const [photoFile, setPhotoFile] = useState(null);
+  const [cvFile, setCvFile] = useState(null);
 
   const [articles, setArticles] = useState({
     1: [
@@ -130,7 +136,21 @@ export default function TeachersAdmin() {
     try {
       localStorage.setItem('urspi_custom_teachers', JSON.stringify(items));
       window.dispatchEvent(new Event('urspi_teachers_updated'));
-    } catch (e) {}
+    } catch (e) {
+      console.warn('localStorage setItem failed, stripping heavy images and retrying:', e);
+      try {
+        const sanitized = items.map(item => ({
+          ...item,
+          photo: item.photo && item.photo.length > 50000 ? '' : item.photo,
+          image: item.image && item.image.length > 50000 ? '' : item.image,
+          photoLink: item.photoLink && item.photoLink.length > 50000 ? '' : item.photoLink,
+        }));
+        localStorage.setItem('urspi_custom_teachers', JSON.stringify(sanitized));
+        window.dispatchEvent(new Event('urspi_teachers_updated'));
+      } catch (e2) {
+        console.error('Failed to save to localStorage:', e2);
+      }
+    }
   };
 
   const fileToBase64 = (file) => {
@@ -143,39 +163,65 @@ export default function TeachersAdmin() {
     });
   };
 
-  const fetchTeachers = async () => {
+  const fetchTeachers = async (currentFacs = faculties, currentDepts = departments, currentPositions = positions) => {
     setLoading(true);
     let apiData = [];
     try {
       const res = await teachersAPI.getAll();
-      apiData = Array.isArray(res) ? res : (res?.data || []);
+      apiData = Array.isArray(res) ? res : (res?.data?.content || res?.data || []);
     } catch (e) {
-      console.warn('API error in fetchTeachers:', e.message);
+      try {
+        const res = await teachersAPI.getLanding(0, 100);
+        apiData = res?.data?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+      } catch (e2) {
+        console.warn('API error in fetchTeachers:', e2.message);
+      }
     }
 
     const localItems = getLocalTeachers();
     const combinedMap = new Map();
-    localItems.forEach(item => combinedMap.set(String(item.id), item));
-    apiData.forEach(item => {
-      if (!combinedMap.has(String(item.id))) {
-        combinedMap.set(String(item.id), item);
+    apiData.forEach(item => combinedMap.set(String(item.id), item));
+    localItems.forEach(item => {
+      const key = String(item.id);
+      if (!combinedMap.has(key)) {
+        combinedMap.set(key, item);
+      } else {
+        const api = combinedMap.get(key);
+        combinedMap.set(key, {
+          ...api,
+          ...item,
+          photo: item.photo || api.photo,
+          image: item.image || api.image,
+          photoLink: item.photoLink || api.photoLink,
+          position: item.position || api.position,
+          positionId: item.positionId || api.positionId || api.position?.id,
+          positionTitleUz: item.positionTitleUz || localizedField(api, 'positionTitle', 'uz', ''),
+          positionTitleRu: item.positionTitleRu || localizedField(api, 'positionTitle', 'ru', ''),
+          positionTitleEn: item.positionTitleEn || localizedField(api, 'positionTitle', 'en', ''),
+        });
       }
     });
 
     const rawData = Array.from(combinedMap.values());
     const formatted = rawData.map(t => {
-      const facObj = faculties.find(f => String(f.id) === String(t.facultyId || t.faculty?.id));
-      const deptObj = departments.find(d => String(d.id) === String(t.departmentId || t.department?.id));
+      const facObj = currentFacs.find(f => String(f.id) === String(t.facultyId || t.faculty?.id));
+      const deptObj = currentDepts.find(d => String(d.id) === String(t.departmentId || t.department?.id));
+      const posId = t.positionId || t.position?.id;
+      const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
+      const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
+        ? nestedPos
+        : (currentPositions.find(p => String(p.id) === String(posId)) || nestedPos);
+      const person = { ...t, position: posObj || t.position };
       return {
         id: t.id,
         faculty: t.facultyName || facObj?.nameUz || facObj?.name || t.faculty?.nameUz || t.faculty?.name || "Fakultet",
         department: t.departmentName || deptObj?.nameUz || deptObj?.name || t.department?.nameUz || t.department?.name || "Kafedra",
-        position: t.positionTitleUz || t.positionTitle || t.position?.name || t.position || "O'qituvchi",
-        fullName: t.fullNameUz || t.fullName || "O'qituvchi",
+        position: resolvePersonPosition(person, activeLang),
+        fullName: localizedField(t, 'fullName', activeLang, t.fullNameUz || t.fullName || "O'qituvchi"),
         phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
         email: t.email || "info@urspi.uz",
         image: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || "",
-        rawItem: t
+        rawItem: person
       };
     });
     setTeachersList(formatted);
@@ -183,42 +229,92 @@ export default function TeachersAdmin() {
   };
 
   const fetchFacultiesAndDepartments = async () => {
+    let rawFac = [];
+    let rawDept = [];
+    let rawPositions = [];
+    let rawDegrees = [];
     try {
-      const [facRes, deptRes] = await Promise.all([
-        facultiesAPI.getAll(),
-        departmentsAPI.getAll()
+      const [facRes, deptRes, posRes, degRes] = await Promise.all([
+        facultiesAPI.getLanding(0, 50),
+        departmentsAPI.getLanding(0, 50),
+        positionsAPI.getAll(),
+        academicDegreesAPI.getAll()
       ]);
-      const rawFac = Array.isArray(facRes) ? facRes : (facRes?.data || []);
-      const rawDept = Array.isArray(deptRes) ? deptRes : (deptRes?.data || []);
-      
-      let localFac = [];
-      let localDept = [];
+      rawFac = facRes?.data?.content || (Array.isArray(facRes?.data) ? facRes.data : (Array.isArray(facRes) ? facRes : []));
+      rawDept = deptRes?.data?.content || (Array.isArray(deptRes?.data) ? deptRes.data : (Array.isArray(deptRes) ? deptRes : []));
+      rawPositions = Array.isArray(posRes) ? posRes : (posRes?.data || []);
+      rawDegrees = Array.isArray(degRes) ? degRes : (degRes?.data || []);
+    } catch (e1) {
       try {
-        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
-        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
-      } catch(e) {}
-
-      const facMap = new Map();
-      localFac.forEach(f => facMap.set(String(f.id), f));
-      rawFac.forEach(f => { if (!facMap.has(String(f.id))) facMap.set(String(f.id), f); });
-
-      const deptMap = new Map();
-      localDept.forEach(d => deptMap.set(String(d.id), d));
-      rawDept.forEach(d => { if (!deptMap.has(String(d.id))) deptMap.set(String(d.id), d); });
-
-      setFaculties(Array.from(facMap.values()));
-      setDepartments(Array.from(deptMap.values()));
-    } catch (e) {
-      console.warn("Failed to fetch faculties and departments:", e.message);
+        const [facRes, deptRes, posRes, degRes] = await Promise.all([
+          facultiesAPI.getAll(),
+          departmentsAPI.getAll(),
+          positionsAPI.getAll(),
+          academicDegreesAPI.getAll()
+        ]);
+        rawFac = Array.isArray(facRes) ? facRes : (facRes?.data || []);
+        rawDept = Array.isArray(deptRes) ? deptRes : (deptRes?.data || []);
+        rawPositions = Array.isArray(posRes) ? posRes : (posRes?.data || []);
+        rawDegrees = Array.isArray(degRes) ? degRes : (degRes?.data || []);
+      } catch (e2) {}
     }
+    
+    let localFac = [];
+    let localDept = [];
+    let localPositions = [];
+    try {
+      localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
+      localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
+      localPositions = JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
+    } catch(e) {}
+
+    const facMap = new Map();
+    localFac.forEach(f => facMap.set(String(f.id), f));
+    rawFac.forEach(f => { if (!facMap.has(String(f.id))) facMap.set(String(f.id), f); });
+
+    const deptMap = new Map();
+    localDept.forEach(d => deptMap.set(String(d.id), d));
+    rawDept.forEach(d => { if (!deptMap.has(String(d.id))) deptMap.set(String(d.id), d); });
+
+    const posMap = new Map();
+    rawPositions.forEach(p => posMap.set(String(p.id), p));
+    localPositions.forEach(p => posMap.set(String(p.id), p));
+    const mergedPositions = Array.from(posMap.values());
+
+    let loadedFacs = Array.from(facMap.values());
+    let loadedDepts = Array.from(deptMap.values());
+
+    if (loadedFacs.length === 0) {
+      loadedFacs = rawFac;
+    }
+
+    if (loadedDepts.length === 0) {
+      loadedDepts = rawDept;
+    }
+
+    setFaculties(loadedFacs);
+    setDepartments(loadedDepts);
+    setPositions(mergedPositions);
+    setAcademicDegrees(rawDegrees);
+    return { loadedFacs, loadedDepts, rawPositions: mergedPositions, rawDegrees };
   };
 
   const [teachersList, setTeachersList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTeachers();
-    fetchFacultiesAndDepartments();
+    const init = async () => {
+      const { loadedFacs, loadedDepts, rawPositions } = await fetchFacultiesAndDepartments();
+      fetchTeachers(loadedFacs, loadedDepts, rawPositions);
+    };
+    init();
+
+    const handlePositionsUpdate = async () => {
+      const { loadedFacs, loadedDepts, rawPositions } = await fetchFacultiesAndDepartments();
+      fetchTeachers(loadedFacs, loadedDepts, rawPositions);
+    };
+    window.addEventListener('urspi_positions_updated', handlePositionsUpdate);
+    return () => window.removeEventListener('urspi_positions_updated', handlePositionsUpdate);
   }, []);
 
   useEffect(() => {
@@ -243,8 +339,41 @@ export default function TeachersAdmin() {
   };
 
   const handleSave = async () => {
-    if (!fullNameUz) {
-      showNotification("Iltimos, ism-sharifni kiriting");
+    if (!fullName.uz?.trim()) {
+      showNotification("Iltimos, F.I.O ni o'zbek tilida kiriting");
+      return;
+    }
+    if (!email?.trim()) {
+      showNotification("Iltimos, email manzilini kiriting");
+      return;
+    }
+    if (!facultyId) {
+      showNotification("Iltimos, fakultetni tanlang");
+      return;
+    }
+    if (!departmentId) {
+      showNotification("Iltimos, kafedrani tanlang");
+      return;
+    }
+    if (!positionId) {
+      showNotification("Iltimos, lavozimni tanlang");
+      return;
+    }
+    if (!academicDegreeId) {
+      showNotification("Iltimos, ilmiy darajani tanlang");
+      return;
+    }
+    const phoneDigits = phoneNumber.replace(/\D/g, '');
+    if (phoneDigits.length < 12) {
+      showNotification("Iltimos, to'liq telefon raqamini kiriting");
+      return;
+    }
+    if (positions.length === 0) {
+      showNotification("Lavozimlar ro'yxati bo'sh. Avval «Lavozimlar» bo'limida lavozim qo'shing.");
+      return;
+    }
+    if (academicDegrees.length === 0) {
+      showNotification("Ilmiy darajalar ro'yxati bo'sh. Avval «Ilmiy darajalar» bo'limida qo'shing.");
       return;
     }
     try {
@@ -256,53 +385,80 @@ export default function TeachersAdmin() {
 
       const facObj = faculties.find(f => String(f.id) === String(facultyId));
       const deptObj = departments.find(d => String(d.id) === String(departmentId));
+      const posObj = positions.find(p => String(p.id) === String(positionId));
+
+      const fullNameUz = fullName.uz.trim();
+      const fullNameRu = fullName.ru?.trim() || '';
+      const fullNameEn = fullName.en?.trim() || '';
+      const normalizedPhone = phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`;
+
+      const posNameUz = getPositionName(posObj, 'uz', '');
+      const posNameRu = getPositionName(posObj, 'ru', '');
+      const posNameEn = getPositionName(posObj, 'en', '');
 
       const teacherObj = {
         id: editMode && selectedItem ? selectedItem.id : Date.now(),
         fullNameUz,
+        fullNameRu,
+        fullNameEn,
         fullName: fullNameUz,
-        phoneNumber,
-        phone: phoneNumber,
-        email,
-        positionTitle: positionTitle || "O'qituvchi",
-        positionTitleUz: positionTitle || "O'qituvchi",
-        position: positionTitle || "O'qituvchi",
-        facultyId: facultyId || '',
+        phoneNumber: normalizedPhone,
+        phone: normalizedPhone,
+        email: email.trim(),
+        position: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
+        positionTitleUz: posNameUz,
+        positionTitleRu: posNameRu,
+        positionTitleEn: posNameEn,
+        facultyId,
         facultyName: facObj?.nameUz || facObj?.name || 'Fakultet',
-        departmentId: departmentId || '',
+        departmentId,
         departmentName: deptObj?.nameUz || deptObj?.name || 'Kafedra',
+        positionId,
+        academicDegreeId,
+        sortOrder: Number(sortOrder) || 0,
+        faculty: facObj ? { id: facObj.id, nameUz: facObj.nameUz || facObj.name } : { id: facultyId },
+        department: deptObj ? { id: deptObj.id, nameUz: deptObj.nameUz || deptObj.name } : { id: departmentId },
+        positionObj: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
         photo: base64Photo || "",
         image: base64Photo || "",
         photoLink: base64Photo || "",
         updatedAt: new Date().toISOString()
       };
 
-      // Try API request
       try {
-        const fd = new FormData();
-        fd.append('fullNameUz', fullNameUz);
-        fd.append('fullNameRu', fullNameUz);
-        fd.append('fullNameEn', fullNameUz);
-        fd.append('phoneNumber', phoneNumber);
-        fd.append('email', email);
-        fd.append('positionTitle', positionTitle);
-        fd.append('positionTitleUz', positionTitle);
-        fd.append('positionTitleRu', positionTitle);
-        fd.append('positionTitleEn', positionTitle);
-        if (facultyId) fd.append('facultyId', facultyId);
-        if (departmentId) fd.append('departmentId', departmentId);
-        if (photoFile) {
-          fd.append('file', photoFile);
-          fd.append('photo', photoFile);
-        }
+        const fd = buildTeacherFormData({
+          fullNameUz,
+          fullNameRu,
+          fullNameEn,
+          phoneNumber: normalizedPhone,
+          email: email.trim(),
+          facultyId,
+          departmentId,
+          positionId,
+          academicDegreeId,
+          photo: photoFile,
+          cv: cvFile,
+          sortOrder: Number(sortOrder) || 0,
+        });
 
+        let apiRes;
         if (editMode && selectedItem) {
-          await teachersAPI.update(selectedItem.id, fd);
+          apiRes = await teachersAPI.update(selectedItem.id, fd);
         } else {
-          await teachersAPI.create(fd);
+          apiRes = await teachersAPI.create(fd);
+        }
+        const saved = apiRes?.data || apiRes;
+        if (saved?.id) {
+          teacherObj.id = saved.id;
+          if (saved.photoLink) {
+            teacherObj.photoLink = saved.photoLink;
+            teacherObj.image = getFileUrl(saved.photoLink);
+          }
         }
       } catch (apiErr) {
-        console.warn('Backend API save failed, saving to localStorage:', apiErr.message);
+        console.warn('Backend API save failed:', apiErr.message);
+        showNotification(apiErr.message || "Backendga saqlashda xatolik yuz berdi");
+        return;
       }
 
       // Save to localStorage for offline/local persistence
@@ -318,8 +474,35 @@ export default function TeachersAdmin() {
       }
       setLocalTeachers(updatedLocal);
 
+      // Directly update local React state for immediate table render
+      const formattedItem = {
+        id: teacherObj.id,
+        faculty: teacherObj.facultyName || facObj?.nameUz || facObj?.name || 'Fakultet',
+        department: teacherObj.departmentName || deptObj?.nameUz || deptObj?.name || 'Kafedra',
+        position: resolvePersonPosition(teacherObj),
+        fullName: teacherObj.fullName,
+        phone: teacherObj.phone,
+        email: teacherObj.email,
+        image: teacherObj.image,
+        rawItem: teacherObj
+      };
+
+      setTeachersList(prev => {
+        if (editMode && selectedItem) {
+          return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
+        }
+        return [formattedItem, ...prev.filter(item => String(item.id) !== String(teacherObj.id))];
+      });
+
+      // Clear filters so new teacher is visible immediately
+      setFilterFaculty('');
+      setFilterDepartment('');
+      setSearchQuery('');
+
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       setIsModalOpen(false);
+      setPhotoFile(null);
+      setCvFile(null);
       fetchTeachers();
     } catch (e) {
       console.error(e);
@@ -347,14 +530,22 @@ export default function TeachersAdmin() {
     setSelectedItem(item);
     setImagePreview(item.image || null);
     setPhotoFile(null);
+    setCvFile(null);
 
-    setFullNameUz(item.fullName || '');
+    setFullName({
+      uz: item.rawItem?.fullNameUz || item.fullName || '',
+      ru: item.rawItem?.fullNameRu || '',
+      en: item.rawItem?.fullNameEn || ''
+    });
     setPhoneNumber(item.phone || '+998 ');
     setEmail(item.email || '');
     setFacultyId(item.rawItem?.faculty?.id || item.rawItem?.facultyId || '');
     setDepartmentId(item.rawItem?.department?.id || item.rawItem?.departmentId || '');
-    setPositionTitle(item.position || '');
+    setPositionId(item.rawItem?.position?.id || item.rawItem?.positionObj?.id || item.rawItem?.positionId || '');
+    setAcademicDegreeId(item.rawItem?.academicDegree?.id || item.rawItem?.academicDegreeId || '');
+    setSortOrder(item.rawItem?.sortOrder ?? 0);
 
+    setActiveLang('uz');
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
@@ -364,14 +555,18 @@ export default function TeachersAdmin() {
     setSelectedItem(null);
     setImagePreview(null);
     setPhotoFile(null);
+    setCvFile(null);
 
-    setFullNameUz('');
+    setFullName({ uz: '', ru: '', en: '' });
     setPhoneNumber('+998 ');
     setEmail('');
     setFacultyId('');
     setDepartmentId('');
-    setPositionTitle('');
+    setPositionId('');
+    setAcademicDegreeId('');
+    setSortOrder(0);
 
+    setActiveLang('uz');
     setActiveMenuId(null);
     setIsModalOpen(true);
   };
@@ -711,23 +906,88 @@ export default function TeachersAdmin() {
                 </label>
               </div>
 
+              {/* Language Tabs */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
+                {[
+                  { id: 'uz', label: "O'zbekcha" },
+                  { id: 'ru', label: 'Русский' },
+                  { id: 'en', label: 'English' }
+                ].map(lang => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setActiveLang(lang.id)}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                      activeLang === lang.id
+                        ? 'border-[#0eb99c] text-[#0eb99c]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+
               {/* Form Fields */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">F.I.O</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    F.I.O <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={fullNameUz}
-                      onChange={(e) => setFullNameUz(e.target.value)}
+                      value={fullName[activeLang]}
+                      onChange={(e) => setFullName({ ...fullName, [activeLang]: e.target.value })}
                       placeholder="To'liq ism-sharifi" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Telefon raqami</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Lavozim <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={positionId}
+                      onChange={(e) => setPositionId(e.target.value)}
+                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="">Lavozimni tanlang</option>
+                      {positions.map(p => (
+                        <option key={p.id} value={p.id}>{getPositionName(p, activeLang, 'Lavozim')}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Ilmiy daraja <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={academicDegreeId}
+                      onChange={(e) => setAcademicDegreeId(e.target.value)}
+                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="">Ilmiy darajani tanlang</option>
+                      {academicDegrees.map(d => (
+                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, 'Ilmiy daraja')}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Telefon raqami <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
@@ -740,7 +1000,9 @@ export default function TeachersAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">E-pochtasi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    E-pochtasi <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
@@ -753,7 +1015,26 @@ export default function TeachersAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Fakultet</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV fayl (PDF)</label>
+                  <div className="relative">
+                    <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) setCvFile(e.target.files[0]);
+                      }}
+                      className="w-full h-11 pl-11 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                  {cvFile && (
+                    <p className="text-xs text-slate-500 mt-1">{cvFile.name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Fakultet <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <select 
                       value={facultyId}
@@ -773,8 +1054,11 @@ export default function TeachersAdmin() {
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Kafedra</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Kafedra <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <select 
                       value={departmentId}
@@ -794,14 +1078,16 @@ export default function TeachersAdmin() {
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lavozimi</label>
-                  <input 
-                    type="text" 
-                    value={positionTitle}
-                    onChange={(e) => setPositionTitle(e.target.value)}
-                    placeholder="Masalan: O'qituvchi" 
-                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Saralash tartibi</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value === '' ? 0 : Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors"
                   />
                 </div>
               </div>

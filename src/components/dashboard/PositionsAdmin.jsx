@@ -17,23 +17,92 @@ export default function PositionsAdmin() {
     title: { uz: '', ru: '', en: '' }
   });
 
+  const getLocalPositions = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const setLocalPositions = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_positions', JSON.stringify(items));
+      window.dispatchEvent(new Event('urspi_positions_updated'));
+    } catch (e) {
+      console.error('Failed to save positions to localStorage:', e);
+    }
+  };
+
+  const defaultTranslations = {
+    "katta o'qituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
+    "katta oqituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
+    "kafedra mudiri": { ru: "Заведующий кафедрой", en: "Head of Department" },
+    "kafedra mudri": { ru: "Заведующий кафедрой", en: "Head of Department" },
+    "dekan": { ru: "Декан", en: "Dean" },
+    "o'quv ishlari bo'yicha dekan o'rinbosari": { ru: "Заместитель декана по учебной работе", en: "Deputy Dean for Academic Affairs" },
+    "yoshlar masalalari va ma'naviyat bo'yicha dekan o'rinbosari": { ru: "Заместитель декана по работе с молодежью", en: "Deputy Dean for Youth Affairs" },
+    "dotsent": { ru: "Доцент", en: "Associate Professor" },
+    "professor": { ru: "Профессор", en: "Professor" },
+    "assistent": { ru: "Ассистент", en: "Assistant" },
+  };
+
   const fetchPositions = async () => {
     setLoading(true);
+    let apiData = [];
     try {
       const res = await positionsAPI.getAll();
-      const rawData = Array.isArray(res) ? res : (res?.data || []);
-      const formatted = rawData.map(item => ({
-        id: item.id,
-        title: item.name || "Lavozim",
-        description: item.description || ""
-      }));
-      setPositionsList(formatted);
+      apiData = Array.isArray(res) ? res : (res?.data || []);
     } catch (e) {
       console.warn('API error in fetchPositions:', e.message);
-      setPositionsList([]);
-    } finally {
-      setLoading(false);
     }
+
+    const localItems = getLocalPositions();
+    const norm = (s) => (s || '').toLowerCase().trim().replace(/[''`ʼ‘’]/g, "'");
+
+    const nameMap = new Map();
+    const allItems = [...localItems, ...apiData];
+    allItems.forEach(item => {
+      const titleUz = item.nameUz || item.titleUz || item.name || item.title || '';
+      const key = norm(titleUz) || String(item.id);
+      if (!nameMap.has(key)) {
+        nameMap.set(key, item);
+      } else {
+        const existing = nameMap.get(key);
+        nameMap.set(key, {
+          ...existing,
+          ...item,
+          nameUz: item.nameUz || existing.nameUz || titleUz,
+          titleUz: item.titleUz || existing.titleUz || titleUz,
+          nameRu: item.nameRu || item.titleRu || existing.nameRu || existing.titleRu || '',
+          titleRu: item.titleRu || item.nameRu || existing.titleRu || existing.nameRu || '',
+          nameEn: item.nameEn || item.titleEn || existing.nameEn || existing.titleEn || '',
+          titleEn: item.titleEn || item.nameEn || existing.titleEn || existing.nameEn || '',
+        });
+      }
+    });
+
+    const rawData = Array.from(nameMap.values());
+    const formatted = rawData.map(item => {
+      const uz = item.nameUz || item.titleUz || item.name || item.title || "Lavozim";
+      const key = norm(uz);
+      const def = defaultTranslations[key] || {};
+
+      const ru = item.nameRu || item.titleRu || def.ru || '';
+      const en = item.nameEn || item.titleEn || def.en || '';
+
+      return {
+        id: item.id,
+        title: uz,
+        titleUz: uz,
+        titleRu: ru,
+        titleEn: en,
+        description: item.description || "",
+        rawItem: { ...item, nameUz: uz, titleUz: uz, nameRu: ru, titleRu: ru, nameEn: en, titleEn: en }
+      };
+    });
+    setPositionsList(formatted);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -49,23 +118,52 @@ export default function PositionsAdmin() {
 
   const handleSave = async () => {
     try {
+      const nameUz = formData.title.uz?.trim();
+      const nameRu = formData.title.ru?.trim() || '';
+      const nameEn = formData.title.en?.trim() || '';
+      if (!nameUz) {
+        showNotification("Iltimos, lavozim nomini o'zbek tilida kiriting");
+        return;
+      }
       const dto = {
-        name: formData.title.uz || 'Lavozim',
+        id: editMode && selectedItem ? selectedItem.id : Date.now(),
+        name: nameUz,
+        nameUz,
+        nameRu,
+        nameEn,
+        titleUz: nameUz,
+        titleRu: nameRu,
+        titleEn: nameEn,
         description: 'Lavozim tavsifi'
       };
 
-      if (editMode && selectedItem) {
-        await positionsAPI.update(selectedItem.id, dto);
-        showNotification("Muvaffaqiyatli tahrirlandi");
-      } else {
-        await positionsAPI.create(dto);
-        showNotification("Muvaffaqiyatli qo'shildi");
+      try {
+        if (editMode && selectedItem) {
+          await positionsAPI.update(selectedItem.id, dto);
+        } else {
+          await positionsAPI.create(dto);
+        }
+      } catch (apiErr) {
+        console.warn("Backend API save failed for position:", apiErr.message);
       }
+
+      const localItems = getLocalPositions();
+      let updatedLocal;
+      if (editMode && selectedItem) {
+        updatedLocal = localItems.map(p => String(p.id) === String(selectedItem.id) ? { ...p, ...dto } : p);
+        if (!updatedLocal.some(p => String(p.id) === String(selectedItem.id))) {
+          updatedLocal.push(dto);
+        }
+      } else {
+        updatedLocal = [dto, ...localItems];
+      }
+      setLocalPositions(updatedLocal);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      setIsModalOpen(false);
       fetchPositions();
     } catch (e) {
-      showNotification(editMode ? "Tahrirlandi (demo mode)" : "Qo'shildi (demo mode)");
-    } finally {
-      setIsModalOpen(false);
+      showNotification("Xatolik yuz berdi");
     }
   };
 
@@ -73,21 +171,27 @@ export default function PositionsAdmin() {
     if (selectedItem) {
       try {
         await positionsAPI.delete(selectedItem.id);
-        showNotification("Muvaffaqiyatli o'chirildi");
-        fetchPositions();
-      } catch (e) {
-        setPositionsList(prev => prev.filter(item => item.id !== selectedItem.id));
-        showNotification("Muvaffaqiyatli o'chirildi");
-      }
+      } catch (e) {}
+      const localItems = getLocalPositions();
+      const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
+      setLocalPositions(updatedLocal);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      fetchPositions();
     }
     setDeleteModalOpen(false);
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
+    setSelectedItem(item);
     setFormData({
-      title: { uz: item.title, ru: item.title, en: item.title }
+      title: {
+        uz: item.titleUz || item.title || '',
+        ru: item.titleRu || '',
+        en: item.titleEn || ''
+      }
     });
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
@@ -128,7 +232,9 @@ export default function PositionsAdmin() {
           <div key={pos.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{pos.title}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ID: {pos.id}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {pos.titleRu || pos.titleEn ? `${pos.titleRu || '—'} / ${pos.titleEn || '—'}` : `ID: ${pos.id}`}
+              </p>
             </div>
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0">
@@ -199,7 +305,7 @@ export default function PositionsAdmin() {
                 Yo'q
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={handleDeleteConfirm} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha

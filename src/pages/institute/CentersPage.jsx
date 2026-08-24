@@ -7,7 +7,7 @@ import { centersAPI } from '../../api'
 
 export const centers = initialCenters;
 
-export default function MarkazlarPage() {
+export default function CentersPage() {
   const { i18n } = useTranslation();
   const currentLang = i18n.language || 'uz';
   const [centerList, setCenterList] = useState([]);
@@ -96,7 +96,7 @@ export default function MarkazlarPage() {
                   
                   <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between">
                     <Link 
-                      to={`/markazlar/${center.id}`} 
+                      to={`/centers/${center.id}`} 
                       className="inline-flex items-center gap-2 text-blue-600 font-bold text-[13px] hover:text-[#0c1f4a] transition-colors"
                     >
                       Batafsil <ArrowRight size={16} />

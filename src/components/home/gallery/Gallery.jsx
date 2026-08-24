@@ -22,7 +22,7 @@ const images = [
     "https://picsum.photos/id/90/800/450",
 ];
 
-export default function Galery() {
+export default function Gallery() {
     const { t } = useTranslation()
     return (
         <section className="w-full bg-slate-50 py-12 md:py-16 text-left">

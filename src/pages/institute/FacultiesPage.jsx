@@ -37,7 +37,7 @@ const FacultyCard = ({ faculty }) => {
           </div>
 
           <div className="mt-auto pt-2 space-y-2">
-            <Link to="/fakultet-xodimlari" className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+            <Link to="/faculty-staff" className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <Users size={16} />
               Xodimlar
             </Link>
@@ -49,7 +49,7 @@ const FacultyCard = ({ faculty }) => {
               Kafedralar
               <ChevronDown size={16} className={`ml-auto transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
-            <Link to="/fakultet-haqida" state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+            <Link to="/faculty-about" state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <BsInfoCircle size={16} />
               Batafsil
             </Link>
@@ -63,7 +63,7 @@ const FacultyCard = ({ faculty }) => {
       >
         <div className="p-5 bg-slate-50/50 flex flex-col gap-2">
           {faculty.departments?.map((dep, idx) => (
-            <Link to="/kafedra-xodimlari" key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
+            <Link to="/department-staff" key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
               <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors">
                 <ChevronRight size={16} />
               </div>
@@ -78,7 +78,7 @@ const FacultyCard = ({ faculty }) => {
   )
 }
 
-export default function FakultetlarPage() {
+export default function FacultiesPage() {
   const { i18n } = useTranslation();
   const [facultiesList, setFacultiesList] = useState([]);
   const [loading, setLoading] = useState(true);

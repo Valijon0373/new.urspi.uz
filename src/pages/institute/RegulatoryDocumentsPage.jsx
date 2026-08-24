@@ -60,7 +60,7 @@ const DocumentCard = ({ number, title, type, color, onMoreClick }) => (
   </div>
 )
 
-export default function MeyoriyHujjatlarPage() {
+export default function RegulatoryDocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 

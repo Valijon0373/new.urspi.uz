@@ -195,7 +195,7 @@ const quotaDetailsMock = {
   history: { quota: 18, mandate: 15, grantQuota: 4, contractQuota: 14, grantMinScore: 168.9, contractMinScore: 112.7 }
 };
 
-export default function MagistraturaPage() {
+export default function MasterPage() {
   const { i18n } = useTranslation();
   const currentLang = i18n.language || 'uz';
   const trans = localTranslations[currentLang] || localTranslations.uz;

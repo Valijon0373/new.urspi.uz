@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
-import { teachersAPI, employeesAPI, getFileUrl } from '../../api'
+import { teachersAPI, employeesAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
 
-export default function XodimProfilePage() {
+export default function EmployeeProfilePage() {
   const { id } = useParams()
+  const { i18n } = useTranslation();
+  const lang = i18n.language || 'uz';
   const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
   const [employeeData, setEmployeeData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,9 +20,10 @@ export default function XodimProfilePage() {
       setLoading(true);
       let data = null;
       try {
-        const [teacherRes, empRes] = await Promise.allSettled([
+        const [teacherRes, empRes, posRes] = await Promise.allSettled([
           teachersAPI.getById(id),
-          employeesAPI.getById(id)
+          employeesAPI.getById(id),
+          positionsAPI.getAll()
         ]);
 
         if (teacherRes.status === 'fulfilled' && teacherRes.value) {
@@ -27,22 +31,33 @@ export default function XodimProfilePage() {
         } else if (empRes.status === 'fulfilled' && empRes.value) {
           data = empRes.value.data || empRes.value;
         }
+
+        const positions = posRes.status === 'fulfilled'
+          ? (Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []))
+          : [];
+        if (data && (!data.position || typeof data.position !== 'object')) {
+          const posId = data.positionId || data.position?.id;
+          const posObj = positions.find(p => String(p.id) === String(posId));
+          if (posObj) data = { ...data, position: posObj };
+        }
       } catch (err) {
         console.warn('Failed to load profile from API:', err.message);
       }
 
-      if (!data) {
-        try {
-          const localTeachers = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
-          data = localTeachers.find(t => String(t.id) === String(id));
-        } catch (e) {}
-      }
+      try {
+        const localTeachers = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+        const localEmployees = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
+        const localItem = localTeachers.find(t => String(t.id) === String(id)) || localEmployees.find(e => String(e.id) === String(id));
+        if (localItem) {
+          data = data ? { ...data, ...localItem } : localItem;
+        }
+      } catch (e) {}
 
       if (isMounted && data) {
         setEmployeeData({
           id: data.id,
-          name: data.fullNameUz || data.fullName || "Xodim",
-          position: data.positionTitleUz || data.positionTitle || data.position?.name || data.position || "Xodim",
+          name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
+          position: resolvePersonPosition(data, lang, "Xodim"),
           phone: data.phoneNumber || data.phone || "",
           email: data.email || "info@urspi.uz",
           bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
@@ -56,7 +71,7 @@ export default function XodimProfilePage() {
 
     fetchEmployee();
     return () => { isMounted = false; };
-  }, [id]);
+  }, [id, lang]);
 
   if (loading) {
     return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">Yuklanmoqda...</main>;

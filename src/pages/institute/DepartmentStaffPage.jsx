@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
 import placeholderImg from '../../assets/images/bg23.jpg'
-import { teachersAPI, getFileUrl } from '../../api'
+import { teachersAPI, getFileUrl, resolvePersonPosition, isDepartmentHead, localizedField, positionsAPI } from '../../api'
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -40,7 +41,7 @@ const StaffCard = ({ id, name, degree, position, img }) => (
       </p>
       
       <div className="mt-auto">
-        <Link to={`/xodim/${id}`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
+        <Link to={`/employee/${id}`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
           Batafsil <ArrowRight size={14} />
         </Link>
       </div>
@@ -48,7 +49,11 @@ const StaffCard = ({ id, name, degree, position, img }) => (
   </div>
 )
 
-export default function KafedraXodimlariPage() {
+export default function DepartmentStaffPage() {
+  const location = useLocation();
+  const { i18n } = useTranslation();
+  const lang = i18n.language || 'uz';
+  const selectedDepartment = location.state?.department;
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,12 +62,39 @@ export default function KafedraXodimlariPage() {
     const fetchTeachers = async () => {
       setLoading(true);
       let apiData = [];
+      let positions = [];
       try {
-        const res = await teachersAPI.getAll('uz');
-        apiData = Array.isArray(res) ? res : (res?.data || []);
+        const [res, posRes] = await Promise.allSettled([
+          teachersAPI.getLanding(0, 100),
+          positionsAPI.getAll()
+        ]);
+        if (res.status === 'fulfilled') {
+          const payload = res.value;
+          apiData = payload?.data?.content || (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []));
+        } else {
+          try {
+            const fallback = await teachersAPI.getAll('uz');
+            apiData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
+          } catch (e2) {
+            console.warn('Failed to fetch department teachers from API:', e2.message);
+          }
+        }
+        if (posRes.status === 'fulfilled') {
+          positions = Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []);
+        }
       } catch (err) {
         console.warn('Failed to fetch department teachers from API:', err.message);
       }
+
+      let localPositions = [];
+      try {
+        localPositions = JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
+      } catch (e) {}
+
+      const posMap = new Map();
+      positions.forEach(p => posMap.set(String(p.id), p));
+      localPositions.forEach(p => posMap.set(String(p.id), p));
+      positions = Array.from(posMap.values());
 
       let localItems = [];
       try {
@@ -70,22 +102,65 @@ export default function KafedraXodimlariPage() {
       } catch (e) {}
 
       const combinedMap = new Map();
-      localItems.forEach(t => combinedMap.set(String(t.id), t));
-      apiData.forEach(t => {
-        if (!combinedMap.has(String(t.id))) combinedMap.set(String(t.id), t);
+      apiData.forEach(t => combinedMap.set(String(t.id), t));
+      localItems.forEach(t => {
+        const key = String(t.id);
+        if (!combinedMap.has(key)) combinedMap.set(key, t);
+        else {
+          const api = combinedMap.get(key);
+          combinedMap.set(key, {
+            ...api,
+            ...t,
+            photo: t.photo || api.photo,
+            image: t.image || api.image,
+            photoLink: t.photoLink || api.photoLink,
+            position: t.position || api.position,
+            positionId: t.positionId || api.positionId || api.position?.id,
+            positionTitleUz: t.positionTitleUz || localizedField(api, 'positionTitle', 'uz', ''),
+            positionTitleRu: t.positionTitleRu || localizedField(api, 'positionTitle', 'ru', ''),
+            positionTitleEn: t.positionTitleEn || localizedField(api, 'positionTitle', 'en', ''),
+          });
+        }
       });
 
       const rawData = Array.from(combinedMap.values());
       if (isMounted) {
-        const formatted = rawData.map(t => ({
+        let formatted = rawData.map(t => {
+          const posId = t.positionId || t.position?.id;
+          const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
+          const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
+            ? nestedPos
+            : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
+          const person = { ...t, position: posObj || t.position };
+          return {
           id: t.id,
-          name: t.fullNameUz || t.fullName || "O'qituvchi",
-          position: t.positionTitleUz || t.positionTitle || t.position?.name || t.position || "O'qituvchi",
-          degree: t.academicDegree?.name || "O'qituvchi",
+          name: localizedField(t, 'fullName', lang, t.fullName || "O'qituvchi"),
+          position: resolvePersonPosition(person, lang),
+          degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ''),
           phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
           email: t.email || "info@urspi.uz",
-          img: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg
-        }));
+          img: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg,
+          departmentId: t.departmentId || t.department?.id,
+          departmentName: t.departmentName || t.department?.nameUz || t.department?.name,
+          raw: person,
+        };
+        });
+
+        if (selectedDepartment) {
+          const deptIdStr = String(selectedDepartment.id || '');
+          const deptNameStr = (typeof selectedDepartment === 'string' ? selectedDepartment : (selectedDepartment.name || '')).toLowerCase();
+          const filtered = formatted.filter(t => {
+            const tDeptId = String(t.departmentId || '');
+            const tDeptName = String(t.departmentName || '').toLowerCase();
+            return (deptIdStr && tDeptId === deptIdStr) || 
+                   (deptNameStr && tDeptName.includes(deptNameStr)) ||
+                   (tDeptName && deptNameStr.includes(tDeptName));
+          });
+          if (filtered.length > 0) {
+            formatted = filtered;
+          }
+        }
+
         setTeachers(formatted);
         setLoading(false);
       }
@@ -100,10 +175,11 @@ export default function KafedraXodimlariPage() {
       isMounted = false; 
       window.removeEventListener('urspi_teachers_updated', handleUpdate);
     };
-  }, []);
+  }, [selectedDepartment, lang]);
 
-  const mudir = teachers.find(t => t.position.toLowerCase().includes('mudir')) || teachers[0];
-  const otherTeachers = teachers.filter(t => t !== mudir);
+  const mudir = teachers.find(t => isDepartmentHead(t.raw || t));
+  const otherTeachers = mudir ? teachers.filter(t => t !== mudir) : teachers;
+  const deptTitle = (typeof selectedDepartment === 'string' ? selectedDepartment : selectedDepartment?.name) || "Kafedra o'qituvchilari";
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
@@ -120,7 +196,7 @@ export default function KafedraXodimlariPage() {
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <Link to="/kafedralar" className="hover:text-white transition-colors">
+                  <Link to="/departments" className="hover:text-white transition-colors">
                     Kafedralar
                   </Link>
                 </div>
@@ -128,7 +204,7 @@ export default function KafedraXodimlariPage() {
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Kafedra o'qituvchilari</span>
+                  <span className="text-white font-medium">{deptTitle}</span>
                 </div>
               </li>
             </ol>
@@ -149,7 +225,7 @@ export default function KafedraXodimlariPage() {
               {mudir && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-                    Kafedra mudiri
+                    {lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri'}
                   </div>
 
                   <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative mb-12">
@@ -177,21 +253,21 @@ export default function KafedraXodimlariPage() {
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
                         <div>
                           <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <DeskPhoneIcon size={18} /> Telefon raqam:
+                            <DeskPhoneIcon size={18} /> {lang === 'ru' ? 'Телефон:' : lang === 'en' ? 'Phone:' : 'Telefon raqam:'}
                           </div>
                           <div className="text-slate-700 font-semibold">{mudir.phone}</div>
                         </div>
                         <div>
                           <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <HiOutlineMail size={20} /> Elektron pochta:
+                            <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'Elektron pochta:'}
                           </div>
                           <div className="text-slate-700 font-semibold">{mudir.email}</div>
                         </div>
                       </div>
 
                       <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                        <Link to={`/xodim/${mudir.id}`} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
-                          Batafsil <ArrowRight size={16} />
+                        <Link to={`/employee/${mudir.id}`} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
+                          {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
                         </Link>
                       </div>
                     </div>
@@ -203,7 +279,7 @@ export default function KafedraXodimlariPage() {
               {otherTeachers.length > 0 && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-                    Kafedra o'qituvchilari
+                    {lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra o'qituvchilari"}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

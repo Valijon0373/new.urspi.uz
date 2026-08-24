@@ -3,7 +3,7 @@ import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, P
 import rektorImg from '../../assets/men.jpg';
 import { leadersAPI, getFileUrl } from '../../api';
 
-export default function RahbariyatAdmin() {
+export default function LeadershipAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);

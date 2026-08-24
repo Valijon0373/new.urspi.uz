@@ -22,7 +22,7 @@ import EmployeesAdmin from './EmployeesAdmin';
 import PositionsAdmin from './PositionsAdmin';
 import FacultiesAdmin from './FacultiesAdmin';
 import DepartmentsAdmin from './DepartmentsAdmin';
-import RahbariyatAdmin from './RahbariyatAdmin';
+import LeadershipAdmin from './LeadershipAdmin';
 import CentersAdmin from './CentersAdmin';
 import GalleryAdmin from './GalleryAdmin';
 import DormitoryAdmin from './DormitoryAdmin';
@@ -33,7 +33,7 @@ import AcademicDegreesAdmin from './AcademicDegreesAdmin';
 import StudyYearsAdmin from './StudyYearsAdmin';
 import RolesAdmin from './RolesAdmin';
 import AuditAdmin from './AuditAdmin';
-import { facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI } from '../../api';
+import { facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI, getAuthToken } from '../../api';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
@@ -101,6 +101,12 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    if (!getAuthToken()) {
+      navigate('/admin', { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     localStorage.setItem('dashboard-dark', String(darkMode));
   }, [darkMode]);
 
@@ -164,7 +170,8 @@ export default function Dashboard() {
           {/* Navigation */}
           <nav className={`py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {NAV_ITEMS.map(({ icon: Icon, label, subItems, href }) => {
-              const isActive = activeTab === label;
+              const isSubActive = subItems && subItems.some(s => s.label === activeTab);
+              const isActive = activeTab === label || isSubActive;
               return (
                 <div key={label}>
                   {subItems ? (
@@ -172,8 +179,11 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => {
-                          if (!sidebarCollapsed) toggleDropdown(label);
-                          setActiveTab(label);
+                          if (sidebarCollapsed) setSidebarCollapsed(false);
+                          toggleDropdown(label);
+                          if (subItems && subItems.length > 0 && !isSubActive && activeTab !== label) {
+                            setActiveTab(subItems[0].label);
+                          }
                         }}
                         title={sidebarCollapsed ? label : undefined}
                         className={`w-full ${navLinkClass(isActive)} ${!sidebarCollapsed ? 'justify-between' : ''}`}
@@ -188,7 +198,7 @@ export default function Dashboard() {
                           <ChevronDown className={`w-5 h-5 transition-transform ${openDropdowns[label] ? 'rotate-180' : ''}`} />
                         )}
                       </button>
-                      {!sidebarCollapsed && openDropdowns[label] && (
+                      {!sidebarCollapsed && (openDropdowns[label] || isSubActive) && (
                         <div className="mt-1 space-y-1 pl-11 pr-2">
                           {subItems.map(({ label: subLabel, icon: SubIcon }) => (
                             <button
@@ -393,7 +403,7 @@ export default function Dashboard() {
             </div>
           )}
           {activeTab === 'Rahbariyat' && (
-            <RahbariyatAdmin />
+            <LeadershipAdmin />
           )}
           {activeTab === 'Yangiliklar' && (
             <NewsAdmin />
@@ -407,7 +417,7 @@ export default function Dashboard() {
           {activeTab === "O'quv yillari" && (
             <StudyYearsAdmin />
           )}
-          {activeTab === 'Fakultetlar' && (
+          {(activeTab === 'Fakultetlar' || activeTab === 'Tuzilma') && (
             <FacultiesAdmin />
           )}
           {activeTab === 'Kafedralar' && (
@@ -416,7 +426,7 @@ export default function Dashboard() {
           {activeTab === "Markaz va Bo'limlar" && (
             <CentersAdmin />
           )}
-          {activeTab === "O'qituvchilar" && (
+          {(activeTab === "O'qituvchilar" || activeTab === "Hodimlar") && (
             <TeachersAdmin />
           )}
           {activeTab === 'Xodimlar' && (

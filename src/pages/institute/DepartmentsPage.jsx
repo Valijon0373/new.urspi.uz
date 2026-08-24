@@ -7,13 +7,13 @@ import { facultiesAPI, departmentsAPI } from '../../api'
 const sidebarLinks = [
   { name: 'Institut tarixi', path: '#' },
   { name: 'Institut nizomi', path: '#' },
-  { name: 'Rahbariyat', path: '/rahbariyat' },
-  { name: 'Fakultetlar', path: '/fakultetlar' },
-  { name: 'Kafedralar', path: '/kafedralar' },
-  { name: 'Markaz va bo\'limlar', path: '/markazlar' },
+  { name: 'Rahbariyat', path: '/leadership' },
+  { name: 'Fakultetlar', path: '/faculties' },
+  { name: 'Kafedralar', path: '/departments' },
+  { name: 'Markaz va bo\'limlar', path: '/centers' },
 ];
 
-export default function KafedralarPage() {
+export default function DepartmentsPage() {
   const location = useLocation();
   const { i18n } = useTranslation();
   const [facultiesList, setFacultiesList] = useState([]);
@@ -161,7 +161,8 @@ export default function KafedralarPage() {
                       <div className="flex flex-col w-full gap-3">
                         {faculty.departments.map((dep, idx) => (
                           <Link 
-                            to="/kafedra-xodimlari"
+                            to="/department-staff"
+                            state={{ department: dep }}
                             key={dep.id || idx} 
                             className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[13px] sm:text-[14px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"
                           >

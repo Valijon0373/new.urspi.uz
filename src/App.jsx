@@ -8,24 +8,24 @@ import AnnouncementsPage from './pages/institute/AnnouncementsPage'
 import AnnouncementDetailPage from './pages/institute/AnnouncementDetailPage'
 import NewsPage from './pages/institute/NewsPage'
 import NewsDetailPage from './pages/institute/NewsDetailPage'
-import RahbariyatPage from './pages/institute/RahbariyatPage'
-import FakultetlarPage from './pages/institute/FakultetlarPage'
-import KafedralarPage from './pages/institute/KafedralarPage'
-import FakultetXodimlariPage from './pages/institute/FakultetXodimlariPage'
-import KafedraXodimlariPage from './pages/institute/KafedraXodimlariPage'
-import FakultetDetailPage from './pages/institute/FakultetDetailPage'
-import MarkazlarPage from './pages/institute/MarkazlarPage'
-import MarkazXodimlariPage from './pages/institute/MarkazXodimlariPage'
-import XodimProfilePage from './pages/institute/XodimProfilePage'
-import MeyoriyHujjatlarPage from './pages/institute/MeyoriyHujjatlarPage'
+import LeadershipPage from './pages/institute/LeadershipPage'
+import FacultiesPage from './pages/institute/FacultiesPage'
+import DepartmentsPage from './pages/institute/DepartmentsPage'
+import FacultyStaffPage from './pages/institute/FacultyStaffPage'
+import DepartmentStaffPage from './pages/institute/DepartmentStaffPage'
+import FacultyDetailPage from './pages/institute/FacultyDetailPage'
+import CentersPage from './pages/institute/CentersPage'
+import CenterStaffPage from './pages/institute/CenterStaffPage'
+import EmployeeProfilePage from './pages/institute/EmployeeProfilePage'
+import RegulatoryDocumentsPage from './pages/institute/RegulatoryDocumentsPage'
 import GreenInstitute from './pages/green-institute/GreenInstitute'
 import InfographicPage from './pages/institute/InfographicPage'
 import DormitoryPage from './pages/students/DormitoryPage'
 import AntiCorruptionPage from './pages/institute/AntiCorruptionPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/seasonEffect/ScrollToTop'
-import BakalavriatPage from './pages/admission/BakalavriatPage'
-import MagistraturaPage from './pages/admission/MagistraturaPage'
+import BachelorPage from './pages/admission/BachelorPage'
+import MasterPage from './pages/admission/MasterPage'
 import './App.css'
 
 function App() {
@@ -79,91 +79,98 @@ function App() {
         } />
 
         {/* Rahbariyat sahifasi */}
-        <Route path="/rahbariyat" element={
+        <Route path="/leadership" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <RahbariyatPage />
+            <LeadershipPage />
             <Footer />
           </div>
         } />
 
         {/* Fakultetlar sahifasi */}
-        <Route path="/fakultetlar" element={
+        <Route path="/faculties" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <FakultetlarPage />
+            <FacultiesPage />
             <Footer />
           </div>
         } />
 
         {/* Kafedralar sahifasi */}
-        <Route path="/kafedralar" element={
+        <Route path="/departments" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <KafedralarPage />
+            <DepartmentsPage />
             <Footer />
           </div>
         } />
 
         {/* Fakultet xodimlari sahifasi */}
-        <Route path="/fakultet-xodimlari" element={
+        <Route path="/faculty-staff" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <FakultetXodimlariPage />
+            <FacultyStaffPage />
             <Footer />
           </div>
         } />
 
         {/* Kafedra xodimlari sahifasi */}
-        <Route path="/kafedra-xodimlari" element={
+        <Route path="/department-staff" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <KafedraXodimlariPage />
+            <DepartmentStaffPage />
             <Footer />
           </div>
         } />
 
         {/* Fakultet haqida sahifasi */}
-        <Route path="/fakultet-haqida" element={
+        <Route path="/faculty-about" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <FakultetDetailPage />
+            <FacultyDetailPage />
             <Footer />
           </div>
         } />
 
         {/* Markazlar va bo'limlar sahifasi */}
-        <Route path="/markazlar" element={
+        <Route path="/centers" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <MarkazlarPage />
+            <CentersPage />
             <Footer />
           </div>
         } />
 
         {/* Markaz xodimlari sahifasi */}
-        <Route path="/markazlar/:id" element={
+        <Route path="/centers/:id" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <MarkazXodimlariPage />
+            <CenterStaffPage />
             <Footer />
           </div>
         } />
 
         {/* Meyoriy hujjatlar sahifasi */}
-        <Route path="/meyoriy-hujjatlar" element={
+        <Route path="/regulatory-documents" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <MeyoriyHujjatlarPage />
+            <RegulatoryDocumentsPage />
             <Footer />
           </div>
         } />
 
         {/* Xodim profili sahifasi */}
+        <Route path="/employee/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <EmployeeProfilePage />
+            <Footer />
+          </div>
+        } />
         <Route path="/xodim/:id" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <XodimProfilePage />
+            <EmployeeProfilePage />
             <Footer />
           </div>
         } />
@@ -184,7 +191,7 @@ function App() {
         } />
 
         {/* Infografika sahifasi */}
-        <Route path="/infografika" element={
+        <Route path="/infographic" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <InfographicPage />
@@ -193,7 +200,7 @@ function App() {
         } />
 
         {/* Yotoqxona sahifasi */}
-        <Route path="/yotoqxona" element={
+        <Route path="/dormitory" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <DormitoryPage />
@@ -202,19 +209,19 @@ function App() {
         } />
 
         {/* Bakalavriat sahifasi */}
-        <Route path="/bakalavriat" element={
+        <Route path="/bachelor" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <BakalavriatPage />
+            <BachelorPage />
             <Footer />
           </div>
         } />
 
         {/* Magistratura sahifasi */}
-        <Route path="/magistratura" element={
+        <Route path="/master" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <MagistraturaPage />
+            <MasterPage />
             <Footer />
           </div>
         } />

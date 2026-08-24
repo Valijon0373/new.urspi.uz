@@ -235,7 +235,7 @@ const directionData = {
   }
 };
 
-export default function BakalavriatPage() {
+export default function BachelorPage() {
   const { i18n } = useTranslation();
   const currentLang = i18n.language || 'uz';
   const trans = localTranslations[currentLang] || localTranslations.uz;

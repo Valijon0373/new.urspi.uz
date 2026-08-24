@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Eye, Edit2, Trash2, Download, ChevronDown, X, Upload, Check } from 'lucide-react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { employeesAPI, getFileUrl } from '../../api';
+import { employeesAPI, centersAPI, getFileUrl } from '../../api';
 
 export default function EmployeesAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,15 +14,28 @@ export default function EmployeesAdmin() {
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
 
+  const [activeLang, setActiveLang] = useState('uz');
+  const [centers, setCenters] = useState([]);
+  const [centerId, setCenterId] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
-  const [phone, setPhone] = useState('+998 ');
+  const [photoFile, setPhotoFile] = useState(null);
+  const [cvFile, setCvFile] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: { uz: '', ru: '', en: '' },
+    position: { uz: '', ru: '', en: '' },
+    phone: '+998 ',
+    email: '',
+    department: '',
+  });
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
     if (val.startsWith('998')) {
       val = val.substring(3);
     } else if (val.length === 0) {
-      setPhone('+998 ');
+      setFormData(prev => ({ ...prev, phone: '+998 ' }));
       return;
     }
     val = val.substring(0, 9);
@@ -33,37 +46,104 @@ export default function EmployeesAdmin() {
     if (val.length > 5) formatted += ' ' + val.substring(5, 7);
     if (val.length > 7) formatted += ' ' + val.substring(7, 9);
     
-    setPhone(formatted);
+    setFormData(prev => ({ ...prev, phone: formatted }));
   };
 
   const [employeesList, setEmployeesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchEmployees = async () => {
-    setLoading(true);
+  const fetchCenters = async () => {
+    let rawData = [];
     try {
-      const res = await employeesAPI.getAll();
-      const rawData = Array.isArray(res) ? res : (res?.data || []);
-      const formatted = rawData.map(emp => ({
-        id: emp.id,
-        fullName: emp.fullNameUz || emp.fullName || "Xodim",
-        position: emp.positionTitleUz || emp.positionTitle || "Xodim",
-        phone: emp.phoneNumber || "+998 90 123 45 67",
-        email: emp.email || "info@urspi.uz",
-        department: emp.center?.nameUz || emp.center?.name || "Markaz",
-        image: getFileUrl(emp.photoLink || emp.photo)
-      }));
-      setEmployeesList(formatted);
+      const res = await centersAPI.getAll();
+      rawData = Array.isArray(res) ? res : (res?.data || []);
+    } catch (e1) {
+      try {
+        const res = await centersAPI.getLanding(0, 100);
+        rawData = res?.data?.content || (Array.isArray(res?.data) ? res.data : []);
+      } catch (e2) {
+        console.warn('Failed to fetch centers:', e2.message);
+      }
+    }
+
+    try {
+      const localCenters = JSON.parse(localStorage.getItem('urspi_custom_centers') || '[]');
+      const centerMap = new Map();
+      rawData.forEach(c => centerMap.set(String(c.id), c));
+      localCenters.forEach(c => {
+        if (!centerMap.has(String(c.id))) centerMap.set(String(c.id), c);
+      });
+      const list = Array.from(centerMap.values());
+      setCenters(list);
+      return list;
     } catch (e) {
-      console.warn('API error in fetchEmployees:', e.message);
-      setEmployeesList([]);
-    } finally {
-      setLoading(false);
+      setCenters(rawData);
+      return rawData;
     }
   };
 
+  const fetchEmployees = async (loadedCenters = centers) => {
+    setLoading(true);
+    let apiData = [];
+    try {
+      const res = await employeesAPI.getAll();
+      apiData = Array.isArray(res) ? res : (res?.data || []);
+    } catch (e) {
+      try {
+        const res = await employeesAPI.getLanding(0, 100);
+        apiData = res?.data?.content || (Array.isArray(res?.data) ? res.data : []);
+      } catch (e2) {
+        console.warn('API error in fetchEmployees:', e2.message);
+      }
+    }
+
+    let localItems = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
+    } catch (e) {}
+
+    const combinedMap = new Map();
+    localItems.forEach(item => combinedMap.set(String(item.id), item));
+    apiData.forEach(item => {
+      if (!combinedMap.has(String(item.id))) {
+        combinedMap.set(String(item.id), item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const cardColors = [
+      'from-blue-600 to-indigo-600',
+      'from-emerald-600 to-teal-600',
+      'from-amber-500 to-orange-600',
+      'from-purple-600 to-indigo-600',
+      'from-rose-600 to-pink-600'
+    ];
+    const formatted = rawData.map((emp, idx) => {
+      const matchedCenter = loadedCenters.find(c => String(c.id) === String(emp.centerId || emp.center?.id));
+      const deptName = emp.center?.nameUz || emp.center?.name || matchedCenter?.nameUz || matchedCenter?.name || emp.department || "Markaz";
+      return {
+        id: emp.id,
+        fullName: emp.fullNameUz || emp.fullName || "Xodim",
+        position: emp.positionTitleUz || emp.positionTitle || "Xodim",
+        phone: emp.phoneNumber || emp.phone || "+998 90 123 45 67",
+        email: emp.email || "info@urspi.uz",
+        department: deptName,
+        centerId: emp.centerId || emp.center?.id || matchedCenter?.id || '',
+        image: emp.photo || emp.image || getFileUrl(emp.photoLink || emp.photo),
+        color: cardColors[idx % cardColors.length],
+        rawItem: emp
+      };
+    });
+    setEmployeesList(formatted);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetchEmployees();
+    const init = async () => {
+      const loadedCenters = await fetchCenters();
+      fetchEmployees(loadedCenters);
+    };
+    init();
   }, []);
 
   const showNotification = (msg) => {
@@ -73,31 +153,218 @@ export default function EmployeesAdmin() {
     }, 5000);
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
-    if (editMode) {
-      showNotification("Muvaffaqiyatli tahrirlandi");
-    } else {
-      showNotification("Muvaffaqiyatli qo'shildi");
+  const handleSave = async () => {
+    if (!formData.fullName.uz && !formData.fullName.ru && !formData.fullName.en) {
+      showNotification("Iltimos, ism-sharifni kiriting");
+      return;
     }
+    if (!formData.email?.trim()) {
+      showNotification("Iltimos, email manzilini kiriting");
+      return;
+    }
+    if (!centerId) {
+      showNotification("Iltimos, bo'lim yoki markazni tanlang");
+      return;
+    }
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 12) {
+      showNotification("Iltimos, to'liq telefon raqamini kiriting");
+      return;
+    }
+
+    const fullNameUz = formData.fullName.uz || formData.fullName.ru || formData.fullName.en;
+    const fullNameRu = formData.fullName.ru || fullNameUz;
+    const fullNameEn = formData.fullName.en || fullNameUz;
+
+    const posUz = formData.position.uz || formData.position.ru || formData.position.en || "Xodim";
+    const posRu = formData.position.ru || posUz;
+    const posEn = formData.position.en || posUz;
+
+    const selCenter = centers.find(c => String(c.id) === String(centerId));
+    const deptName = selCenter?.nameUz || selCenter?.name || formData.department || 'Markaz';
+
+    const empObj = {
+      id: editMode && selectedItem ? selectedItem.id : Date.now(),
+      fullNameUz,
+      fullNameRu,
+      fullNameEn,
+      fullName: fullNameUz,
+      positionTitleUz: posUz,
+      positionTitleRu: posRu,
+      positionTitleEn: posEn,
+      positionTitle: posUz,
+      position: posUz,
+      phoneNumber: formData.phone,
+      phone: formData.phone,
+      email: formData.email,
+      department: deptName,
+      centerId: centerId || '',
+      center: selCenter ? { id: selCenter.id, nameUz: selCenter.nameUz || selCenter.name } : null,
+      photo: imagePreview || "",
+      image: imagePreview || "",
+      photoLink: imagePreview || "",
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      const fd = new FormData();
+      fd.append('fullNameUz', fullNameUz);
+      fd.append('fullNameRu', fullNameRu);
+      fd.append('fullNameEn', fullNameEn);
+      fd.append('fullName', fullNameUz);
+      fd.append('phoneNumber', phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`);
+      fd.append('email', formData.email.trim());
+      fd.append('positionTitleUz', posUz);
+      fd.append('positionTitleRu', posRu);
+      fd.append('positionTitleEn', posEn);
+      fd.append('centerId', centerId);
+      if (photoFile) fd.append('photo', photoFile);
+      if (cvFile) fd.append('cv', cvFile);
+
+      let apiRes;
+      if (editMode && selectedItem) {
+        apiRes = await employeesAPI.update(selectedItem.id, fd);
+      } else {
+        apiRes = await employeesAPI.create(fd);
+      }
+      const saved = apiRes?.data || apiRes;
+      if (saved?.id) {
+        empObj.id = saved.id;
+      }
+    } catch (apiErr) {
+      console.warn('Backend API save failed:', apiErr.message);
+      showNotification(apiErr.message || "Backendga saqlashda xatolik yuz berdi");
+      return;
+    }
+
+    let localItems = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
+    } catch(e) {}
+
+    let updatedLocal;
+    if (editMode && selectedItem) {
+      updatedLocal = localItems.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...empObj } : item);
+      if (!updatedLocal.some(item => String(item.id) === String(selectedItem.id))) {
+        updatedLocal.push(empObj);
+      }
+    } else {
+      updatedLocal = [empObj, ...localItems];
+    }
+    
+    try {
+      localStorage.setItem('urspi_custom_employees', JSON.stringify(updatedLocal));
+    } catch (e) {
+      try {
+        const sanitized = updatedLocal.map(item => ({
+          ...item,
+          photo: item.photo && item.photo.length > 50000 ? '' : item.photo,
+          image: item.image && item.image.length > 50000 ? '' : item.image,
+          photoLink: item.photoLink && item.photoLink.length > 50000 ? '' : item.photoLink,
+        }));
+        localStorage.setItem('urspi_custom_employees', JSON.stringify(sanitized));
+      } catch (e2) {}
+    }
+
+    const cardColors = ['from-blue-600 to-indigo-600', 'from-emerald-600 to-teal-600', 'from-amber-500 to-orange-600'];
+    const formattedItem = {
+      id: empObj.id,
+      fullName: empObj.fullName,
+      position: empObj.position,
+      phone: empObj.phone,
+      email: empObj.email,
+      department: deptName,
+      centerId: centerId || '',
+      image: empObj.image,
+      color: cardColors[0],
+      rawItem: empObj
+    };
+
+    setEmployeesList(prev => {
+      if (editMode && selectedItem) {
+        return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
+      }
+      return [formattedItem, ...prev.filter(item => String(item.id) !== String(empObj.id))];
+    });
+
+    setSearchTerm('');
+    setSelectedDepartment('');
+    showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+    setIsModalOpen(false);
+    setPhotoFile(null);
+    setCvFile(null);
+    fetchEmployees();
   };
 
-  const handleDelete = () => {
-    setDeleteModalOpen(false);
+  const handleDelete = async () => {
+    if (!selectedItem) return;
+    try {
+      await employeesAPI.delete(selectedItem.id);
+    } catch (e) {
+      console.warn("API delete failed, removing from local storage:", e.message);
+    }
+    let localItems = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
+    } catch(e) {}
+    const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
+    localStorage.setItem('urspi_custom_employees', JSON.stringify(updatedLocal));
+
     showNotification("Muvaffaqiyatli o'chirildi");
+    setDeleteModalOpen(false);
+    fetchEmployees();
   };
 
   const openEditModal = (item) => {
     setEditMode(true);
     setSelectedItem(item);
+    setFormData({
+      fullName: {
+        uz: item.rawItem?.fullNameUz || item.fullName || '',
+        ru: item.rawItem?.fullNameRu || '',
+        en: item.rawItem?.fullNameEn || ''
+      },
+      position: {
+        uz: item.rawItem?.positionTitleUz || item.position || '',
+        ru: item.rawItem?.positionTitleRu || '',
+        en: item.rawItem?.positionTitleEn || ''
+      },
+      phone: item.phone || '+998 ',
+      email: item.email || '',
+      department: item.department || '',
+    });
+    setCenterId(item.centerId || item.rawItem?.centerId || item.rawItem?.center?.id || '');
+    setImagePreview(item.image || null);
+    setPhotoFile(null);
+    setCvFile(null);
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
     setEditMode(false);
     setSelectedItem(null);
+    setFormData({
+      fullName: { uz: '', ru: '', en: '' },
+      position: { uz: '', ru: '', en: '' },
+      phone: '+998 ',
+      email: '',
+      department: '',
+    });
+    setCenterId('');
+    setImagePreview(null);
+    setPhotoFile(null);
+    setCvFile(null);
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
+
+  const filteredEmployees = employeesList.filter(employee => {
+    const matchesSearch = employee.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          employee.position.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDept = !selectedDepartment || employee.department.toLowerCase().includes(selectedDepartment.toLowerCase());
+    return matchesSearch && matchesDept;
+  });
 
   return (
     <div className="space-y-6 animate-fade-in relative">
@@ -130,12 +397,17 @@ export default function EmployeesAdmin() {
       <div className="flex flex-col md:flex-row gap-4 items-center w-full">
         {/* Department Filter */}
         <div className="relative w-full md:w-[300px]">
-          <select className="w-full h-12 px-5 pr-10 rounded-full border-2 border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors appearance-none cursor-pointer">
-            <option value="">Barcha bo'limlar</option>
-            <option value="bugalteriya">Bugalteriya</option>
-            <option value="rttm">RTTM</option>
-            <option value="oquv">O'quv bo'limi</option>
-            <option value="kadrlar">Kadrlar bo'limi</option>
+          <select 
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className="w-full h-12 px-5 pr-10 rounded-full border-2 border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors appearance-none cursor-pointer"
+          >
+            <option value="">Barcha bo'lim va markazlar</option>
+            {centers.map(c => (
+              <option key={c.id} value={c.nameUz || c.name}>
+                {c.nameUz || c.name || "Markaz/Bo'lim"}
+              </option>
+            ))}
           </select>
           <ChevronDown className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
@@ -145,72 +417,83 @@ export default function EmployeesAdmin() {
           <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Xodimni qidirish..." 
             className="w-full h-12 pl-12 pr-4 rounded-full border-2 border-blue-100 dark:border-blue-900/50 focus:border-blue-500 dark:focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none transition-colors"
           />
         </div>
-
-        {/* Search Button */}
-        <button className="w-full md:w-auto h-12 px-8 rounded-full border-2 border-blue-500 text-blue-500 font-medium hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors whitespace-nowrap">
-          Qidirish
-        </button>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4">
-        {employeesList.map((employee) => (
-          <div key={employee.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-            {/* Top Color Banner */}
-            <div className={`h-24 bg-gradient-to-r ${employee.color}`}></div>
-            
-            {/* Card Body */}
-            <div className="relative pt-12 pb-6 px-6 text-center flex-1 flex flex-col">
-              {/* Avatar */}
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                <div className="w-20 h-20 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden shadow-sm">
-                  {/* Placeholder for avatar */}
-                  <span className="text-2xl font-bold text-slate-400">
-                    {employee.fullName.charAt(0)}
-                  </span>
+      {loading ? (
+        <div className="py-20 text-center text-slate-500 font-medium">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          Ma'lumotlar yuklanmoqda...
+        </div>
+      ) : filteredEmployees.length === 0 ? (
+        <div className="py-16 text-center text-slate-500 font-medium bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+          Xodimlar topilmadi
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4">
+          {filteredEmployees.map((employee) => (
+            <div key={employee.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+              {/* Top Color Banner */}
+              <div className={`h-24 bg-gradient-to-r ${employee.color}`}></div>
+              
+              {/* Card Body */}
+              <div className="relative pt-12 pb-6 px-6 text-center flex-1 flex flex-col">
+                {/* Avatar */}
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+                  <div className="w-20 h-20 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden shadow-sm">
+                    {employee.image ? (
+                      <img src={employee.image} alt={employee.fullName} className="w-full h-full object-cover object-top" />
+                    ) : (
+                      <span className="text-2xl font-bold text-slate-400">
+                        {employee.fullName.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight min-h-[44px] flex items-center justify-center">
+                  {employee.fullName}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 flex-1">
+                  {employee.position}
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-5 mt-auto">
+                  <button 
+                    onClick={() => { setSelectedItem(employee); setViewModalOpen(true); }}
+                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ko'rish
+                  </button>
+                  <button 
+                    onClick={() => openEditModal(employee)}
+                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Tahrirlash
+                  </button>
+                  <button 
+                    onClick={() => { setSelectedItem(employee); setDeleteModalOpen(true); }}
+                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <Trash2 className="row-4 h-4" />
+                    O'chirish
+                  </button>
                 </div>
               </div>
-
-              {/* Info */}
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight min-h-[44px] flex items-center justify-center">
-                {employee.fullName}
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 flex-1">
-                {employee.position}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-5 mt-auto">
-                <button 
-                  onClick={() => { setSelectedItem(employee); setViewModalOpen(true); }}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  Ko'rish
-                </button>
-                <button 
-                  onClick={() => openEditModal(employee)}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Tahrirlash
-                </button>
-                <button 
-                  onClick={() => { setSelectedItem(employee); setDeleteModalOpen(true); }}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  O'chirish
-                </button>
-              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* View Modal */}
       {viewModalOpen && selectedItem && (
@@ -346,7 +629,9 @@ export default function EmployeesAdmin() {
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
-                        setImagePreview(URL.createObjectURL(e.target.files[0]));
+                        const file = e.target.files[0];
+                        setPhotoFile(file);
+                        setImagePreview(URL.createObjectURL(file));
                       }
                     }}
                   />
@@ -361,27 +646,66 @@ export default function EmployeesAdmin() {
                 </label>
               </div>
 
+              {/* Language Tabs */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
+                {[
+                  { id: 'uz', label: "O'zbekcha" },
+                  { id: 'ru', label: 'Русский' },
+                  { id: 'en', label: 'English' }
+                ].map(lang => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setActiveLang(lang.id)}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                      activeLang === lang.id
+                        ? 'border-[#0eb99c] text-[#0eb99c]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+
               {/* Form Fields */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">F.I.O</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    F.I.O ({activeLang.toUpperCase()})
+                  </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      defaultValue={selectedItem?.fullName || ''}
+                      value={formData.fullName[activeLang]}
+                      onChange={e => setFormData({ ...formData, fullName: { ...formData.fullName, [activeLang]: e.target.value } })}
                       placeholder="To'liq ism-sharifi" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Lavozimi ({activeLang.toUpperCase()})
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.position[activeLang]}
+                    onChange={e => setFormData({ ...formData, position: { ...formData.position, [activeLang]: e.target.value } })}
+                    placeholder="Masalan: Dasturchi" 
+                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Telefon raqami</label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={editMode && selectedItem ? selectedItem.phone : phone}
+                      value={formData.phone}
                       onChange={handlePhoneChange}
                       placeholder="+998 94 237 03 73" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
@@ -394,7 +718,8 @@ export default function EmployeesAdmin() {
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="email" 
-                      defaultValue={selectedItem?.email || ''}
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
                       placeholder="misol@urspi.uz" 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
@@ -407,34 +732,37 @@ export default function EmployeesAdmin() {
                     <input 
                       type="file" 
                       accept=".pdf" 
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setCvFile(e.target.files[0]);
+                        }
+                      }}
                       className="w-full h-11 pl-11 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bo'limi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bo'limi / Markazi</label>
                   <div className="relative">
                     <select 
-                      defaultValue={selectedItem?.department || ''}
+                      value={centerId}
+                      onChange={e => {
+                        const id = e.target.value;
+                        setCenterId(id);
+                        const sel = centers.find(c => String(c.id) === String(id));
+                        setFormData({ ...formData, department: sel?.nameUz || sel?.name || '' });
+                      }}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Bo'limni tanlang</option>
-                      <option value="Bugalteriya">Bugalteriya</option>
-                      <option value="Axborot texnologiyalari markazi">Axborot texnologiyalari markazi</option>
-                      <option value="O'quv bo'limi">O'quv bo'limi</option>
-                      <option value="Kadrlar bo'limi">Kadrlar bo'limi</option>
+                      <option value="">Bo'lim yoki markazni tanlang</option>
+                      {centers.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.nameUz || c.name || "Markaz/Bo'lim"}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lavozimi</label>
-                  <input 
-                    type="text" 
-                    defaultValue={selectedItem?.position || ''}
-                    placeholder="Masalan: Dasturchi" 
-                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
-                  />
                 </div>
               </div>
             </div>

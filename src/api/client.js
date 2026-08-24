@@ -2,7 +2,7 @@
  * Central API Client and Token Helpers
  */
 
-export const BASE_URL = 'https://new.urspi.uz';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export const getAuthToken = () => localStorage.getItem('urspi_access_token') || '';
 export const getRefreshToken = () => localStorage.getItem('urspi_refresh_token') || '';
@@ -97,7 +97,18 @@ export async function request(endpoint, options = {}) {
         let errorMessage = `HTTP Error ${response.status}`;
         try {
             const errJson = await response.json();
-            errorMessage = errJson.message || errJson.error || errorMessage;
+            if (Array.isArray(errJson.errors) && errJson.errors.length > 0) {
+                errorMessage = errJson.errors.map((e) => e.message || e.defaultMessage || e.field).join(', ');
+            } else if (errJson.message) {
+                errorMessage = errJson.message;
+            } else if (errJson.error) {
+                errorMessage = errJson.error;
+            }
+            if (response.status === 401) {
+                errorMessage = 'Avtorizatsiya talab qilinadi. /admin sahifasidan qayta kiring.';
+            } else if (response.status === 403) {
+                errorMessage = errorMessage || 'Bu amal uchun ruxsatingiz yo\'q.';
+            }
         } catch (e) {
             // ignore parsing error
         }

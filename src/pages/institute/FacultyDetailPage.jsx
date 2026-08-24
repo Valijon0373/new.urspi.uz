@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import logoImg from '../../assets/images/logo1.jpg'
 import { facultiesAPI, getFileUrl } from '../../api'
 
-export default function FakultetDetailPage() {
+export default function FacultyDetailPage() {
   const location = useLocation();
   const { i18n } = useTranslation();
   const stateFaculty = location.state?.faculty;
