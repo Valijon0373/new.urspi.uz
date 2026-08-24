@@ -22,6 +22,14 @@ export const clearTokens = () => {
  */
 export const getFileUrl = (link) => {
     if (!link) return '';
+    if (typeof link === 'object') {
+        link = link.link || link.url || link.path || link.filePath || link.fileName || link.fileLink || link.photoLink || link.imageLink || '';
+    }
+    if (typeof link !== 'string') {
+        link = String(link);
+    }
+    link = link.trim();
+    if (!link || link === '[object Object]' || link === 'undefined' || link === 'null') return '';
     if (link.startsWith('http://') || link.startsWith('https://') || link.startsWith('data:') || link.startsWith('blob:')) {
         return link;
     }
