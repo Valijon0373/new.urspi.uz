@@ -651,7 +651,7 @@ export default function MagistraturaPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-bold">Telegram kanal:</span>
-                      <a href="#" className="font-extrabold text-blue-600 hover:underline">@urspi_qabul</a>
+                      <a href="https://t.me/UrDPI_UZ" target="_blank" rel="noopener noreferrer" className="font-extrabold text-blue-600 hover:underline">@UrDPI_UZ</a>
                     </div>
                   </div>
                 </div>

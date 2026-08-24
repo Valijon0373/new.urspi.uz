@@ -23,10 +23,10 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   </svg>
 )
 
-const StaffCard = ({ name, degree, position, img }) => (
+const StaffCard = ({ id, name, degree, position, img }) => (
   <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
     <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
-      <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" />
+      <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} />
     </div>
     <div className="p-5 flex flex-col flex-grow">
       <h4 className="text-[13px] md:text-[14px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-snug mb-3">
@@ -40,7 +40,7 @@ const StaffCard = ({ name, degree, position, img }) => (
       </p>
       
       <div className="mt-auto">
-        <Link to="/xodim/teacher1" className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
+        <Link to={`/xodim/${id}`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
           Batafsil <ArrowRight size={14} />
         </Link>
       </div>
@@ -56,31 +56,50 @@ export default function KafedraXodimlariPage() {
     let isMounted = true;
     const fetchTeachers = async () => {
       setLoading(true);
+      let apiData = [];
       try {
         const res = await teachersAPI.getAll('uz');
-        const rawData = Array.isArray(res) ? res : (res?.data || []);
-        if (isMounted) {
-          const formatted = rawData.map(t => ({
-            id: t.id,
-            name: t.fullNameUz || t.fullName || "O'qituvchi",
-            position: t.position?.name || t.positionTitleUz || "O'qituvchi",
-            degree: t.academicDegree?.name || "O'qituvchi",
-            phone: t.phoneNumber || "+998 90 123 45 67",
-            email: t.email || "info@urspi.uz",
-            img: getFileUrl(t.photoLink || t.photo) || menImg
-          }));
-          setTeachers(formatted);
-        }
+        apiData = Array.isArray(res) ? res : (res?.data || []);
       } catch (err) {
         console.warn('Failed to fetch department teachers from API:', err.message);
-        if (isMounted) setTeachers([]);
-      } finally {
-        if (isMounted) setLoading(false);
+      }
+
+      let localItems = [];
+      try {
+        localItems = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+      } catch (e) {}
+
+      const combinedMap = new Map();
+      localItems.forEach(t => combinedMap.set(String(t.id), t));
+      apiData.forEach(t => {
+        if (!combinedMap.has(String(t.id))) combinedMap.set(String(t.id), t);
+      });
+
+      const rawData = Array.from(combinedMap.values());
+      if (isMounted) {
+        const formatted = rawData.map(t => ({
+          id: t.id,
+          name: t.fullNameUz || t.fullName || "O'qituvchi",
+          position: t.positionTitleUz || t.positionTitle || t.position?.name || t.position || "O'qituvchi",
+          degree: t.academicDegree?.name || "O'qituvchi",
+          phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
+          email: t.email || "info@urspi.uz",
+          img: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg
+        }));
+        setTeachers(formatted);
+        setLoading(false);
       }
     };
 
     fetchTeachers();
-    return () => { isMounted = false; };
+
+    const handleUpdate = () => fetchTeachers();
+    window.addEventListener('urspi_teachers_updated', handleUpdate);
+
+    return () => { 
+      isMounted = false; 
+      window.removeEventListener('urspi_teachers_updated', handleUpdate);
+    };
   }, []);
 
   const mudir = teachers.find(t => t.position.toLowerCase().includes('mudir')) || teachers[0];
@@ -191,6 +210,7 @@ export default function KafedraXodimlariPage() {
                     {otherTeachers.map((teacher) => (
                       <StaffCard
                         key={teacher.id}
+                        id={teacher.id}
                         name={teacher.name}
                         degree={teacher.degree}
                         position={teacher.position}

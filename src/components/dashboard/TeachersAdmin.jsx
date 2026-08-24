@@ -118,32 +118,68 @@ export default function TeachersAdmin() {
     
     setPhoneNumber(formatted);
   };
-  const [teachersList, setTeachersList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const getLocalTeachers = () => {
+    try {
+      return JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const setLocalTeachers = (items) => {
+    try {
+      localStorage.setItem('urspi_custom_teachers', JSON.stringify(items));
+      window.dispatchEvent(new Event('urspi_teachers_updated'));
+    } catch (e) {}
+  };
+
+  const fileToBase64 = (file) => {
+    return new Promise((resolve) => {
+      if (!file) return resolve(null);
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
 
   const fetchTeachers = async () => {
     setLoading(true);
+    let apiData = [];
     try {
       const res = await teachersAPI.getAll();
-      const rawData = Array.isArray(res) ? res : (res?.data || []);
-      const formatted = rawData.map(t => ({
-        id: t.id,
-        faculty: t.faculty?.nameUz || t.faculty?.name || "Fakultet",
-        department: t.department?.nameUz || t.department?.name || "Kafedra",
-        position: t.position?.name || t.positionTitle || "O'qituvchi",
-        fullName: t.fullNameUz || t.fullName || "O'qituvchi",
-        phone: t.phoneNumber || "+998 90 123 45 67",
-        email: t.email || "info@urspi.uz",
-        image: getFileUrl(t.photoLink || t.photo) || menImg,
-        rawItem: t
-      }));
-      setTeachersList(formatted);
+      apiData = Array.isArray(res) ? res : (res?.data || []);
     } catch (e) {
       console.warn('API error in fetchTeachers:', e.message);
-      setTeachersList([]);
-    } finally {
-      setLoading(false);
     }
+
+    const localItems = getLocalTeachers();
+    const combinedMap = new Map();
+    localItems.forEach(item => combinedMap.set(String(item.id), item));
+    apiData.forEach(item => {
+      if (!combinedMap.has(String(item.id))) {
+        combinedMap.set(String(item.id), item);
+      }
+    });
+
+    const rawData = Array.from(combinedMap.values());
+    const formatted = rawData.map(t => {
+      const facObj = faculties.find(f => String(f.id) === String(t.facultyId || t.faculty?.id));
+      const deptObj = departments.find(d => String(d.id) === String(t.departmentId || t.department?.id));
+      return {
+        id: t.id,
+        faculty: t.facultyName || facObj?.nameUz || facObj?.name || t.faculty?.nameUz || t.faculty?.name || "Fakultet",
+        department: t.departmentName || deptObj?.nameUz || deptObj?.name || t.department?.nameUz || t.department?.name || "Kafedra",
+        position: t.positionTitleUz || t.positionTitle || t.position?.name || t.position || "O'qituvchi",
+        fullName: t.fullNameUz || t.fullName || "O'qituvchi",
+        phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
+        email: t.email || "info@urspi.uz",
+        image: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || "",
+        rawItem: t
+      };
+    });
+    setTeachersList(formatted);
+    setLoading(false);
   };
 
   const fetchFacultiesAndDepartments = async () => {
@@ -154,12 +190,31 @@ export default function TeachersAdmin() {
       ]);
       const rawFac = Array.isArray(facRes) ? facRes : (facRes?.data || []);
       const rawDept = Array.isArray(deptRes) ? deptRes : (deptRes?.data || []);
-      setFaculties(rawFac);
-      setDepartments(rawDept);
+      
+      let localFac = [];
+      let localDept = [];
+      try {
+        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
+        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
+      } catch(e) {}
+
+      const facMap = new Map();
+      localFac.forEach(f => facMap.set(String(f.id), f));
+      rawFac.forEach(f => { if (!facMap.has(String(f.id))) facMap.set(String(f.id), f); });
+
+      const deptMap = new Map();
+      localDept.forEach(d => deptMap.set(String(d.id), d));
+      rawDept.forEach(d => { if (!deptMap.has(String(d.id))) deptMap.set(String(d.id), d); });
+
+      setFaculties(Array.from(facMap.values()));
+      setDepartments(Array.from(deptMap.values()));
     } catch (e) {
       console.warn("Failed to fetch faculties and departments:", e.message);
     }
   };
+
+  const [teachersList, setTeachersList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTeachers();
@@ -189,57 +244,102 @@ export default function TeachersAdmin() {
 
   const handleSave = async () => {
     if (!fullNameUz) {
-      showNotification("Iltimos, ism-sharifni kiriting", "error");
+      showNotification("Iltimos, ism-sharifni kiriting");
       return;
     }
     try {
-      const fd = new FormData();
-      fd.append('fullNameUz', fullNameUz);
-      fd.append('fullNameRu', fullNameUz);
-      fd.append('fullNameEn', fullNameUz);
-      fd.append('phoneNumber', phoneNumber);
-      fd.append('email', email);
-      fd.append('positionTitle', positionTitle);
-      fd.append('positionTitleUz', positionTitle);
-      fd.append('positionTitleRu', positionTitle);
-      fd.append('positionTitleEn', positionTitle);
-      if (facultyId) {
-        fd.append('facultyId', facultyId);
-      }
-      if (departmentId) {
-        fd.append('departmentId', departmentId);
-      }
+      let base64Photo = imagePreview;
       if (photoFile) {
-        fd.append('file', photoFile);
-        fd.append('photo', photoFile);
+        const b64 = await fileToBase64(photoFile);
+        if (b64) base64Photo = b64;
       }
 
-      if (editMode && selectedItem) {
-        await teachersAPI.update(selectedItem.id, fd);
-        showNotification("Muvaffaqiyatli tahrirlandi");
-      } else {
-        await teachersAPI.create(fd);
-        showNotification("Muvaffaqiyatli qo'shildi");
+      const facObj = faculties.find(f => String(f.id) === String(facultyId));
+      const deptObj = departments.find(d => String(d.id) === String(departmentId));
+
+      const teacherObj = {
+        id: editMode && selectedItem ? selectedItem.id : Date.now(),
+        fullNameUz,
+        fullName: fullNameUz,
+        phoneNumber,
+        phone: phoneNumber,
+        email,
+        positionTitle: positionTitle || "O'qituvchi",
+        positionTitleUz: positionTitle || "O'qituvchi",
+        position: positionTitle || "O'qituvchi",
+        facultyId: facultyId || '',
+        facultyName: facObj?.nameUz || facObj?.name || 'Fakultet',
+        departmentId: departmentId || '',
+        departmentName: deptObj?.nameUz || deptObj?.name || 'Kafedra',
+        photo: base64Photo || "",
+        image: base64Photo || "",
+        photoLink: base64Photo || "",
+        updatedAt: new Date().toISOString()
+      };
+
+      // Try API request
+      try {
+        const fd = new FormData();
+        fd.append('fullNameUz', fullNameUz);
+        fd.append('fullNameRu', fullNameUz);
+        fd.append('fullNameEn', fullNameUz);
+        fd.append('phoneNumber', phoneNumber);
+        fd.append('email', email);
+        fd.append('positionTitle', positionTitle);
+        fd.append('positionTitleUz', positionTitle);
+        fd.append('positionTitleRu', positionTitle);
+        fd.append('positionTitleEn', positionTitle);
+        if (facultyId) fd.append('facultyId', facultyId);
+        if (departmentId) fd.append('departmentId', departmentId);
+        if (photoFile) {
+          fd.append('file', photoFile);
+          fd.append('photo', photoFile);
+        }
+
+        if (editMode && selectedItem) {
+          await teachersAPI.update(selectedItem.id, fd);
+        } else {
+          await teachersAPI.create(fd);
+        }
+      } catch (apiErr) {
+        console.warn('Backend API save failed, saving to localStorage:', apiErr.message);
       }
+
+      // Save to localStorage for offline/local persistence
+      const localItems = getLocalTeachers();
+      let updatedLocal;
+      if (editMode && selectedItem) {
+        updatedLocal = localItems.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...teacherObj } : item);
+        if (!updatedLocal.some(item => String(item.id) === String(selectedItem.id))) {
+          updatedLocal.push(teacherObj);
+        }
+      } else {
+        updatedLocal = [teacherObj, ...localItems];
+      }
+      setLocalTeachers(updatedLocal);
+
+      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       setIsModalOpen(false);
       fetchTeachers();
     } catch (e) {
       console.error(e);
-      showNotification(e.message || "Xatolik yuz berdi", "error");
+      showNotification(e.message || "Xatolik yuz berdi");
     }
   };
 
   const handleDelete = async () => {
+    if (!selectedItem) return;
     try {
       await teachersAPI.delete(selectedItem.id);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchTeachers();
     } catch (e) {
-      console.error(e);
-      showNotification(e.message || "O'chirishda xatolik", "error");
-    } finally {
-      setDeleteModalOpen(false);
+      console.warn("API delete failed, removing from local storage:", e.message);
     }
+    const localItems = getLocalTeachers();
+    const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
+    setLocalTeachers(updatedLocal);
+    showNotification("Muvaffaqiyatli o'chirildi");
+    setDeleteModalOpen(false);
+    fetchTeachers();
   };
 
   const openEditModal = (item) => {

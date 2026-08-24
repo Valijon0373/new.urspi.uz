@@ -15,37 +15,43 @@ export default function XodimProfilePage() {
     const fetchEmployee = async () => {
       if (!id) return;
       setLoading(true);
+      let data = null;
       try {
         const [teacherRes, empRes] = await Promise.allSettled([
           teachersAPI.getById(id),
           employeesAPI.getById(id)
         ]);
 
-        let data = null;
         if (teacherRes.status === 'fulfilled' && teacherRes.value) {
           data = teacherRes.value.data || teacherRes.value;
         } else if (empRes.status === 'fulfilled' && empRes.value) {
           data = empRes.value.data || empRes.value;
         }
-
-        if (isMounted && data) {
-          setEmployeeData({
-            id: data.id,
-            name: data.fullNameUz || data.fullName || "Xodim",
-            position: data.positionTitleUz || data.positionTitle || data.position?.name || "Xodim",
-            phone: data.phoneNumber || "",
-            email: data.email || "info@urspi.uz",
-            bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
-            officeHours: "Dushanba - Juma: 09:00 - 17:00",
-            img: getFileUrl(data.photoLink || data.photo) || menImg,
-            hasScience: !!data.academicDegree
-          });
-        }
       } catch (err) {
         console.warn('Failed to load profile from API:', err.message);
-      } finally {
-        if (isMounted) setLoading(false);
       }
+
+      if (!data) {
+        try {
+          const localTeachers = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+          data = localTeachers.find(t => String(t.id) === String(id));
+        } catch (e) {}
+      }
+
+      if (isMounted && data) {
+        setEmployeeData({
+          id: data.id,
+          name: data.fullNameUz || data.fullName || "Xodim",
+          position: data.positionTitleUz || data.positionTitle || data.position?.name || data.position || "Xodim",
+          phone: data.phoneNumber || data.phone || "",
+          email: data.email || "info@urspi.uz",
+          bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
+          officeHours: "Dushanba - Juma: 09:00 - 17:00",
+          img: data.photo || data.image || getFileUrl(data.photoLink || data.photo) || menImg,
+          hasScience: !!(data.academicDegree || data.position)
+        });
+      }
+      if (isMounted) setLoading(false);
     };
 
     fetchEmployee();

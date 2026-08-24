@@ -69,16 +69,16 @@ export default function Footer() {
             {/* Bottom Section */}
             <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center justify-center space-y-6">
                 <div className="flex items-center gap-4 md:gap-6">
-                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                    <a href="https://t.me/UrDPI_UZ" target="_blank" rel="noopener noreferrer" aria-label="Telegram" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
                         <FiSend className="w-5 h-5 ml-0.5 mt-0.5" />
                     </a>
-                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                    <a href="https://www.instagram.com/urspi.uz?igsh=b3Bwc2g0YWoxYnZh" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
                         <FiInstagram className="w-5 h-5" />
                     </a>
-                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                    <a href="https://www.youtube.com/@urspiurspi" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
                         <FiYoutube className="w-6 h-6" />
                     </a>
-                    <a href="#" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
+                    <a href="https://www.facebook.com/people/Urganch-Davlat-Pedagogika-Instituti/pfbid0bPNZR2Wy86C9X3wdZFFYaGfzuShapjc1h92dUG1r324CAopcCRSZrKzXCq4ZnEkEl/?mibextid" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-12 h-12 flex items-center justify-center rounded-full border border-white/40 hover:bg-white/10 hover:border-white transition-all text-white">
                         <FiFacebook className="w-5 h-5" />
                     </a>
                 </div>

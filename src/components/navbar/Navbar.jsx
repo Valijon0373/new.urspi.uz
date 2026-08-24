@@ -94,6 +94,8 @@ function SocialLink({ href, label, children }) {
   return (
     <a
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       aria-label={label}
       className={`flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white transition ${hoverColor}`}
     >
@@ -177,10 +179,10 @@ function Navbar() {
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <div className="hidden lg:flex items-center gap-2 lg:gap-3">
-                <SocialLink href="#" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
-                <SocialLink href="#" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
-                <SocialLink href="#" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
-                <SocialLink href="#" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
+                <SocialLink href="https://t.me/UrDPI_UZ" label="Telegram"><BsTelegram className="h-4 w-4" /></SocialLink>
+                <SocialLink href="https://www.instagram.com/urspi.uz?igsh=b3Bwc2g0YWoxYnZh" label="Instagram"><FaInstagram className="h-4 w-4" /></SocialLink>
+                <SocialLink href="https://www.facebook.com/people/Urganch-Davlat-Pedagogika-Instituti/pfbid0bPNZR2Wy86C9X3wdZFFYaGfzuShapjc1h92dUG1r324CAopcCRSZrKzXCq4ZnEkEl/?mibextid" label="Facebook"><FaFacebookF className="h-4 w-4" /></SocialLink>
+                <SocialLink href="https://www.youtube.com/@urspiurspi" label="YouTube"><TfiYoutube className="h-4 w-4" /></SocialLink>
               </div>
 
               <div className="relative">
@@ -226,16 +228,16 @@ function Navbar() {
 
         {/* ── MOBILE FLOATING SOCIALS & ACCESSIBILITY ── */}
         <div className="lg:hidden fixed left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[60]">
-          <a href="#" aria-label="Telegram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-sky-500 hover:opacity-90">
+          <a href="https://t.me/UrDPI_UZ" target="_blank" rel="noopener noreferrer" aria-label="Telegram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-sky-500 hover:opacity-90">
             <BsTelegram className="h-4 w-4" />
           </a>
-          <a href="#" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-500 hover:opacity-90">
+          <a href="https://www.instagram.com/urspi.uz?igsh=b3Bwc2g0YWoxYnZh" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-500 hover:opacity-90">
             <FaInstagram className="h-4 w-4" />
           </a>
-          <a href="#" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-blue-600 hover:opacity-90">
+          <a href="https://www.facebook.com/people/Urganch-Davlat-Pedagogika-Instituti/pfbid0bPNZR2Wy86C9X3wdZFFYaGfzuShapjc1h92dUG1r324CAopcCRSZrKzXCq4ZnEkEl/?mibextid" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-blue-600 hover:opacity-90">
             <FaFacebookF className="h-4 w-4" />
           </a>
-          <a href="#" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-600 hover:opacity-90">
+          <a href="https://www.youtube.com/@urspiurspi" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-transform hover:scale-110 bg-red-600 hover:opacity-90">
             <TfiYoutube className="h-4 w-4" />
           </a>
           <button

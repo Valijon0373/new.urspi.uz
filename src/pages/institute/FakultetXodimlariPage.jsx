@@ -31,31 +31,50 @@ export default function FakultetXodimlariPage() {
     let isMounted = true;
     const fetchTeachers = async () => {
       setLoading(true);
+      let apiData = [];
       try {
         const res = await teachersAPI.getAll('uz');
-        const rawData = Array.isArray(res) ? res : (res?.data || []);
-        if (isMounted) {
-          const formatted = rawData.map(t => ({
-            id: t.id,
-            fullName: t.fullNameUz || t.fullName || "O'qituvchi",
-            position: t.position?.name || t.positionTitleUz || t.positionTitle || "O'qituvchi",
-            phone: t.phoneNumber || "+998 90 123 45 67",
-            email: t.email || "info@urspi.uz",
-            degree: t.academicDegree?.name || "O'qituvchi",
-            photo: getFileUrl(t.photoLink || t.photo) || menImg
-          }));
-          setTeachers(formatted);
-        }
+        apiData = Array.isArray(res) ? res : (res?.data || []);
       } catch (err) {
-        console.warn('Failed to fetch teachers:', err.message);
-        if (isMounted) setTeachers([]);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.warn('Failed to fetch teachers from API:', err.message);
+      }
+
+      let localItems = [];
+      try {
+        localItems = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+      } catch (e) {}
+
+      const combinedMap = new Map();
+      localItems.forEach(t => combinedMap.set(String(t.id), t));
+      apiData.forEach(t => {
+        if (!combinedMap.has(String(t.id))) combinedMap.set(String(t.id), t);
+      });
+
+      const rawData = Array.from(combinedMap.values());
+      if (isMounted) {
+        const formatted = rawData.map(t => ({
+          id: t.id,
+          fullName: t.fullNameUz || t.fullName || "O'qituvchi",
+          position: t.positionTitleUz || t.positionTitle || t.position?.name || t.position || "O'qituvchi",
+          phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
+          email: t.email || "info@urspi.uz",
+          degree: t.academicDegree?.name || "O'qituvchi",
+          photo: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg
+        }));
+        setTeachers(formatted);
+        setLoading(false);
       }
     };
 
     fetchTeachers();
-    return () => { isMounted = false; };
+
+    const handleUpdate = () => fetchTeachers();
+    window.addEventListener('urspi_teachers_updated', handleUpdate);
+
+    return () => { 
+      isMounted = false; 
+      window.removeEventListener('urspi_teachers_updated', handleUpdate);
+    };
   }, []);
 
   const dekan = teachers.find(t => t.position.toLowerCase().includes('dekan') && !t.position.toLowerCase().includes('o\'rinbosari')) || teachers[0];
