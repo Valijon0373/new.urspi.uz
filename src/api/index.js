@@ -20,4 +20,6 @@ export * from './audit';
 export * from './files';
 export * from './photoGalleries';
 export * from './greenInstitutes';
+export * from './rentals';
+
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { rentalsAPI, getFileUrl } from '../../api';
 import { 
   ChevronRight, 
   Wifi, 
@@ -262,293 +263,91 @@ const ttjImages = [
   "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1200"  // exams
 ];
 
-const apartmentImages = [
-  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800", // cozy living room
-  "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800", // kitchen setup
-  "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=800", // clean kitchen
-  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800", // bright living room
-  "https://images.unsplash.com/photo-1502672023488-70e25813eb80?q=80&w=800", // desk bedroom
-  "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?q=80&w=800", // grey couch
-  "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800", // orange chair
-  "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=800", // double bedroom
-  "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=800", // warm wood
-  "https://images.unsplash.com/photo-1617806118233-18e1db207f62?q=80&w=800", // scandinavian
-  "https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=800", // rustic Modern
-  "https://images.unsplash.com/photo-1615874959474-d609969a20ed?q=80&w=800"  // plant filled
-];
+const rentApartments = [];
 
-const rentApartments = [
-  {
-    id: 1,
-    title: {
-      uz: "Premium 2-Xonali Kvartira",
-      ru: "Премиум 2-комнатная квартира",
-      en: "Premium 2-Bedroom Apartment"
-    },
-    price: "1 800 000 UZS / oy",
-    rooms: 2,
-    distance: {
-      uz: "Institutdan 500m masofada, piyoda 5 daqiqa",
-      ru: "500м от института, 5 минут пешком",
-      en: "500m from institute, 5 min walk"
-    },
-    contact: "+998 90 123-45-67",
-    images: [apartmentImages[0], apartmentImages[1], apartmentImages[2]]
-  },
-  {
-    id: 2,
-    title: {
-      uz: "Shinam 3-Xonali Kvartira (Sheriklikka)",
-      ru: "Уютная 3-комнатная квартира (для сожительства)",
-      en: "Cozy 3-Bedroom Apartment (for sharing)"
-    },
-    price: "1 400 000 UZS / kishi boshiga",
-    rooms: 3,
-    distance: {
-      uz: "Institutdan 1.2km masofada, avtobusda 3 bekat",
-      ru: "1.2км от института, 3 остановки на автобусе",
-      en: "1.2km from institute, 3 bus stops"
-    },
-    contact: "+998 91 987-65-43",
-    images: [apartmentImages[3], apartmentImages[4], apartmentImages[5]]
-  },
-  {
-    id: 3,
-    title: {
-      uz: "Talabalar uchun 4-Xonali Hovli Uy",
-      ru: "4-комнатный частный дом для студентов",
-      en: "4-Bedroom Private House for Students"
-    },
-    price: "900 000 UZS / kishi boshiga",
-    rooms: 4,
-    distance: {
-      uz: "Institutdan 800m masofada, piyoda 8 daqiqa",
-      ru: "800м от института, 8 минут пешком",
-      en: "800m from institute, 8 min walk"
-    },
-    contact: "+998 93 456-78-90",
-    images: [apartmentImages[6], apartmentImages[7], apartmentImages[8]]
-  },
-  {
-    id: 4,
-    title: {
-      uz: "Evroremont 2-Xonali Uy",
-      ru: "Евроремонт 2-комнатная квартира",
-      en: "Modern 2-Bedroom Apartment"
-    },
-    price: "2 300 000 UZS / oy",
-    rooms: 2,
-    distance: {
-      uz: "Institutdan 400m masofada, piyoda 4 daqiqa",
-      ru: "400м от института, 4 минуты пешком",
-      en: "400m from institute, 4 min walk"
-    },
-    contact: "+998 99 111-22-33",
-    images: [apartmentImages[9], apartmentImages[10], apartmentImages[11]]
-  },
-  {
-    id: 5,
-    title: {
-      uz: "Shinam 1-Xonali Kvartira",
-      ru: "Уютная 1-комнатная квартира",
-      en: "Cozy 1-Bedroom Apartment"
-    },
-    price: "1 200 000 UZS / oy",
-    rooms: 1,
-    distance: {
-      uz: "Institutdan 1.5km masofada, avtobusda 4 bekat",
-      ru: "1.5км от института, 4 остановки на автобусе",
-      en: "1.5km from institute, 4 bus stops"
-    },
-    contact: "+998 95 333-44-55",
-    images: [apartmentImages[1], apartmentImages[4], apartmentImages[7]]
-  },
-  {
-    id: 6,
-    title: {
-      uz: "Talabalar uchun 3-Xonali Kvartira",
-      ru: "3-комнатная квартира для студентов",
-      en: "3-Bedroom Apartment for Students"
-    },
-    price: "1 600 000 UZS / oy",
-    rooms: 3,
-    distance: {
-      uz: "Institutdan 900m masofada, piyoda 9 daqiqa",
-      ru: "900м от института, 9 минут пешком",
-      en: "900m from institute, 9 min walk"
-    },
-    contact: "+998 97 777-88-99",
-    images: [apartmentImages[2], apartmentImages[5], apartmentImages[8]]
-  },
-  {
-    id: 7,
-    title: {
-      uz: "Keng 2-Xonali Uy",
-      ru: "Просторная 2-комнатная квартира",
-      en: "Spacious 2-Bedroom Apartment"
-    },
-    price: "2 000 000 UZS / oy",
-    rooms: 2,
-    distance: {
-      uz: "Institutdan 700m masofada, piyoda 7 daqiqa",
-      ru: "700м от института, 7 минут пешком",
-      en: "700m from institute, 7 min walk"
-    },
-    contact: "+998 90 222-33-44",
-    images: [apartmentImages[0], apartmentImages[9], apartmentImages[3]]
-  },
-  {
-    id: 8,
-    title: {
-      uz: "Hamyonbop 1-Xonali Kvartira",
-      ru: "Бюджетная 1-комнатная квартира",
-      en: "Budget 1-Bedroom Apartment"
-    },
-    price: "1 100 000 UZS / oy",
-    rooms: 1,
-    distance: {
-      uz: "Institutdan 2km masofada, jamoat transportida 10 daqiqa",
-      ru: "2км от института, 10 минут на транспорте",
-      en: "2km from institute, 10 min by transport"
-    },
-    contact: "+998 91 333-22-11",
-    images: [apartmentImages[10], apartmentImages[6], apartmentImages[1]]
-  },
-  {
-    id: 9,
-    title: {
-      uz: "Yangi ta'mirlangan 3-Xonali Uy",
-      ru: "Новостройка 3-комнатная квартира",
-      en: "Newly Renovated 3-Bedroom Apartment"
-    },
-    price: "2 600 000 UZS / oy",
-    rooms: 3,
-    distance: {
-      uz: "Institutdan 600m masofada, piyoda 6 daqiqa",
-      ru: "600м от института, 6 минут пешком",
-      en: "600m from institute, 6 min walk"
-    },
-    contact: "+998 93 777-66-55",
-    images: [apartmentImages[11], apartmentImages[5], apartmentImages[0]]
-  },
-  {
-    id: 10,
-    title: {
-      uz: "Qulay 1-Xonali Kvartira",
-      ru: "Удобная 1-комнатная квартира",
-      en: "Comfortable 1-Bedroom Apartment"
-    },
-    price: "1 350 000 UZS / oy",
-    rooms: 1,
-    distance: {
-      uz: "Institutdan 1.1km masofada, piyoda 11 daqiqa",
-      ru: "1.1км от института, 11 минут пешком",
-      en: "1.1km from institute, 11 min walk"
-    },
-    contact: "+998 94 444-55-66",
-    images: [apartmentImages[2], apartmentImages[7], apartmentImages[10]]
-  },
-  {
-    id: 11,
-    title: {
-      uz: "Sheriklikda turish uchun 2-Xonali Uy",
-      ru: "2-комнатная квартира для сожительства",
-      en: "2-Bedroom Apartment for Sharing"
-    },
-    price: "1 000 000 UZS / kishi boshiga",
-    rooms: 2,
-    distance: {
-      uz: "Institutdan 1km masofada, piyoda 10 daqiqa",
-      ru: "1км от института, 10 минут пешком",
-      en: "1km from institute, 10 min walk"
-    },
-    contact: "+998 98 888-99-00",
-    images: [apartmentImages[4], apartmentImages[8], apartmentImages[11]]
-  },
-  {
-    id: 12,
-    title: {
-      uz: "Zamonaviy 2-Xonali Uy",
-      ru: "Современная 2-комнатная квартира",
-      en: "Modern 2-Bedroom Apartment"
-    },
-    price: "2 100 000 UZS / oy",
-    rooms: 2,
-    distance: {
-      uz: "Institutdan 450m masofada, piyoda 4 daqiqa",
-      ru: "450м от института, 4 минуты пешком",
-      en: "450m from institute, 4 min walk"
-    },
-    contact: "+998 99 999-00-11",
-    images: [apartmentImages[3], apartmentImages[6], apartmentImages[9]]
-  }
-];
 
 function ApartmentCard({ apt, currentLang, trans, onZoom }) {
   const [imgIdx, setImgIdx] = useState(0);
+  const hasImages = Array.isArray(apt.images) && apt.images.length > 0;
 
   const handlePrev = (e) => {
     e.stopPropagation();
+    if (!hasImages) return;
     setImgIdx((prev) => (prev === 0 ? apt.images.length - 1 : prev - 1));
   };
 
   const handleNext = (e) => {
     e.stopPropagation();
+    if (!hasImages) return;
     setImgIdx((prev) => (prev === apt.images.length - 1 ? 0 : prev + 1));
   };
+
+  const titleText = (typeof apt.title === 'object' && apt.title !== null)
+    ? (apt.title[currentLang] || apt.title.uz || apt.title.ru || apt.title.en || '')
+    : (apt.title || '');
+
+  const distanceText = (typeof apt.distance === 'object' && apt.distance !== null)
+    ? (apt.distance[currentLang] || apt.distance.uz || apt.distance.ru || apt.distance.en || '')
+    : (apt.distance || '');
 
   return (
     <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
       {/* Image Carousel */}
       <div 
-        onClick={() => onZoom(apt.images, imgIdx)}
-        className="aspect-[16/10] overflow-hidden relative group cursor-pointer"
+        onClick={() => hasImages && onZoom(apt.images, imgIdx)}
+        className="aspect-[16/10] overflow-hidden relative group cursor-pointer bg-slate-100"
       >
-        <img 
-          src={apt.images[imgIdx]} 
-          alt={apt.title[currentLang]} 
-          className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
-        />
-        
-        {/* Navigation arrows (visible on hover) */}
-        <button 
-          onClick={handlePrev}
-          type="button"
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10 animate-in fade-in duration-200"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-        </button>
-        <button 
-          onClick={handleNext}
-          type="button"
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10 animate-in fade-in duration-200"
-        >
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-
-        {/* Zoom button on top-right */}
-        <button 
-          onClick={() => onZoom(apt.images, imgIdx)}
-          type="button"
-          className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-lg transition-transform hover:scale-110 z-10 flex items-center justify-center animate-in fade-in duration-200"
-          title="Kattalashtirish"
-        >
-          <Search className="w-4 h-4 text-[#0c1f4a]" />
-        </button>
-
-        {/* Dots Indicator */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-          {apt.images.map((_, idx) => (
-            <div 
-              key={idx}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${idx === imgIdx ? 'bg-white w-3.5' : 'bg-white/40'}`}
+        {hasImages ? (
+          <>
+            <img 
+              src={apt.images[imgIdx]} 
+              alt={titleText} 
+              className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
             />
-          ))}
-        </div>
+            {apt.images.length > 1 && (
+              <>
+                <button 
+                  onClick={handlePrev}
+                  type="button"
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10 animate-in fade-in duration-200"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button 
+                  onClick={handleNext}
+                  type="button"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10 animate-in fade-in duration-200"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                  {apt.images.map((_, idx) => (
+                    <div 
+                      key={idx}
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${idx === imgIdx ? 'bg-white w-3.5' : 'bg-white/40'}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            <button 
+              onClick={() => onZoom(apt.images, imgIdx)}
+              type="button"
+              className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-lg transition-transform hover:scale-110 z-10 flex items-center justify-center animate-in fade-in duration-200"
+              title="Kattalashtirish"
+            >
+              <Search className="w-4 h-4 text-[#0c1f4a]" />
+            </button>
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">
+            Rasm yo'q
+          </div>
+        )}
 
         {/* Room tag */}
         <span className="absolute bottom-3 left-3 bg-[#0c1f4a]/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
-          {apt.rooms} {trans.rentRoom}
+          {apt.rooms || 2} {trans.rentRoom}
         </span>
       </div>
 
@@ -556,11 +355,11 @@ function ApartmentCard({ apt, currentLang, trans, onZoom }) {
       <div className="p-5 flex flex-col flex-grow justify-between">
         <div>
           <h4 className="font-extrabold text-slate-950 text-base line-clamp-1">
-            {apt.title[currentLang]}
+            {titleText}
           </h4>
           <div className="flex items-center gap-2 text-slate-500 text-xs mt-3">
             <MapPin className="w-4 h-4 text-[#0c1f4a] shrink-0" />
-            <span>{apt.distance[currentLang]}</span>
+            <span>{distanceText}</span>
           </div>
         </div>
 
@@ -593,6 +392,95 @@ export default function DormitoryPage() {
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
   const [visibleGalleryCount, setVisibleGalleryCount] = useState(6);
+  const [liveRentals, setLiveRentals] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveRentals = async () => {
+      let apiItems = [];
+      const lang = currentLang || 'uz';
+      try {
+        const res = await rentalsAPI.getAll(lang);
+        apiItems = Array.isArray(res) ? res : (res?.data || res?.content || []);
+      } catch (err) {
+        try {
+          const resAll = await rentalsAPI.getAll();
+          apiItems = Array.isArray(resAll) ? resAll : (resAll?.data || resAll?.content || []);
+        } catch (e) {
+          console.warn('Failed to load rentals from API:', e.message);
+        }
+      }
+
+      let localItems = [];
+      try {
+        localItems = JSON.parse(localStorage.getItem('urspi_custom_rents') || '[]');
+      } catch (e) {}
+
+      const combinedMap = new Map();
+      localItems.forEach(item => {
+        if (item && item.id != null) combinedMap.set(String(item.id), item);
+      });
+      apiItems.forEach(item => {
+        if (item && item.id != null) combinedMap.set(String(item.id), item);
+      });
+
+      const combined = Array.from(combinedMap.values());
+
+      if (isMounted) {
+        if (combined.length > 0) {
+          const formatted = combined.map((item, idx) => {
+            const titleObj = item.title;
+            const titleUz = item.titleUz || (typeof titleObj === 'object' ? titleObj?.uz : titleObj) || (typeof item.title === 'string' ? item.title : 'Kvartira');
+            const titleRu = item.titleRu || (typeof titleObj === 'object' ? titleObj?.ru : titleObj) || titleUz;
+            const titleEn = item.titleEn || (typeof titleObj === 'object' ? titleObj?.en : titleObj) || titleUz;
+
+            const addressObj = item.address;
+            const addressUz = item.addressUz || (typeof addressObj === 'object' ? addressObj?.uz : addressObj) || (typeof item.address === 'string' ? item.address : "Urganch shahri");
+            const addressRu = item.addressRu || (typeof addressObj === 'object' ? addressObj?.ru : addressObj) || addressUz;
+            const addressEn = item.addressEn || (typeof addressObj === 'object' ? addressObj?.en : addressObj) || addressUz;
+
+            const priceObj = item.price;
+            const priceUz = item.priceUz || (typeof priceObj === 'object' ? priceObj?.uz : priceObj) || (typeof item.price === 'string' ? item.price : "Kelishilgan narxda");
+
+            let rawImages = [];
+            if (Array.isArray(item.images) && item.images.length > 0) {
+              rawImages = item.images;
+            } else if (item.photoLink || item.imageLink || item.fileLink || item.photo || item.image) {
+              rawImages = [item.photoLink || item.imageLink || item.fileLink || item.photo || item.image];
+            }
+
+            const images = rawImages.map(img => getFileUrl(img)).filter(Boolean);
+
+            return {
+              id: item.id || `live-${idx}`,
+              title: { uz: titleUz, ru: titleRu, en: titleEn },
+              price: priceUz,
+              rooms: item.rooms || 2,
+              distance: { uz: addressUz, ru: addressRu, en: addressEn },
+              contact: item.contact || item.phoneNumber || item.phone || "+998 90 123-45-67",
+              images
+            };
+          });
+          setLiveRentals(formatted);
+        } else {
+          setLiveRentals([]);
+        }
+      }
+    };
+
+    fetchLiveRentals();
+
+    const handleStorageChange = () => {
+      fetchLiveRentals();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentLang, activeTab]);
+
+
 
   const openLightbox = (imagesList, index) => {
     setLightboxImages(imagesList);
@@ -913,29 +801,48 @@ export default function DormitoryPage() {
                 <h3 className="text-2xl font-bold text-slate-900">{trans.rentHeader}</h3>
                 <p className="text-sm text-slate-500 mt-1">{trans.rentSub}</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {rentApartments.slice(0, visibleCount).map((apt) => (
-                  <ApartmentCard 
-                    key={apt.id} 
-                    apt={apt} 
-                    currentLang={currentLang} 
-                    trans={trans} 
-                    onZoom={openLightbox} 
-                  />
-                ))}
-              </div>
 
-              {/* Show More/Less Button */}
-              <div className="mt-12 text-center">
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((prev) => (prev === 6 ? 12 : 6))}
-                  className="px-8 py-3.5 bg-transparent border-2 border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  {visibleCount === 6 ? trans.btnShowMore : trans.btnShowLess}
-                </button>
-              </div>
+              {liveRentals.length === 0 ? (
+                <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm max-w-2xl mx-auto my-6">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                    <Home className="w-8 h-8" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800">
+                    {currentLang === 'uz' ? "Hozircha ijara e'lonlari mavjud emas" : currentLang === 'ru' ? "Объявления об аренде пока отсутствуют" : "No rental announcements available yet"}
+                  </h4>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {currentLang === 'uz' ? "Yangi e'lonlar qo'shilganda shu yerda ko'rinadi." : currentLang === 'ru' ? "Новые объявления появятся здесь после добавления." : "New announcements will appear here once added."}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {liveRentals.slice(0, visibleCount).map((apt) => (
+                      <ApartmentCard 
+                        key={apt.id} 
+                        apt={apt} 
+                        currentLang={currentLang} 
+                        trans={trans} 
+                        onZoom={openLightbox} 
+                      />
+                    ))}
+                  </div>
+
+                  {liveRentals.length > 6 && (
+                    <div className="mt-12 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((prev) => (prev === 6 ? liveRentals.length : 6))}
+                        className="px-8 py-3.5 bg-transparent border-2 border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                      >
+                        {visibleCount === 6 ? trans.btnShowMore : trans.btnShowLess}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
+
 
             {/* Advice/Tips for renting */}
             <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
