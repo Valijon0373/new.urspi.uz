@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check } from 'lucide-react';
+import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check, Loader2 } from 'lucide-react';
 import rektorImg from '../../assets/men.jpg';
-import { leadersAPI, getFileUrl } from '../../api';
+import { leadersAPI, filesAPI, getFileUrl } from '../../api';
 
 export default function LeadershipAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -9,18 +9,22 @@ export default function LeadershipAdmin() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({ show: false, message: '', isError: false });
   const [leadersList, setLeadersList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [activeLang, setActiveLang] = useState('uz');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
   const [formData, setFormData] = useState({
     fullName: { uz: '', ru: '', en: '' },
     position: { uz: '', ru: '', en: '' },
     address: { uz: '', ru: '', en: '' },
     reception: { uz: '', ru: '', en: '' },
     email: '',
-    phone: ''
+    phone: '',
+    photoLink: ''
   });
 
   const fetchLeaders = async () => {
@@ -30,12 +34,26 @@ export default function LeadershipAdmin() {
       const rawData = Array.isArray(res) ? res : (res?.data || []);
       const formatted = rawData.map(item => ({
         id: item.id,
+        rawItem: item,
         fullName: item.fullNameUz || item.fullName || "Rahbar",
+        fullNameUz: item.fullNameUz || item.fullName || "",
+        fullNameRu: item.fullNameRu || "",
+        fullNameEn: item.fullNameEn || "",
         position: item.positionTitleUz || item.positionTitle || "Lavozim",
+        positionUz: item.positionTitleUz || item.positionTitle || "",
+        positionRu: item.positionTitleRu || "",
+        positionEn: item.positionTitleEn || "",
         address: item.addressUz || item.address || "Urganch shahri",
+        addressUz: item.addressUz || item.address || "",
+        addressRu: item.addressRu || "",
+        addressEn: item.addressEn || "",
         reception: item.receptionTimeUz || item.receptionTime || "09:00 - 17:00",
+        receptionUz: item.receptionTimeUz || item.receptionTime || "",
+        receptionRu: item.receptionTimeRu || "",
+        receptionEn: item.receptionTimeEn || "",
         email: item.email || "info@urspi.uz",
-        phone: item.phoneNumber || "+998622261840",
+        phone: item.phoneNumber || item.phone || "+998622261840",
+        photoLink: item.photoLink || item.photo || "",
         image: getFileUrl(item.photoLink || item.photo) || rektorImg
       }));
       setLeadersList(formatted);
@@ -51,26 +69,65 @@ export default function LeadershipAdmin() {
     fetchLeaders();
   }, []);
 
-  const showNotification = (msg) => {
-    setNotification({ show: true, message: msg });
+  const showNotification = (msg, isError = false) => {
+    setNotification({ show: true, message: msg, isError });
     setTimeout(() => {
-      setNotification({ show: false, message: '' });
+      setNotification({ show: false, message: '', isError: false });
     }, 5000);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSave = async () => {
+    if (!formData.fullName.uz || !formData.position.uz) {
+      showNotification("F.I.SH va Lavozim (O'zbekcha) kiritilishi shart!", true);
+      return;
+    }
+
+    setSaving(true);
     try {
+      let finalPhotoLink = formData.photoLink;
+      if (selectedFile) {
+        try {
+          const fileRes = await filesAPI.upload(selectedFile);
+          finalPhotoLink = fileRes?.link || fileRes?.url || fileRes?.fileName || fileRes || finalPhotoLink;
+        } catch (fileErr) {
+          console.warn("File upload error:", fileErr);
+        }
+      }
+
       const dto = {
-        fullNameUz: formData.fullName.uz || 'Rahbar',
+        fullNameUz: formData.fullName.uz || '',
         fullNameRu: formData.fullName.ru || '',
         fullNameEn: formData.fullName.en || '',
-        positionTitleUz: formData.position.uz || 'Lavozim',
+        fullName: formData.fullName.uz || '',
+
+        positionTitleUz: formData.position.uz || '',
         positionTitleRu: formData.position.ru || '',
         positionTitleEn: formData.position.en || '',
+        positionTitle: formData.position.uz || '',
+
         addressUz: formData.address.uz || '',
+        addressRu: formData.address.ru || '',
+        addressEn: formData.address.en || '',
+        address: formData.address.uz || '',
+
         receptionTimeUz: formData.reception.uz || '',
-        email: formData.email,
-        phoneNumber: formData.phone
+        receptionTimeRu: formData.reception.ru || '',
+        receptionTimeEn: formData.reception.en || '',
+        receptionTime: formData.reception.uz || '',
+
+        email: formData.email || '',
+        phoneNumber: formData.phone || '',
+        phone: formData.phone || '',
+        photoLink: finalPhotoLink || '',
+        photo: selectedFile || finalPhotoLink || ''
       };
 
       if (editMode && selectedPerson) {
@@ -80,11 +137,12 @@ export default function LeadershipAdmin() {
         await leadersAPI.create(dto);
         showNotification("Muvaffaqiyatli qo'shildi.");
       }
+      setIsModalOpen(false);
       fetchLeaders();
     } catch (e) {
-      showNotification(editMode ? "Tahrirlandi (demo mode)" : "Qo'shildi (demo mode)");
+      showNotification(e.message || "Xatolik yuz berdi", true);
     } finally {
-      setIsModalOpen(false);
+      setSaving(false);
     }
   };
 
@@ -95,36 +153,42 @@ export default function LeadershipAdmin() {
         showNotification("Muvaffaqiyatli o'chirildi");
         fetchLeaders();
       } catch (e) {
-        setLeadersList(prev => prev.filter(item => item.id !== selectedPerson.id));
-        showNotification("Muvaffaqiyatli o'chirildi");
+        showNotification(e.message || "O'chirishda xatolik", true);
       }
     }
     setDeleteModalOpen(false);
   };
 
   const openEditModal = (person) => {
+    setSelectedPerson(person);
     setEditMode(true);
-    // In a real app you'd parse multilang data, for now we just populate uz
+    setSelectedFile(null);
+    setPreviewUrl(person.image || '');
     setFormData({
-      fullName: { uz: person.fullName, ru: person.fullName, en: person.fullName },
-      position: { uz: person.position, ru: person.position, en: person.position },
-      address: { uz: person.address, ru: person.address, en: person.address },
-      reception: { uz: person.reception, ru: person.reception, en: person.reception },
-      email: person.email,
-      phone: person.phone
+      fullName: { uz: person.fullNameUz || person.fullName, ru: person.fullNameRu || '', en: person.fullNameEn || '' },
+      position: { uz: person.positionUz || person.position, ru: person.positionRu || '', en: person.positionEn || '' },
+      address: { uz: person.addressUz || person.address, ru: person.addressRu || '', en: person.addressEn || '' },
+      reception: { uz: person.receptionUz || person.reception, ru: person.receptionRu || '', en: person.receptionEn || '' },
+      email: person.email || '',
+      phone: person.phone || '',
+      photoLink: person.photoLink || ''
     });
     setIsModalOpen(true);
   };
 
   const openAddModal = () => {
+    setSelectedPerson(null);
     setEditMode(false);
+    setSelectedFile(null);
+    setPreviewUrl('');
     setFormData({
       fullName: { uz: '', ru: '', en: '' },
       position: { uz: '', ru: '', en: '' },
       address: { uz: '', ru: '', en: '' },
       reception: { uz: '', ru: '', en: '' },
       email: '',
-      phone: ''
+      phone: '',
+      photoLink: ''
     });
     setIsModalOpen(true);
   };
@@ -133,11 +197,17 @@ export default function LeadershipAdmin() {
     <div className="space-y-6 animate-fade-in relative">
       {/* Notification Toast */}
       {notification.show && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in z-[70]">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center shrink-0">
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 shadow-xl border rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in z-[70] ${
+          notification.isError
+            ? 'bg-red-50 dark:bg-red-900/90 border-red-200 dark:border-red-800 text-red-800 dark:text-red-100'
+            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100'
+        }`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+            notification.isError ? 'bg-red-100 dark:bg-red-800 text-red-500' : 'bg-emerald-100 text-emerald-500'
+          }`}>
             <Check className="w-5 h-5" />
           </div>
-          <span className="text-slate-800 dark:text-slate-100 font-medium">{notification.message}</span>
+          <span className="font-medium text-sm">{notification.message}</span>
         </div>
       )}
 
@@ -146,78 +216,90 @@ export default function LeadershipAdmin() {
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" />
           Qo'shish
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {mockRahbariyat.map((person) => (
-          <div key={person.id} className="w-full bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col items-center transition-all duration-300 hover:shadow-lg">
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#0eb99c]" />
+          <p className="text-sm font-medium">Yuklanmoqda...</p>
+        </div>
+      ) : leadersList.length === 0 ? (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-700">
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Hozircha rahbarlar kiritilmagan.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {leadersList.map((person) => (
+            <div key={person.id} className="w-full bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col items-center transition-all duration-300 hover:shadow-lg">
 
-            {/* Top Gradient Header */}
-            <div className="h-24 w-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+              {/* Top Gradient Header */}
+              <div className="h-24 w-full bg-gradient-to-r from-blue-600 to-indigo-700"></div>
 
-            {/* Avatar */}
-            <div className="relative -mt-12 w-24 h-24 rounded-full border-4 border-white dark:border-[#1e293b] overflow-hidden bg-slate-100 shrink-0">
-              <img
-                src={person.image}
-                alt={person.fullName}
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
+              {/* Avatar */}
+              <div className="relative -mt-12 w-24 h-24 rounded-full border-4 border-white dark:border-[#1e293b] overflow-hidden bg-slate-100 shrink-0">
+                <img
+                  src={person.image}
+                  alt={person.fullName}
+                  className="w-full h-full object-cover object-top"
+                  onError={(e) => { e.target.onerror = null; e.target.src = rektorImg; }}
+                />
+              </div>
 
-            {/* Content */}
-            <div className="flex flex-col items-center p-5 text-center flex-1 w-full">
-              <h3 className="text-[17px] font-bold text-slate-800 dark:text-white leading-tight mb-1">{person.fullName}</h3>
-              <p className="text-[13px] text-slate-500 dark:text-slate-400 font-medium mb-4">{person.position}</p>
+              {/* Content */}
+              <div className="flex flex-col items-center p-5 text-center flex-1 w-full">
+                <h3 className="text-[17px] font-bold text-slate-800 dark:text-white leading-tight mb-1">{person.fullName}</h3>
+                <p className="text-[13px] text-[#3b82f6] dark:text-blue-400 font-semibold mb-4">{person.position}</p>
 
-              {/* Contact Info (Compact) */}
-              <div className="flex flex-col gap-2 w-full text-left mt-auto bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                <div className="flex items-start gap-2 text-[12px] text-slate-600 dark:text-slate-300">
-                  <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-                  <span className="line-clamp-2" title={person.address}>{person.address}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
-                  <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span className="truncate">{person.reception}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
-                  <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span className="truncate">{person.phone}</span>
+                {/* Contact Info (Compact) */}
+                <div className="flex flex-col gap-2 w-full text-left mt-auto bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-start gap-2 text-[12px] text-slate-600 dark:text-slate-300">
+                    <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                    <span className="line-clamp-2" title={person.address}>{person.address}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
+                    <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="truncate">{person.reception}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
+                    <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="truncate">{person.phone}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Actions Footer */}
-            <div className="grid grid-cols-3 gap-2 w-full p-4 border-t border-slate-100 dark:border-slate-800">
-              <button
-                onClick={() => { setSelectedPerson(person); setViewModalOpen(true); }}
-                className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#3b82f6] border border-[#3b82f6]/30 dark:border-[#3b82f6]/40 rounded-lg hover:bg-blue-50 dark:hover:bg-[#3b82f6]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
-              >
-                <Eye className="w-4 h-4" />
-                <span>Ko'rish</span>
-              </button>
-              <button
-                onClick={() => openEditModal(person)}
-                className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#10b981] border border-[#10b981]/30 dark:border-[#10b981]/40 rounded-lg hover:bg-emerald-50 dark:hover:bg-[#10b981]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
-              >
-                <Edit2 className="w-4 h-4" />
-                <span>Tahrirlash</span>
-              </button>
-              <button
-                onClick={() => { setSelectedPerson(person); setDeleteModalOpen(true); }}
-                className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#ef4444] border border-[#ef4444]/30 dark:border-[#ef4444]/40 rounded-lg hover:bg-red-50 dark:hover:bg-[#ef4444]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>O'chirish</span>
-              </button>
+              {/* Actions Footer */}
+              <div className="grid grid-cols-3 gap-2 w-full p-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  onClick={() => { setSelectedPerson(person); setViewModalOpen(true); }}
+                  className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#3b82f6] border border-[#3b82f6]/30 dark:border-[#3b82f6]/40 rounded-lg hover:bg-blue-50 dark:hover:bg-[#3b82f6]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Ko'rish</span>
+                </button>
+                <button
+                  onClick={() => openEditModal(person)}
+                  className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#10b981] border border-[#10b981]/30 dark:border-[#10b981]/40 rounded-lg hover:bg-emerald-50 dark:hover:bg-[#10b981]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span>Tahrirlash</span>
+                </button>
+                <button
+                  onClick={() => { setSelectedPerson(person); setDeleteModalOpen(true); }}
+                  className="flex flex-col xl:flex-row items-center justify-center gap-1.5 py-2 px-1 text-[#ef4444] border border-[#ef4444]/30 dark:border-[#ef4444]/40 rounded-lg hover:bg-red-50 dark:hover:bg-[#ef4444]/10 transition-colors text-[11px] sm:text-[12px] font-semibold"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>O'chirish</span>
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* View Modal */}
       {viewModalOpen && selectedPerson && (
@@ -290,7 +372,7 @@ export default function LeadershipAdmin() {
                 Yo'q
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteConfirm}
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
                 Ha
@@ -341,7 +423,9 @@ export default function LeadershipAdmin() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">F.I.SH</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      F.I.SH ({activeLang.toUpperCase()})
+                    </label>
                     <input
                       type="text"
                       value={formData.fullName[activeLang]}
@@ -351,7 +435,9 @@ export default function LeadershipAdmin() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lavozim</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      Lavozim ({activeLang.toUpperCase()})
+                    </label>
                     <input
                       type="text"
                       value={formData.position[activeLang]}
@@ -364,7 +450,9 @@ export default function LeadershipAdmin() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Manzil</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      Manzil ({activeLang.toUpperCase()})
+                    </label>
                     <input
                       type="text"
                       value={formData.address[activeLang]}
@@ -374,7 +462,9 @@ export default function LeadershipAdmin() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Qabul vaqti</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      Qabul vaqti ({activeLang.toUpperCase()})
+                    </label>
                     <input
                       type="text"
                       value={formData.reception[activeLang]}
@@ -410,39 +500,45 @@ export default function LeadershipAdmin() {
                 </div>
               </div>
 
-              {/* Only UZ Image Upload */}
-              {activeLang === 'uz' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                    Rasm yuklash
-                  </label>
-                  <div className="flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
-                    <div className="text-center">
-                      <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
-                      <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
-                        <label className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]">
-                          <span>Rasm yuklash</span>
-                          <input type="file" className="sr-only" accept="image/*" />
-                        </label>
-                      </div>
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Rasm
+                </label>
+                <div className="flex items-center gap-4">
+                  {previewUrl && (
+                    <div className="w-16 h-20 rounded-lg overflow-hidden border border-slate-300 shrink-0">
+                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover object-top" />
                     </div>
-                  </div>
+                  )}
+                  <label className="flex-1 flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                    <div className="text-center flex items-center gap-2">
+                      <ImageIcon className="h-5 w-5 text-slate-400" />
+                      <span className="text-sm font-semibold text-[#0eb99c]">
+                        {selectedFile ? selectedFile.name : "Rasm tanlash"}
+                      </span>
+                      <input type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
+                    </div>
+                  </label>
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
               <button
                 onClick={() => setIsModalOpen(false)}
+                disabled={saving}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
                 Bekor qilish
               </button>
               <button
                 onClick={handleSave}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
+                disabled={saving}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm flex items-center gap-2"
               >
-                Saqlash
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>Saqlash</span>
               </button>
             </div>
           </div>
@@ -451,3 +547,4 @@ export default function LeadershipAdmin() {
     </div>
   );
 }
+

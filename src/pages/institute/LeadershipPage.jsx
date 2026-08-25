@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { MapPin, Mail, Clock, Phone, ChevronRight } from 'lucide-react'
+import { MapPin, Mail, Clock, Phone, ChevronRight, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import rektorImg from '../../assets/men.jpg'
@@ -18,20 +18,42 @@ export default function LeadershipPage() {
     const fetchLeaders = async () => {
       setLoading(true);
       try {
-        const res = await leadersAPI.getAll(i18n.language || 'uz');
-        const rawData = Array.isArray(res) ? res : (res?.data || []);
+        const lang = i18n.language || 'uz';
+        const langCap = lang.charAt(0).toUpperCase() + lang.slice(1);
+        let res;
+        try {
+          res = await leadersAPI.getLanding(0, 50);
+        } catch (e) {
+          res = await leadersAPI.getAll(lang);
+        }
+        
+        const rawData = Array.isArray(res) ? res : (res?.data?.content || res?.data || []);
+        
         if (isMounted) {
-          const formatted = rawData.map((item, index) => ({
-            id: item.id || index + 1,
-            fullName: item.fullName || item.fullNameUz || item.fullNameRu || item.fullNameEn || "Rahbar",
-            positionTitle: item.positionTitle || item.positionTitleUz || "Lavozim",
-            address: item.address || item.addressUz || "Urganch shahri, Gurlan ko'chasi 1A-uy",
-            receptionTime: item.receptionTime || item.receptionTimeUz || "09:00 - 17:00",
-            email: item.email || "info@urspi.uz",
-            phoneNumber: item.phoneNumber || "+998622261840",
-            photo: getFileUrl(item.photoLink || item.photo) || rektorImg,
-            isRektor: (item.positionTitleUz || item.positionTitle || '').toLowerCase().includes('rektor')
-          }));
+          const formatted = rawData.map((item, index) => {
+            const fullName = item[`fullName${langCap}`] || item.fullName || item.fullNameUz || item.fullNameRu || item.fullNameEn || "Rahbar";
+            const positionTitle = item[`positionTitle${langCap}`] || item.positionTitle || item.positionTitleUz || item.positionTitleRu || item.positionTitleEn || "Lavozim";
+            const address = item[`address${langCap}`] || item.address || item.addressUz || item.addressRu || item.addressEn || "Urganch shahri, Gurlan ko'chasi 1A-uy";
+            const receptionTime = item[`receptionTime${langCap}`] || item.receptionTime || item.receptionTimeUz || item.receptionTimeRu || item.receptionTimeEn || "09:00 - 17:00";
+            const email = item.email || "info@urspi.uz";
+            const phoneNumber = item.phoneNumber || item.phone || "+998622261840";
+            const photo = getFileUrl(item.photoLink || item.photo || item.image || item.fileLink) || rektorImg;
+
+            const posLower = (positionTitle || '').toLowerCase();
+            const isRektor = posLower.includes('rektor') && !posLower.includes('prorektor') && !posLower.includes('maslahatchi') && !posLower.includes("o'rinbosar") && !posLower.includes("o‘rinbosar");
+
+            return {
+              id: item.id || index + 1,
+              fullName,
+              positionTitle,
+              address,
+              receptionTime,
+              email,
+              phoneNumber,
+              photo,
+              isRektor
+            };
+          });
           setLeaders(formatted);
         }
       } catch (err) {
@@ -46,8 +68,8 @@ export default function LeadershipPage() {
     return () => { isMounted = false; };
   }, [i18n.language]);
 
-  const rektor = leaders.find(l => l.isRektor) || leaders[0];
-  const prorektors = leaders.filter(l => l !== rektor);
+  const rektor = leaders.find(l => l.isRektor) || (leaders.length > 0 ? leaders[0] : null);
+  const prorektors = rektor ? leaders.filter(l => l !== rektor) : [];
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
@@ -75,243 +97,127 @@ export default function LeadershipPage() {
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
 
-          {/* Card — Rektor */}
-          {rektor && (
-            <div className="w-full max-w-5xl mx-auto bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row p-5 md:p-7 gap-6 md:gap-10 transition-all duration-300 hover:shadow-lg hover:shadow-slate-300/60 hover:-translate-y-0.5">
-
-              {/* Left: Image Frame */}
-              <div className="w-full md:w-[260px] shrink-0">
-                <div className="w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white flex items-center justify-center overflow-hidden">
-                  <img
-                    src={rektor.photo}
-                    alt={rektor.fullName}
-                    className="w-full h-full object-cover rounded-xl object-top"
-                    onError={(e) => { e.target.onerror = null; e.target.src = rektorImg; }}
-                  />
-                </div>
-              </div>
-
-              {/* Right: Content */}
-              <div className="w-full flex flex-col justify-center py-2">
-                <div className="mb-6">
-                  <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[13px] font-semibold mb-3">
-                    {rektor.positionTitle}
-                  </span>
-                  <h2 className="text-[26px] md:text-[32px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                    {rektor.fullName}
-                  </h2>
-                </div>
-
-                <div className="space-y-4 text-slate-500 font-medium">
-
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-[#3b82f6] shrink-0 mt-0.5" />
-                    <span className="text-base">{rektor.address}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-[#3b82f6] shrink-0" />
-                    <span className="text-base">{rektor.receptionTime}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-[#3b82f6] shrink-0" />
-                    <a href={`mailto:${rektor.email}`} className="text-base hover:text-[#3b82f6] transition-colors">{rektor.email}</a>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-[#3b82f6] shrink-0" />
-                    <a href={`tel:${rektor.phoneNumber}`} className="text-base hover:text-[#3b82f6] transition-colors">{rektor.phoneNumber}</a>
-                  </div>
-
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#3b82f6]" />
+              <p className="text-sm font-medium">Yuklanmoqda...</p>
             </div>
+          ) : leaders.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+              <p className="text-slate-500 font-medium">Hozircha rahbarlar ma'lumotlari mavjud emas.</p>
+            </div>
+          ) : (
+            <>
+              {/* Card — Rektor */}
+              {rektor && (
+                <div className="w-full max-w-5xl mx-auto bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row p-5 md:p-7 gap-6 md:gap-10 transition-all duration-300 hover:shadow-lg hover:shadow-slate-300/60 hover:-translate-y-0.5">
+
+                  {/* Left: Image Frame */}
+                  <div className="w-full md:w-[260px] shrink-0">
+                    <div className="w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white flex items-center justify-center overflow-hidden">
+                      <img
+                        src={rektor.photo}
+                        alt={rektor.fullName}
+                        className="w-full h-full object-cover rounded-xl object-top"
+                        onError={(e) => { e.target.onerror = null; e.target.src = rektorImg; }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right: Content */}
+                  <div className="w-full flex flex-col justify-center py-2">
+                    <div className="mb-6">
+                      <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[13px] font-semibold mb-3">
+                        {rektor.positionTitle}
+                      </span>
+                      <h2 className="text-[26px] md:text-[32px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
+                        {rektor.fullName}
+                      </h2>
+                    </div>
+
+                    <div className="space-y-4 text-slate-500 font-medium">
+
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-[#3b82f6] shrink-0 mt-0.5" />
+                        <span className="text-base">{rektor.address}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-[#3b82f6] shrink-0" />
+                        <span className="text-base">{rektor.receptionTime}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-[#3b82f6] shrink-0" />
+                        <a href={`mailto:${rektor.email}`} className="text-base hover:text-[#3b82f6] transition-colors">{rektor.email}</a>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-5 h-5 text-[#3b82f6] shrink-0" />
+                        <a href={`tel:${rektor.phoneNumber}`} className="text-base hover:text-[#3b82f6] transition-colors">{rektor.phoneNumber}</a>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Prorektors Grid */}
+              {prorektors.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 auto-rows-fr">
+                  {prorektors.map((prorektor) => (
+                    <div key={prorektor.id} className={prorektorCardClass}>
+                      <div className="w-full xl:w-[180px] shrink-0 self-start">
+                        <div className="w-[180px] xl:w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white overflow-hidden">
+                          <img
+                            src={prorektor.photo}
+                            alt={prorektor.fullName}
+                            className="w-full h-full object-cover rounded-xl object-top"
+                            onError={(e) => { e.target.onerror = null; e.target.src = rektorImg; }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="w-full flex flex-col justify-start flex-1">
+                        <div className="mb-4">
+                          <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
+                            {prorektor.positionTitle}
+                          </span>
+                          <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
+                            {prorektor.fullName}
+                          </h3>
+                        </div>
+
+                        <div className="space-y-2 sm:space-y-3 text-slate-500 font-medium text-[13px] sm:text-[14px]">
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <MapPin className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
+                            <span className="text-left">{prorektor.address}</span>
+                          </div>
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <Clock className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
+                            <span className="text-left">{prorektor.receptionTime}</span>
+                          </div>
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <Mail className="w-4 h-4 text-[#3b82f6] shrink-0" />
+                            <a href={`mailto:${prorektor.email}`} className="hover:text-[#3b82f6] transition-colors break-all text-left">{prorektor.email}</a>
+                          </div>
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
+                            <a href={`tel:${prorektor.phoneNumber}`} className="hover:text-[#3b82f6] transition-colors text-left">{prorektor.phoneNumber}</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
-
-          {/* Prorektors Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 auto-rows-fr">
-
-              {/* Prorektor 1 */}
-              <div className={prorektorCardClass}>
-                <div className="w-full xl:w-[180px] shrink-0 self-start">
-                  <div className="w-[180px] xl:w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white overflow-hidden">
-                    <img
-                      src={rektorImg}
-                      alt="Allanazarov Sirojbek Bekchan o‘g‘li"
-                      className="w-full h-full object-cover rounded-xl object-top"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full flex flex-col justify-start flex-1">
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
-                      O‘quv ishlari bo‘yicha prorektor
-                    </span>
-                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                      ALLANAZAROV SIROJBEK
-                    </h3>
-                    <p className="text-[#0c1f4a] font-medium text-[14px] sm:text-[15px] mt-1">Bekchan o‘g‘li</p>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 text-slate-500 font-medium text-[13px] sm:text-[14px]">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <MapPin className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Xorazm viloyati, Urganch shahri, Gurlan ko'chasi 1A-uy</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <Clock className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Dushanba 10:00 - 12:00, Payshanba 14:00 - 16:00</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Mail className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="mailto:allanazarov_sirojbek@gmail.com" className="hover:text-[#3b82f6] transition-colors break-all text-left">allanazarov_sirojbek@gmail.com</a>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="tel:+998993473605" className="hover:text-[#3b82f6] transition-colors text-left">+998993473605</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prorektor 3 */}
-              <div className={prorektorCardClass}>
-                <div className="w-full xl:w-[180px] shrink-0 self-start">
-                  <div className="w-[180px] xl:w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white overflow-hidden">
-                    <img
-                      src={rektorImg}
-                      alt="Latipov Xursandbek Durdiboy o‘g‘li"
-                      className="w-full h-full object-cover rounded-xl object-top"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full flex flex-col justify-start flex-1">
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
-                      Moliya-iqtisod ishlari boʻyicha prorektor
-                    </span>
-                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                      LATIPOV XURSANDBEK
-                    </h3>
-                    <p className="text-[#0c1f4a] font-medium text-[14px] sm:text-[15px] mt-1">Durdiboy o‘g‘li</p>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 text-slate-500 font-medium text-[13px] sm:text-[14px]">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <MapPin className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Xorazm viloyati, Urganch shahri, Gurlan ko'chasi 1A-uy</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <Clock className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Dushanba, Shanba 14:00 - 16:00</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Mail className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="mailto:latipov_x@gmail.ru" className="hover:text-[#3b82f6] transition-colors break-all text-left">latipov_x@gmail.ru</a>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="tel:+998999614388" className="hover:text-[#3b82f6] transition-colors text-left">+998 99 961 43 88</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prorektor 2 */}
-              <div className={prorektorCardClass}>
-                <div className="w-full xl:w-[180px] shrink-0 self-start">
-                  <div className="w-[180px] xl:w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white overflow-hidden">
-                    <img
-                      src={rektorImg}
-                      alt="Xo‘jamuratov Umarjon Rustamovich"
-                      className="w-full h-full object-cover rounded-xl object-top"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full flex flex-col justify-start flex-1">
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
-                      Yoshlar masalalari va ma’naviy-marifiy ishlar bo‘yicha birinchi prorektori
-                    </span>
-                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                      XO‘JAMURATOV UMARJON
-                    </h3>
-                    <p className="text-[#0c1f4a] font-medium text-[14px] sm:text-[15px] mt-1">Rustamovich</p>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 text-slate-500 font-medium text-[13px] sm:text-[14px]">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <MapPin className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Xorazm viloyati, Urganch shahri, Gurlan ko'chasi 1A-uy</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <Clock className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Dushanba 10:00 - 12:00, Payshanba 14:00 - 16:00</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Mail className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="mailto:umarjonbuyuk@gmail.com" className="hover:text-[#3b82f6] transition-colors break-all text-left">umarjonbuyuk@gmail.com</a>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="tel:+998942307338" className="hover:text-[#3b82f6] transition-colors text-left">+998942307338</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prorektor 4 */}
-              <div className={prorektorCardClass}>
-                <div className="w-full xl:w-[180px] shrink-0 self-start">
-                  <div className="w-[180px] xl:w-full aspect-[4/5] rounded-2xl border-[3px] border-[#0c1f4a] p-1 bg-white overflow-hidden">
-                    <img
-                      src={rektorImg}
-                      alt="Kamilоva Nazоkat Saidjоnоvna"
-                      className="w-full h-full object-cover rounded-xl object-top"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full flex flex-col justify-start flex-1">
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
-                      Axborot masalalari bo'yicha rektor maslahatchisi
-                    </span>
-                    <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                      KAMILОVA NAZОKAT
-                    </h3>
-                    <p className="text-[#0c1f4a] font-medium text-[14px] sm:text-[15px] mt-1">Saidjоnоvna</p>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 text-slate-500 font-medium text-[13px] sm:text-[14px]">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <MapPin className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Xorazm viloyati, Urganch shahri, Gurlan ko'chasi 1A-uy</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <Clock className="w-4 h-4 text-[#3b82f6] shrink-0 mt-0.5" />
-                      <span className="text-left">Seshanba, Juma 14:00 - 16:00</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Mail className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="mailto:nazokat4826@gmail.com" className="hover:text-[#3b82f6] transition-colors break-all text-left">nazokat4826@gmail.com</a>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
-                      <a href="tel:+998954404826" className="hover:text-[#3b82f6] transition-colors text-left">+998954404826</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-          </div>
 
         </div>
       </div>
     </div>
   )
 }
+
+
