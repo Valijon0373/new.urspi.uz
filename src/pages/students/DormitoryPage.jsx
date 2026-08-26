@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { rentalsAPI, getFileUrl } from '../../api';
+import { rentalsAPI, dormitoriesAPI, getFileUrl } from '../../api';
 import { 
   ChevronRight, 
   Wifi, 
@@ -388,14 +388,78 @@ export default function DormitoryPage() {
 
   const [activeTab, setActiveTab] = useState('ttj'); // 'ttj' or 'ijara'
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxItems, setLightboxItems] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
   const [visibleGalleryCount, setVisibleGalleryCount] = useState(6);
   const [liveRentals, setLiveRentals] = useState([]);
+  const [liveDormitories, setLiveDormitories] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
+
+    const fetchLiveDormitories = async () => {
+      let apiItems = [];
+      const lang = currentLang || 'uz';
+      try {
+        const res = await dormitoriesAPI.getAll(lang);
+        apiItems = Array.isArray(res) ? res : (res?.data || res?.content || []);
+      } catch (err) {
+        try {
+          const resAll = await dormitoriesAPI.getAll();
+          apiItems = Array.isArray(resAll) ? resAll : (resAll?.data || resAll?.content || []);
+        } catch (e) {
+          console.warn('Failed to load dormitories from API:', e.message);
+        }
+      }
+
+      let localItems = [];
+      try {
+        localItems = JSON.parse(localStorage.getItem('urspi_custom_dormitories') || '[]');
+      } catch (e) {}
+
+      const combinedMap = new Map();
+      localItems.forEach(item => {
+        if (item && item.id != null) combinedMap.set(String(item.id), item);
+      });
+      apiItems.forEach(item => {
+        if (item && item.id != null) combinedMap.set(String(item.id), item);
+      });
+
+      const combined = Array.from(combinedMap.values());
+      if (isMounted) {
+        if (combined.length > 0) {
+          const formatted = combined.map((item, idx) => {
+            const titleObj = item.title;
+            const titleUz = item.titleUz || (typeof titleObj === 'object' ? titleObj?.uz : titleObj) || (typeof item.title === 'string' ? item.title : 'Talabalar turar joyi');
+            const titleRu = item.titleRu || (typeof titleObj === 'object' ? titleObj?.ru : titleObj) || titleUz;
+            const titleEn = item.titleEn || (typeof titleObj === 'object' ? titleObj?.en : titleObj) || titleUz;
+
+            const descObj = item.description;
+            const descUz = item.descriptionUz || item.contentUz || (typeof descObj === 'object' ? descObj?.uz : descObj) || (typeof item.description === 'string' ? item.description : "");
+            const descRu = item.descriptionRu || item.contentRu || (typeof descObj === 'object' ? descObj?.ru : descObj) || descUz;
+            const descEn = item.descriptionEn || item.contentEn || (typeof descObj === 'object' ? descObj?.en : descObj) || descUz;
+
+            let rawImg = item.image || item.photo || item.imageLink || item.photoLink || item.fileLink || item.mainImageLink || item.filePath || '';
+            if (typeof rawImg === 'object') {
+              rawImg = rawImg.link || rawImg.url || rawImg.path || rawImg.filePath || '';
+            }
+            const imgUrl = rawImg ? getFileUrl(rawImg) : '';
+
+            return {
+              id: item.id || `dorm-${idx}`,
+              title: { uz: titleUz, ru: titleRu, en: titleEn },
+              description: { uz: descUz, ru: descRu, en: descEn },
+              image: imgUrl
+            };
+          });
+          setLiveDormitories(formatted);
+        } else {
+          setLiveDormitories([]);
+        }
+      }
+    };
+
     const fetchLiveRentals = async () => {
       let apiItems = [];
       const lang = currentLang || 'uz';
@@ -468,9 +532,11 @@ export default function DormitoryPage() {
       }
     };
 
+    fetchLiveDormitories();
     fetchLiveRentals();
 
     const handleStorageChange = () => {
+      fetchLiveDormitories();
       fetchLiveRentals();
     };
     window.addEventListener('storage', handleStorageChange);
@@ -480,22 +546,20 @@ export default function DormitoryPage() {
     };
   }, [currentLang, activeTab]);
 
-
-
-  const openLightbox = (imagesList, index) => {
-    setLightboxImages(imagesList);
+  const openLightbox = (itemsList, index) => {
+    setLightboxItems(itemsList);
     setLightboxIdx(index);
     setLightboxOpen(true);
   };
 
   const handlePrevImage = (e) => {
     e.stopPropagation();
-    setLightboxIdx((prev) => (prev === 0 ? lightboxImages.length - 1 : prev - 1));
+    setLightboxIdx((prev) => (prev === 0 ? lightboxItems.length - 1 : prev - 1));
   };
 
   const handleNextImage = (e) => {
     e.stopPropagation();
-    setLightboxIdx((prev) => (prev === lightboxImages.length - 1 ? 0 : prev + 1));
+    setLightboxIdx((prev) => (prev === lightboxItems.length - 1 ? 0 : prev + 1));
   };
 
   return (
@@ -752,44 +816,80 @@ export default function DormitoryPage() {
               </div>
             </div>
 
-            {/* Photo Gallery ("va albatta galereya qo'y") */}
+            {/* Photo Gallery ("Talabalar turar joyi foto galereyasi") */}
             <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
               <div className="mb-8 text-center">
                 <h3 className="text-2xl font-bold text-slate-900">{trans.galleryHeader}</h3>
                 <p className="text-sm text-slate-500 mt-1">{trans.gallerySub}</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {ttjImages.slice(0, visibleGalleryCount).map((imgUrl, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => openLightbox(ttjImages, idx)}
-                    className="relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group shadow-sm border border-slate-100"
-                  >
-                    <img 
-                      src={imgUrl} 
-                      alt={`Gallery item ${idx + 1}`} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                    />
-                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                      <span className="bg-white/95 px-4 py-2 rounded-xl text-xs font-bold text-[#0c1f4a] shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        {currentLang === 'uz' ? "Kattalashtirish" : currentLang === 'ru' ? "Увеличить" : "Zoom Image"}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {(() => {
+                const galleryItems = liveDormitories.filter(d => d.image).map(d => ({
+                  id: d.id,
+                  image: d.image,
+                  title: d.title[currentLang] || d.title.uz || '',
+                  description: d.description[currentLang] || d.description.uz || '',
+                  isApi: true
+                }));
 
-              {visibleGalleryCount < ttjImages.length && (
-                <div className="mt-8 text-center animate-in fade-in duration-300">
-                  <button
-                    type="button"
-                    onClick={() => setVisibleGalleryCount(prev => prev + 6)}
-                    className="px-8 py-3.5 bg-transparent border-2 border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                  >
-                    {trans.btnShowMore}
-                  </button>
-                </div>
-              )}
+                if (galleryItems.length === 0) {
+                  return (
+                    <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-slate-500 font-medium text-sm">
+                        {currentLang === 'uz' ? "Foto galereyada hozircha rasmlar mavjud emas" : currentLang === 'ru' ? "В фотогалерее пока нет фотографий" : "No photos available in gallery yet"}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {galleryItems.slice(0, visibleGalleryCount).map((item, idx) => (
+                        <div 
+                          key={item.id || idx} 
+                          onClick={() => openLightbox(galleryItems, idx)}
+                          className="relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group shadow-sm border border-slate-100 bg-slate-100 flex flex-col"
+                        >
+                          <img 
+                            src={item.image} 
+                            alt={item.title || `Gallery item ${idx + 1}`} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                          />
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/50 to-transparent p-4 pt-8 text-white transition-opacity duration-300">
+                            {item.title && (
+                              <h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-sky-300 transition-colors">
+                                {item.title}
+                              </h4>
+                            )}
+                            {item.description && (
+                              <p className="text-xs text-slate-300 line-clamp-1 mt-0.5 opacity-90">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                            <span className="bg-white/95 px-4 py-2 rounded-xl text-xs font-bold text-[#0c1f4a] shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                              {currentLang === 'uz' ? "Kattalashtirish" : currentLang === 'ru' ? "Увеличить" : "Zoom Image"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {visibleGalleryCount < galleryItems.length && (
+                      <div className="mt-8 text-center animate-in fade-in duration-300">
+                        <button
+                          type="button"
+                          onClick={() => setVisibleGalleryCount(prev => prev + 6)}
+                          className="px-8 py-3.5 bg-transparent border-2 border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                        >
+                          {trans.btnShowMore}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ) : (
@@ -870,14 +970,14 @@ export default function DormitoryPage() {
       </div>
 
       {/* ── 5. LIGHTBOX MODAL ── */}
-      {lightboxOpen && (
+      {lightboxOpen && lightboxItems.length > 0 && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-sm"
           onClick={() => setLightboxOpen(false)}
         >
           {/* Close button */}
           <button 
-            className="absolute top-6 right-6 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition"
+            className="absolute top-6 right-6 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition z-10"
             onClick={() => setLightboxOpen(false)}
           >
             <X className="w-6 h-6" />
@@ -885,23 +985,42 @@ export default function DormitoryPage() {
 
           {/* Navigation left */}
           <button 
-            className="absolute left-6 top-1/2 -translate-y-1/2 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition"
+            className="absolute left-6 top-1/2 -translate-y-1/2 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition z-10"
             onClick={handlePrevImage}
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
 
-          {/* Image */}
-          <img 
-            src={lightboxImages[lightboxIdx]} 
-            alt={`Lightbox image ${lightboxIdx + 1}`} 
-            className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl transition-transform animate-in zoom-in duration-300"
-            onClick={(e) => e.stopPropagation()} 
-          />
+          {/* Center Image + Info Box */}
+          {(() => {
+            const currentItem = lightboxItems[lightboxIdx];
+            const currentImgSrc = typeof currentItem === 'string' ? currentItem : currentItem?.image;
+            const currentTitle = typeof currentItem === 'object' ? currentItem?.title : '';
+            const currentDesc = typeof currentItem === 'object' ? currentItem?.description : '';
+
+            return (
+              <div 
+                className="flex flex-col items-center justify-center max-w-4xl max-h-[85vh] p-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img 
+                  src={currentImgSrc} 
+                  alt={currentTitle || `Lightbox image ${lightboxIdx + 1}`} 
+                  className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl transition-transform animate-in zoom-in duration-300"
+                />
+                {(currentTitle || currentDesc) && (
+                  <div className="mt-4 text-center max-w-xl bg-slate-900/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 text-white">
+                    {currentTitle && <h4 className="text-base font-bold text-white">{currentTitle}</h4>}
+                    {currentDesc && <p className="text-xs text-slate-300 mt-1 leading-relaxed line-clamp-3">{currentDesc}</p>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Navigation right */}
           <button 
-            className="absolute right-6 top-1/2 -translate-y-1/2 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition"
+            className="absolute right-6 top-1/2 -translate-y-1/2 p-3 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition z-10"
             onClick={handleNextImage}
           >
             <ChevronRight className="w-8 h-8" />
@@ -909,10 +1028,11 @@ export default function DormitoryPage() {
 
           {/* Image counter indicator */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 font-semibold text-sm">
-            {lightboxIdx + 1} / {lightboxImages.length}
+            {lightboxIdx + 1} / {lightboxItems.length}
           </div>
         </div>
       )}
     </main>
   );
 }
+

@@ -5,7 +5,7 @@ import { GrSend } from 'react-icons/gr'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
-import { teachersAPI, getFileUrl, resolvePersonPosition, isFacultyDean, isViceDean, localizedField, positionsAPI } from '../../api'
+import { teachersAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, isFacultyDean, isViceDean, localizedField, positionsAPI } from '../../api'
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -36,8 +36,9 @@ export default function FacultyStaffPage() {
       let apiData = [];
       let positions = [];
       try {
-        const [res, posRes] = await Promise.allSettled([
+        const [res, staffRes, posRes] = await Promise.allSettled([
           teachersAPI.getLanding(0, 100),
+          facultyStaffAPI.getAll(),
           positionsAPI.getAll()
         ]);
         if (res.status === 'fulfilled') {
@@ -47,9 +48,12 @@ export default function FacultyStaffPage() {
           try {
             const fallback = await teachersAPI.getAll('uz');
             apiData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
-          } catch (e2) {
-            console.warn('Failed to fetch teachers from API:', e2.message);
-          }
+          } catch (e2) {}
+        }
+        if (staffRes.status === 'fulfilled') {
+          const payload = staffRes.value;
+          const staffArr = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
+          staffArr.forEach(st => apiData.push({ ...st, isFacultyStaff: true }));
         }
         if (posRes.status === 'fulfilled') {
           positions = Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []);
@@ -69,12 +73,15 @@ export default function FacultyStaffPage() {
       positions = Array.from(posMap.values());
 
       let localItems = [];
+      let localStaff = [];
       try {
         localItems = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
+        localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
       } catch (e) {}
 
       const combinedMap = new Map();
       apiData.forEach(t => combinedMap.set(String(t.id), t));
+      localStaff.forEach(t => combinedMap.set(String(t.id), { ...t, isFacultyStaff: true }));
       localItems.forEach(t => {
         const key = String(t.id);
         if (!combinedMap.has(key)) combinedMap.set(key, t);
@@ -104,6 +111,7 @@ export default function FacultyStaffPage() {
             ? nestedPos
             : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
           const person = { ...t, position: posObj || t.position };
+          const rawImg = t.photo || t.image || t.photoLink || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
           return {
             id: t.id,
             fullName: localizedField(t, 'fullName', lang, t.fullNameUz || t.fullName || "Fakultet xodimi"),
@@ -111,7 +119,7 @@ export default function FacultyStaffPage() {
             phone: t.phoneNumber || t.phone || "",
             email: t.email || "",
             degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ""),
-            photo: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg,
+            photo: getFileUrl(rawImg) || menImg,
             officeHours: t.officeHours || t.receptionTime || "10:00-18:00",
             raw: person,
           };
@@ -132,8 +140,18 @@ export default function FacultyStaffPage() {
     };
   }, [lang]);
 
-  const dekan = teachers.find(t => isFacultyDean(t.raw || t));
-  const viceDeans = teachers.filter(t => isViceDean(t.raw || t) && String(t.id) !== String(dekan?.id));
+  const dekan = teachers.find(t => {
+    const raw = t.raw || t;
+    const pos = (resolvePersonPosition(raw, 'uz', '') || raw.positionTitleUz || raw.position || '').toLowerCase();
+    return (isFacultyDean(raw) || raw.isDean || pos.includes('dekan')) && !pos.includes("o'rinbosar");
+  }) || teachers[0];
+
+  const viceDeans = teachers.filter(t => {
+    if (dekan && String(t.id) === String(dekan.id)) return false;
+    const raw = t.raw || t;
+    const pos = (resolvePersonPosition(raw, 'uz', '') || raw.positionTitleUz || raw.position || '').toLowerCase();
+    return isViceDean(raw) || pos.includes("o'rinbosar") || raw.isFacultyStaff;
+  });
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">

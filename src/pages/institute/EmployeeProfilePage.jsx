@@ -3,7 +3,7 @@ import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
-import { teachersAPI, employeesAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
+import { teachersAPI, employeesAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
 
 export default function EmployeeProfilePage() {
   const { id } = useParams()
@@ -20,9 +20,10 @@ export default function EmployeeProfilePage() {
       setLoading(true);
       let data = null;
       try {
-        const [teacherRes, empRes, posRes] = await Promise.allSettled([
+        const [teacherRes, empRes, staffRes, posRes] = await Promise.allSettled([
           teachersAPI.getById(id),
           employeesAPI.getById(id),
+          facultyStaffAPI.getById(id),
           positionsAPI.getAll()
         ]);
 
@@ -30,6 +31,8 @@ export default function EmployeeProfilePage() {
           data = teacherRes.value.data || teacherRes.value;
         } else if (empRes.status === 'fulfilled' && empRes.value) {
           data = empRes.value.data || empRes.value;
+        } else if (staffRes.status === 'fulfilled' && staffRes.value) {
+          data = staffRes.value.data || staffRes.value;
         }
 
         const positions = posRes.status === 'fulfilled'
@@ -47,22 +50,26 @@ export default function EmployeeProfilePage() {
       try {
         const localTeachers = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
         const localEmployees = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
-        const localItem = localTeachers.find(t => String(t.id) === String(id)) || localEmployees.find(e => String(e.id) === String(id));
+        const localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
+        const localItem = localTeachers.find(t => String(t.id) === String(id)) || 
+                          localEmployees.find(e => String(e.id) === String(id)) ||
+                          localStaff.find(s => String(s.id) === String(id));
         if (localItem) {
           data = data ? { ...data, ...localItem } : localItem;
         }
       } catch (e) {}
 
       if (isMounted && data) {
+        const rawImg = data.photo || data.image || data.photoLink || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
         setEmployeeData({
           id: data.id,
           name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
-          position: resolvePersonPosition(data, lang, "Xodim"),
+          position: resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
           phone: data.phoneNumber || data.phone || "",
           email: data.email || "info@urspi.uz",
           bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
-          officeHours: "Dushanba - Juma: 09:00 - 17:00",
-          img: data.photo || data.image || getFileUrl(data.photoLink || data.photo) || menImg,
+          officeHours: data.officeHours || data.receptionTime || "Dushanba - Juma: 09:00 - 17:00",
+          img: getFileUrl(rawImg) || menImg,
           hasScience: !!(data.academicDegree || data.position)
         });
       }

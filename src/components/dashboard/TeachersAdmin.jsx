@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Search, SlidersHorizontal, Eye, Edit2, Trash2, ChevronDown, X, Upload, Check, BookOpen, Globe, FileDown, GraduationCap } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Eye, Edit2, Trash2, ChevronDown, X, Upload, Check, BookOpen, Globe, FileDown, GraduationCap, Clock } from 'lucide-react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { teachersAPI, buildTeacherFormData, facultiesAPI, departmentsAPI, positionsAPI, getPositionName, resolvePersonPosition, academicDegreesAPI, getFileUrl, localizedField } from '../../api';
+import { teachersAPI, buildTeacherFormData, facultyStaffAPI, buildFacultyStaffFormData, facultiesAPI, departmentsAPI, positionsAPI, getPositionName, resolvePersonPosition, academicDegreesAPI, getFileUrl, localizedField } from '../../api';
 
 
 export default function TeachersAdmin() {
@@ -12,6 +12,9 @@ export default function TeachersAdmin() {
   const menuRef = useRef(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeanModalOpen, setIsDeanModalOpen] = useState(false);
+  const [isDeanMode, setIsDeanMode] = useState(false);
+  const [officeHours, setOfficeHours] = useState('10:00-18:00');
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [articleModalOpen, setArticleModalOpen] = useState(false);
@@ -166,21 +169,54 @@ export default function TeachersAdmin() {
   const fetchTeachers = async (currentFacs = faculties, currentDepts = departments, currentPositions = positions) => {
     setLoading(true);
     let apiData = [];
+    let facultyStaffData = [];
+
     try {
-      const res = await teachersAPI.getAll();
-      apiData = Array.isArray(res) ? res : (res?.data?.content || res?.data || []);
+      const [res, staffRes] = await Promise.allSettled([
+        teachersAPI.getAll(),
+        facultyStaffAPI.getAll()
+      ]);
+      if (res.status === 'fulfilled') {
+        const payload = res.value;
+        apiData = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
+      }
+      if (staffRes.status === 'fulfilled') {
+        const payload = staffRes.value;
+        facultyStaffData = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
+      }
     } catch (e) {
+      console.warn('API error in fetchTeachers:', e.message);
+    }
+
+    if (apiData.length === 0) {
       try {
         const res = await teachersAPI.getLanding(0, 100);
         apiData = res?.data?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
-      } catch (e2) {
-        console.warn('API error in fetchTeachers:', e2.message);
-      }
+      } catch (e2) {}
     }
+
+    let localFacultyStaff = [];
+    try {
+      localFacultyStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
+    } catch (e) {}
 
     const localItems = getLocalTeachers();
     const combinedMap = new Map();
-    apiData.forEach(item => combinedMap.set(String(item.id), item));
+
+    facultyStaffData.forEach(item => {
+      combinedMap.set(String(item.id), { ...item, isFacultyStaff: true, isDean: true });
+    });
+
+    localFacultyStaff.forEach(item => {
+      combinedMap.set(String(item.id), { ...item, isFacultyStaff: true, isDean: true });
+    });
+
+    apiData.forEach(item => {
+      if (!combinedMap.has(String(item.id))) {
+        combinedMap.set(String(item.id), item);
+      }
+    });
+
     localItems.forEach(item => {
       const key = String(item.id);
       if (!combinedMap.has(key)) {
@@ -212,15 +248,19 @@ export default function TeachersAdmin() {
         ? nestedPos
         : (currentPositions.find(p => String(p.id) === String(posId)) || nestedPos);
       const person = { ...t, position: posObj || t.position };
+      const isDean = !!(t.isDean || t.isFacultyStaff || (posObj && (posObj.nameUz || posObj.name || '').toLowerCase().includes('dekan')));
+      const rawImg = t.photo || t.image || t.photoLink || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
       return {
         id: t.id,
         faculty: t.facultyName || facObj?.nameUz || facObj?.name || t.faculty?.nameUz || t.faculty?.name || "Fakultet",
-        department: t.departmentName || deptObj?.nameUz || deptObj?.name || t.department?.nameUz || t.department?.name || "Kafedra",
-        position: resolvePersonPosition(person, activeLang),
-        fullName: localizedField(t, 'fullName', activeLang, t.fullNameUz || t.fullName || "O'qituvchi"),
+        department: t.departmentName || deptObj?.nameUz || deptObj?.name || t.department?.nameUz || t.department?.name || (isDean ? "Dekanat" : "Kafedra"),
+        position: resolvePersonPosition(person, activeLang) || (isDean ? "Fakultet dekani" : "O'qituvchi"),
+        fullName: localizedField(t, 'fullName', activeLang, t.fullNameUz || t.fullName || (isDean ? "Fakultet dekani" : "O'qituvchi")),
         phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
         email: t.email || "info@urspi.uz",
-        image: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || "",
+        image: getFileUrl(rawImg) || "",
+        isFacultyStaff: !!t.isFacultyStaff,
+        isDean: isDean,
         rawItem: person
       };
     });
@@ -341,6 +381,10 @@ export default function TeachersAdmin() {
   const handleSave = async () => {
     if (!fullName.uz?.trim()) {
       showNotification("Iltimos, F.I.O ni o'zbek tilida kiriting");
+      return;
+    }
+    if (!photoFile && !imagePreview) {
+      showNotification("Iltimos, rasm yuklang (rasm yuklash majburiy)");
       return;
     }
     if (!email?.trim()) {
@@ -510,16 +554,208 @@ export default function TeachersAdmin() {
     }
   };
 
+  const handleSaveDean = async () => {
+    if (!fullName.uz?.trim()) {
+      showNotification("Iltimos, F.I.O ni o'zbek tilida kiriting");
+      return;
+    }
+    if (!photoFile && !imagePreview) {
+      showNotification("Iltimos, rasm yuklang (rasm yuklash majburiy)");
+      return;
+    }
+    if (!email?.trim()) {
+      showNotification("Iltimos, email manzilini kiriting");
+      return;
+    }
+    if (!facultyId) {
+      showNotification("Iltimos, fakultetni tanlang");
+      return;
+    }
+    if (!positionId) {
+      showNotification("Iltimos, lavozimni tanlang");
+      return;
+    }
+    const phoneDigits = phoneNumber.replace(/\D/g, '');
+    if (phoneDigits.length < 12) {
+      showNotification("Iltimos, to'liq telefon raqamini kiriting");
+      return;
+    }
+
+    try {
+      let base64Photo = imagePreview;
+      if (photoFile) {
+        const b64 = await fileToBase64(photoFile);
+        if (b64) base64Photo = b64;
+      }
+
+      const facObj = faculties.find(f => String(f.id) === String(facultyId));
+      const deptObj = departments.find(d => String(d.id) === String(departmentId));
+      const posObj = positions.find(p => String(p.id) === String(positionId));
+
+      const fullNameUz = fullName.uz.trim();
+      const fullNameRu = fullName.ru?.trim() || '';
+      const fullNameEn = fullName.en?.trim() || '';
+      const normalizedPhone = phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`;
+
+      const posNameUz = getPositionName(posObj, 'uz', "Fakultet dekani");
+      const posNameRu = getPositionName(posObj, 'ru', "Декан факультета");
+      const posNameEn = getPositionName(posObj, 'en', "Dean of Faculty");
+
+      const deanObj = {
+        id: editMode && selectedItem ? selectedItem.id : Date.now(),
+        fullNameUz,
+        fullNameRu,
+        fullNameEn,
+        fullName: fullNameUz,
+        phoneNumber: normalizedPhone,
+        phone: normalizedPhone,
+        email: email.trim(),
+        position: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
+        positionTitleUz: posNameUz,
+        positionTitleRu: posNameRu,
+        positionTitleEn: posNameEn,
+        facultyId,
+        facultyName: facObj?.nameUz || facObj?.name || 'Fakultet',
+        departmentId: departmentId || null,
+        departmentName: deptObj?.nameUz || deptObj?.name || '',
+        positionId,
+        academicDegreeId: academicDegreeId || null,
+        officeHours: officeHours.trim() || "10:00-18:00",
+        receptionTime: officeHours.trim() || "10:00-18:00",
+        sortOrder: Number(sortOrder) || 0,
+        faculty: facObj ? { id: facObj.id, nameUz: facObj.nameUz || facObj.name } : { id: facultyId },
+        department: deptObj ? { id: deptObj.id, nameUz: deptObj.nameUz || deptObj.name } : null,
+        positionObj: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
+        photo: base64Photo || "",
+        image: base64Photo || "",
+        photoLink: base64Photo || "",
+        isFacultyStaff: true,
+        isDean: true,
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        const fd = buildFacultyStaffFormData({
+          fullNameUz,
+          fullNameRu,
+          fullNameEn,
+          phoneNumber: normalizedPhone,
+          email: email.trim(),
+          photo: photoFile,
+          cv: cvFile,
+          positionTitleUz: posNameUz || "Dekan",
+          positionTitleRu: posNameRu || "Декан",
+          positionTitleEn: posNameEn || "Dean",
+          sortOrder: Number(sortOrder) || 1,
+          facultyId,
+        });
+
+        let apiRes;
+        if (editMode && selectedItem && (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff)) {
+          apiRes = await facultyStaffAPI.update(selectedItem.id, fd);
+        } else {
+          apiRes = await facultyStaffAPI.create(fd);
+        }
+        const saved = apiRes?.data || apiRes;
+        if (saved?.id) {
+          deanObj.id = saved.id;
+          if (saved.photoLink) {
+            deanObj.photoLink = saved.photoLink;
+            deanObj.image = getFileUrl(saved.photoLink);
+          }
+        }
+      } catch (apiErr) {
+        console.warn('FacultyStaff API save warning:', apiErr.message);
+      }
+
+      let localStaff = [];
+      try {
+        localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
+      } catch (e) {}
+
+      let updatedStaff;
+      if (editMode && selectedItem) {
+        updatedStaff = localStaff.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...deanObj } : item);
+        if (!updatedStaff.some(item => String(item.id) === String(selectedItem.id))) {
+          updatedStaff.unshift(deanObj);
+        }
+      } else {
+        updatedStaff = [deanObj, ...localStaff];
+      }
+
+      try {
+        localStorage.setItem('urspi_custom_faculty_staff', JSON.stringify(updatedStaff));
+      } catch (e) {}
+
+      const localTeachers = getLocalTeachers();
+      let updatedTeachers;
+      if (editMode && selectedItem) {
+        updatedTeachers = localTeachers.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...deanObj } : item);
+        if (!updatedTeachers.some(item => String(item.id) === String(selectedItem.id))) {
+          updatedTeachers.unshift(deanObj);
+        }
+      } else {
+        updatedTeachers = [deanObj, ...localTeachers];
+      }
+      setLocalTeachers(updatedTeachers);
+
+      window.dispatchEvent(new Event('urspi_teachers_updated'));
+
+      const formattedItem = {
+        id: deanObj.id,
+        faculty: deanObj.facultyName || facObj?.nameUz || facObj?.name || 'Fakultet',
+        department: deanObj.departmentName || deptObj?.nameUz || deptObj?.name || 'Dekanat',
+        position: resolvePersonPosition(deanObj, activeLang) || posNameUz,
+        fullName: deanObj.fullName,
+        phone: deanObj.phone,
+        email: deanObj.email,
+        image: deanObj.image,
+        isDean: true,
+        isFacultyStaff: true,
+        rawItem: deanObj
+      };
+
+      setTeachersList(prev => {
+        if (editMode && selectedItem) {
+          return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
+        }
+        return [formattedItem, ...prev.filter(item => String(item.id) !== String(deanObj.id))];
+      });
+
+      showNotification(editMode ? "Dekan ma'lumotlari muvaffaqiyatli tahrirlandi" : "Yangi dekan muvaffaqiyatli qo'shildi");
+      setIsDeanModalOpen(false);
+      setPhotoFile(null);
+      setCvFile(null);
+      fetchTeachers();
+    } catch (e) {
+      console.error(e);
+      showNotification(e.message || "Xatolik yuz berdi");
+    }
+  };
+
   const handleDelete = async () => {
     if (!selectedItem) return;
     try {
-      await teachersAPI.delete(selectedItem.id);
+      if (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff) {
+        await facultyStaffAPI.delete(selectedItem.id);
+      } else {
+        await teachersAPI.delete(selectedItem.id);
+      }
     } catch (e) {
-      console.warn("API delete failed, removing from local storage:", e.message);
+      console.warn("API delete warning:", e.message);
     }
+
+    try {
+      const localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
+      const updatedStaff = localStaff.filter(item => String(item.id) !== String(selectedItem.id));
+      localStorage.setItem('urspi_custom_faculty_staff', JSON.stringify(updatedStaff));
+    } catch (e) {}
+
     const localItems = getLocalTeachers();
     const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
     setLocalTeachers(updatedLocal);
+
+    window.dispatchEvent(new Event('urspi_teachers_updated'));
     showNotification("Muvaffaqiyatli o'chirildi");
     setDeleteModalOpen(false);
     fetchTeachers();
@@ -543,15 +779,23 @@ export default function TeachersAdmin() {
     setDepartmentId(item.rawItem?.department?.id || item.rawItem?.departmentId || '');
     setPositionId(item.rawItem?.position?.id || item.rawItem?.positionObj?.id || item.rawItem?.positionId || '');
     setAcademicDegreeId(item.rawItem?.academicDegree?.id || item.rawItem?.academicDegreeId || '');
+    setOfficeHours(item.rawItem?.officeHours || item.rawItem?.receptionTime || '10:00-18:00');
     setSortOrder(item.rawItem?.sortOrder ?? 0);
 
     setActiveLang('uz');
     setActiveMenuId(null);
-    setIsModalOpen(true);
+    if (item.isFacultyStaff || item.isDean || item.rawItem?.isFacultyStaff) {
+      setIsDeanMode(true);
+      setIsDeanModalOpen(true);
+    } else {
+      setIsDeanMode(false);
+      setIsModalOpen(true);
+    }
   };
 
   const openAddModal = () => {
     setEditMode(false);
+    setIsDeanMode(false);
     setSelectedItem(null);
     setImagePreview(null);
     setPhotoFile(null);
@@ -564,11 +808,40 @@ export default function TeachersAdmin() {
     setDepartmentId('');
     setPositionId('');
     setAcademicDegreeId('');
+    setOfficeHours('');
     setSortOrder(0);
 
     setActiveLang('uz');
     setActiveMenuId(null);
     setIsModalOpen(true);
+  };
+
+  const openAddDeanModal = () => {
+    setEditMode(false);
+    setIsDeanMode(true);
+    setSelectedItem(null);
+    setImagePreview(null);
+    setPhotoFile(null);
+    setCvFile(null);
+
+    setFullName({ uz: '', ru: '', en: '' });
+    setPhoneNumber('+998 ');
+    setEmail('');
+    setFacultyId('');
+    setDepartmentId('');
+
+    const deanPos = positions.find(p => {
+      const name = (p.nameUz || p.name || p.titleUz || '').toLowerCase();
+      return name.includes('dekan') && !name.includes("o'rinbosari");
+    });
+    setPositionId(deanPos ? deanPos.id : (positions[0]?.id || ''));
+    setAcademicDegreeId('');
+    setOfficeHours('10:00-18:00');
+    setSortOrder(0);
+
+    setActiveLang('uz');
+    setActiveMenuId(null);
+    setIsDeanModalOpen(true);
   };
 
   const filteredTeachers = teachersList.filter(t => {
@@ -603,13 +876,21 @@ export default function TeachersAdmin() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">O'qituvchilar</h2>
         
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button 
             onClick={openAddModal}
-            className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
-            Qo'shish
+            O'qituvchi qo'shish
+          </button>
+
+          <button 
+            onClick={openAddDeanModal}
+            className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0052a3] text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            Dekan qo'shish
           </button>
         </div>
       </div>
@@ -659,7 +940,7 @@ export default function TeachersAdmin() {
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="O'qituvchini izlash" 
+            placeholder="O'qituvchi yoki dekanni izlash" 
             className="w-full h-11 pl-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 outline-none focus:border-[#0eb99c] transition-colors placeholder:text-slate-400"
           />
         </div>
@@ -674,7 +955,7 @@ export default function TeachersAdmin() {
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold w-16 text-center">№</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-20">Rasm</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Fakultet</th>
-                <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Kafedra</th>
+                <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Kafedra / Dekanat</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Lavozim</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">F.I.O</th>
                 <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-24">Amallar</th>
@@ -697,7 +978,16 @@ export default function TeachersAdmin() {
                   </td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.faculty}</td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.department}</td>
-                  <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">{teacher.position}</td>
+                  <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center gap-2">
+                      <span>{teacher.position}</span>
+                      {teacher.isDean && (
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 inline-block">
+                          Dekan
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-800 dark:text-slate-200 font-medium">{teacher.fullName}</td>
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-center relative">
                     <button 
@@ -900,7 +1190,7 @@ export default function TeachersAdmin() {
                   ) : (
                     <>
                       <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
-                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash</span>
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
                     </>
                   )}
                 </label>
@@ -1104,6 +1394,249 @@ export default function TeachersAdmin() {
               <button
                 onClick={handleSave}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
+              >
+                Saqlash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Dekan Modal */}
+      {isDeanModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                {editMode ? "Dekan ma'lumotlarini tahrirlash" : "Yangi dekan qo'shish"}
+              </h3>
+              <button 
+                onClick={() => setIsDeanModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              {/* Image Upload */}
+              <div className="flex flex-col items-center justify-center gap-2">
+                <label className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all overflow-hidden relative group">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setPhotoFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
+                    </>
+                  )}
+                </label>
+              </div>
+
+              {/* Language Tabs */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
+                {[
+                  { id: 'uz', label: "O'zbekcha" },
+                  { id: 'ru', label: 'Русский' },
+                  { id: 'en', label: 'English' }
+                ].map(lang => (
+                  <button
+                    key={lang.id}
+                    type="button"
+                    onClick={() => setActiveLang(lang.id)}
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                      activeLang === lang.id
+                        ? 'border-[#0066cc] text-[#0066cc]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Form Fields */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Dekan F.I.O <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input 
+                      type="text" 
+                      value={fullName[activeLang]}
+                      onChange={(e) => setFullName({ ...fullName, [activeLang]: e.target.value })}
+                      placeholder="To'liq ism-sharifi" 
+                      className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Fakultet <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select 
+                      value={facultyId}
+                      onChange={(e) => setFacultyId(e.target.value)}
+                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="">Fakultetni tanlang</option>
+                      {faculties.map(f => (
+                        <option key={f.id} value={f.id}>
+                          {f.nameUz || f.name || "Fakultet"}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Lavozim <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={positionId}
+                      onChange={(e) => setPositionId(e.target.value)}
+                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="">Lavozimni tanlang</option>
+                      {positions.map(p => (
+                        <option key={p.id} value={p.id}>{getPositionName(p, activeLang, 'Fakultet dekani')}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Ilmiy daraja / unvon
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={academicDegreeId}
+                      onChange={(e) => setAcademicDegreeId(e.target.value)}
+                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="">Ilmiy darajani tanlang (ixtiyoriy)</option>
+                      {academicDegrees.map(d => (
+                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, 'Ilmiy daraja')}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Qabul vaqti
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input 
+                      type="text" 
+                      value={officeHours}
+                      onChange={(e) => setOfficeHours(e.target.value)}
+                      placeholder="Du-Juma: 14:00-17:00" 
+                      className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Telefon raqami <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input 
+                      type="text" 
+                      value={phoneNumber}
+                      onChange={handlePhoneChange}
+                      placeholder="+998 94 237 03 73" 
+                      className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    E-pochtasi <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="dekan@urspi.uz" 
+                      className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV fayl (PDF)</label>
+                  <div className="relative">
+                    <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) setCvFile(e.target.files[0]);
+                      }}
+                      className="w-full h-11 pl-11 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                  {cvFile && (
+                    <p className="text-xs text-slate-500 mt-1">{cvFile.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Saralash tartibi</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value === '' ? 0 : Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+              <button
+                onClick={() => setIsDeanModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleSaveDean}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-[#0066cc] hover:bg-[#0052a3] rounded-xl transition-colors shadow-sm"
               >
                 Saqlash
               </button>

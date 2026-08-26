@@ -21,5 +21,8 @@ export * from './files';
 export * from './photoGalleries';
 export * from './greenInstitutes';
 export * from './rentals';
+export * from './dormitories';
+export * from './facultyStaff';
+
 
 
