@@ -73,7 +73,7 @@ export default function NewsAdmin() {
       author: item.author || "©️ UrDPI matbuot xizmati",
       status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
       active: item.active !== false,
-      image: item.image ? item.image : (getFileUrl(item.mainImageLink || item.mainImage) || "https://via.placeholder.com/300x200"),
+      image: getFileUrl(item.mainImageLink || item.mainImage || item.image) || "https://via.placeholder.com/300x200",
       rawItem: item
     }));
     setNewsList(formatted);

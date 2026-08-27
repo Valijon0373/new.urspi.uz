@@ -63,7 +63,7 @@ export default function NewsPage() {
                         content,
                         date: dateStr,
                         views: item.views || item.viewCount || 0,
-                        image: item.image ? item.image : (getFileUrl(item.mainImageLink || item.mainImage) || urspiImage)
+                        image: getFileUrl(item.mainImageLink || item.mainImage || item.image) || urspiImage
                     };
                 });
                 setNewsList(formatted);

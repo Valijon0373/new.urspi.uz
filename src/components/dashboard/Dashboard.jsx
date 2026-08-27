@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, FileText,
   User, Users, CheckSquare, Info, Moon, Sun, ChevronDown,
@@ -86,7 +86,16 @@ const NAV_ITEMS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const dropdownRef = useRef(null);
+
+  const getInitialTab = () => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl) return tabFromUrl;
+    const tabFromStorage = localStorage.getItem('dashboard-active-tab');
+    if (tabFromStorage) return tabFromStorage;
+    return 'Dashboard';
+  };
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(
@@ -94,11 +103,35 @@ export default function Dashboard() {
   );
   const [adminOpen, setAdminOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({});
-  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    localStorage.setItem('dashboard-active-tab', tabName);
+    setSearchParams({ tab: tabName }, { replace: true });
+  };
 
   const toggleDropdown = (label) => {
     setOpenDropdowns((prev) => ({ ...prev, [label]: !prev[label] }));
   };
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+      localStorage.setItem('dashboard-active-tab', tabFromUrl);
+    } else if (!tabFromUrl && activeTab) {
+      setSearchParams({ tab: activeTab }, { replace: true });
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => {
+      if (item.subItems && item.subItems.some((s) => s.label === activeTab)) {
+        setOpenDropdowns((prev) => ({ ...prev, [item.label]: true }));
+      }
+    });
+  }, [activeTab]);
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -182,7 +215,7 @@ export default function Dashboard() {
                           if (sidebarCollapsed) setSidebarCollapsed(false);
                           toggleDropdown(label);
                           if (subItems && subItems.length > 0 && !isSubActive && activeTab !== label) {
-                            setActiveTab(subItems[0].label);
+                            handleTabChange(subItems[0].label);
                           }
                         }}
                         title={sidebarCollapsed ? label : undefined}
@@ -206,7 +239,7 @@ export default function Dashboard() {
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
-                                setActiveTab(subLabel);
+                                handleTabChange(subLabel);
                               }}
                               className={`w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${activeTab === subLabel
                                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
@@ -238,7 +271,7 @@ export default function Dashboard() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setActiveTab(label)}
+                      onClick={() => handleTabChange(label)}
                       title={sidebarCollapsed ? label : undefined}
                       className={`w-full ${navLinkClass(isActive)}`}
                     >

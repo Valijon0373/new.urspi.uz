@@ -63,7 +63,7 @@ export default function Announcement() {
                         id: item.id || index + 1,
                         date: dateStr,
                         title,
-                        image: item.image ? item.image : (getFileUrl(item.imageLink || item.image) || urspiImage)
+                        image: getFileUrl(item.imageLink || item.image) || urspiImage
                     };
                 });
                 setAnnouncementsList(formatted.slice(0, 5));

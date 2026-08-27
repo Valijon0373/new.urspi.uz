@@ -45,8 +45,10 @@ export default function FacultiesAdmin() {
 
     const localItems = getLocalFaculties();
     const combinedMap = new Map();
-    localItems.forEach(item => combinedMap.set(item.id, item));
     apiData.forEach(item => {
+      combinedMap.set(item.id, item);
+    });
+    localItems.forEach(item => {
       if (!combinedMap.has(item.id)) {
         combinedMap.set(item.id, item);
       }
@@ -64,7 +66,7 @@ export default function FacultiesAdmin() {
       descriptionUz: item.descriptionUz || '',
       descriptionRu: item.descriptionRu || '',
       descriptionEn: item.descriptionEn || '',
-      logo: item.logo ? item.logo : (getFileUrl(item.logoLink || item.logo) || "https://via.placeholder.com/150")
+      logo: getFileUrl(item.logoLink || item.logo) || "https://via.placeholder.com/150"
     }));
     setFacultiesList(formatted);
     setLoading(false);

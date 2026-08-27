@@ -62,7 +62,7 @@ export default function News() {
                     return {
                         id: item.id || index + 1,
                         title,
-                        image: item.image ? item.image : (getFileUrl(item.mainImageLink || item.mainImage) || urspiImage),
+                        image: getFileUrl(item.mainImageLink || item.mainImage || item.image) || urspiImage,
                         date: dateStr,
                         isFeatured: index === 0
                     };

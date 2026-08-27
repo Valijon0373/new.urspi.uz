@@ -72,7 +72,7 @@ export default function AnnouncementsAdmin() {
       author: item.author || "©️ UrDPI matbuot xizmati",
       status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
       active: item.active !== false,
-      image: item.image ? item.image : (getFileUrl(item.imageLink || item.image) || "https://via.placeholder.com/300x200"),
+      image: getFileUrl(item.imageLink || item.image) || "https://via.placeholder.com/300x200",
       rawItem: item
     }));
     setAnnouncementsList(formatted);

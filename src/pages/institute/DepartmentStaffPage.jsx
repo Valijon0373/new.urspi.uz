@@ -139,7 +139,7 @@ export default function DepartmentStaffPage() {
           degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ''),
           phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
           email: t.email || "info@urspi.uz",
-          img: t.photo || t.image || getFileUrl(t.photoLink || t.photo) || menImg,
+          img: getFileUrl(t.photoLink || t.photo || t.image) || menImg,
           departmentId: t.departmentId || t.department?.id,
           departmentName: t.departmentName || t.department?.nameUz || t.department?.name,
           raw: person,

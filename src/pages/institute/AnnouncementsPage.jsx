@@ -64,7 +64,7 @@ export default function AnnouncementsPage() {
                         content,
                         date: dateStr,
                         views: item.views || item.viewCount || 0,
-                        image: item.image ? item.image : (getFileUrl(item.imageLink || item.image) || urspiImage)
+                        image: getFileUrl(item.imageLink || item.image) || urspiImage
                     };
                 });
                 setAnnouncementsList(formatted);

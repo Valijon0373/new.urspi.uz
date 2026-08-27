@@ -129,7 +129,7 @@ export default function EmployeesAdmin() {
         email: emp.email || "info@urspi.uz",
         department: deptName,
         centerId: emp.centerId || emp.center?.id || matchedCenter?.id || '',
-        image: emp.photo || emp.image || getFileUrl(emp.photoLink || emp.photo),
+        image: getFileUrl(emp.photoLink || emp.photo || emp.image),
         color: cardColors[idx % cardColors.length],
         rawItem: emp
       };

@@ -109,14 +109,14 @@ export default function FacultiesPage() {
       } catch (e) {}
 
       const facMap = new Map();
-      localFac.forEach(item => facMap.set(item.id, item));
-      rawFac.forEach(item => {
+      rawFac.forEach(item => facMap.set(item.id, item));
+      localFac.forEach(item => {
         if (!facMap.has(item.id)) facMap.set(item.id, item);
       });
 
       const deptMap = new Map();
-      localDept.forEach(item => deptMap.set(item.id, item));
-      rawDept.forEach(item => {
+      rawDept.forEach(item => deptMap.set(item.id, item));
+      localDept.forEach(item => {
         if (!deptMap.has(item.id)) deptMap.set(item.id, item);
       });
 
@@ -137,7 +137,7 @@ export default function FacultiesPage() {
             id: fac.id,
             name,
             description: desc,
-            logo: fac.logo ? fac.logo : (getFileUrl(fac.logoLink || fac.logo) || facultyImg),
+            logo: getFileUrl(fac.logoLink || fac.logo) || facultyImg,
             departments: facDepts
           };
         });

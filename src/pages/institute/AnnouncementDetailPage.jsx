@@ -53,7 +53,7 @@ export default function AnnouncementDetailPage() {
                     tel: data.tel || "+998 62 224 81 11",
                     fax: data.fax || "",
                     email: data.email || "info@urspi.uz",
-                    image: data.image ? data.image : getFileUrl(data.imageLink || data.image)
+                    image: getFileUrl(data.imageLink || data.image)
                 });
             }
             if (isMounted) setLoading(false);
