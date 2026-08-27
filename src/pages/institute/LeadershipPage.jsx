@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { MapPin, Mail, Clock, Phone, ChevronRight, Loader2 } from 'lucide-react'
+import { MapPin, Mail, Clock, Phone, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Commet } from 'react-loading-indicators'
 import rektorImg from '../../assets/men.jpg'
 import { leadersAPI, getFileUrl } from '../../api'
 
@@ -98,9 +99,8 @@ export default function LeadershipPage() {
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#3b82f6]" />
-              <p className="text-sm font-medium">Yuklanmoqda...</p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <Commet color="#3151cc" size="large" text="Kuting..." textColor="" />
             </div>
           ) : leaders.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">

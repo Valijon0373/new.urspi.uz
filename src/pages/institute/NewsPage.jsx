@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Eye } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
+import { Commet } from 'react-loading-indicators';
 import urspiImage from '../../assets/images/urspi_new.png';
 import { newsAPI, getFileUrl } from '../../api';
 
@@ -101,7 +102,7 @@ export default function NewsPage() {
             <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
                 {loading ? (
                     <div className="flex justify-center py-12">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                        <Commet color="#3151cc" size="large" text="Kuting..." textColor="" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
