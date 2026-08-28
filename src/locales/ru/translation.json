@@ -55,6 +55,10 @@
       "title": "Объявления",
       "view_all": "Все"
     },
+    "centers": {
+      "title": "Центры и отделы",
+      "view_all": "Все"
+    },
     "statistics": {
       "title": "Статистика",
       "directions": "Направления",

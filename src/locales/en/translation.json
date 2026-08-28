@@ -55,6 +55,10 @@
       "title": "Announcements",
       "view_all": "View all"
     },
+    "centers": {
+      "title": "Centers and Departments",
+      "view_all": "View all"
+    },
     "statistics": {
       "title": "Statistics",
       "directions": "Directions",

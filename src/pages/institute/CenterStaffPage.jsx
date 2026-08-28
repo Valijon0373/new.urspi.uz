@@ -36,11 +36,9 @@ const StaffCard = ({ id = '1', name, phone, position, img }) => (
 
 export default function CenterStaffPage() {
   const { id } = useParams();
-  const allCenters = getStoredCenters();
-  const centerInfo = allCenters.find(c => c.id === parseInt(id));
 
   const [staffList, setStaffList] = useState([]);
-  const [centerData, setCenterData] = useState(centerInfo);
+  const [centerData, setCenterData] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,9 +53,16 @@ export default function CenterStaffPage() {
         if (isMounted && centerRes.status === 'fulfilled' && centerRes.value) {
           const c = centerRes.value.data || centerRes.value;
           setCenterData({
-            ...centerInfo,
-            title: c.nameUz || c.name || centerInfo?.title,
-            description: c.descriptionUz || c.description || centerInfo?.description
+            ...c,
+            title: c.nameUz || c.name || c.title || "",
+            description: c.descriptionUz || c.description || "",
+            headName: c.headName || c.leaderName || c.headFullName || "",
+            headId: c.headId || c.leaderId || null,
+            headPhoto: c.headPhoto || c.leaderPhoto || c.photoLink || c.photo || null,
+            phone: c.phone || c.phoneNumber || "",
+            email: c.email || "",
+            receptionHours: c.receptionHours || "",
+            tasks: Array.isArray(c.tasks) ? c.tasks : []
           });
         }
 
@@ -99,7 +104,7 @@ export default function CenterStaffPage() {
   const centerTitle = getTitle(centerData);
   const centerDesc = getDesc(centerData);
 
-  const taskList = centerInfo?.tasks || [
+  const taskList = (centerData?.tasks && centerData.tasks.length > 0) ? centerData.tasks : [
     "Institutdagi barcha ta'lim va boshqaruv jarayonlarini samarali muvofiqlashtirish.",
     "O'quv va tashkiliy faoliyatda zamonaviy metodlar va texnologiyalarni tatbiq etish.",
     "Talabalar hamda professor-o'qituvchilarga sifatli xizmat ko'rsatish.",
@@ -150,64 +155,79 @@ export default function CenterStaffPage() {
           </div>
 
           {/* Bo'lim boshlig'i Section */}
-          <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-            Bo'lim boshlig'i
-          </div>
-
-          <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative">
-            
-            {/* Top Right Badge (Qabul vaqtlari) */}
-            <div className="absolute top-5 right-6 hidden md:block bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-right border border-blue-100">
-              <div className="text-[12px] font-medium opacity-80">Qabul vaqtlari:</div>
-              <div className="font-bold text-[14px]">{centerInfo?.receptionHours || "09:00-17:00"}</div>
-            </div>
-
-            {/* Left Image */}
-            <div className="w-[180px] md:w-[220px] shrink-0 mx-auto md:mx-0">
-              <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                <img
-                  src={menImg}
-                  alt="Boshliq"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-            </div>
-
-            {/* Right Content */}
-            <div className="flex-1 flex flex-col h-full w-full">
-              <div className="mb-6 mt-2 text-center md:text-left pr-0 md:pr-[120px]">
-                <h3 className="text-[20px] md:text-[24px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
-                  {centerInfo?.headName || "BO'LIM BOSHLIG'I"}
-                </h3>
-                <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                  Bo'lim boshlig'i
-                </p>
+          {centerData?.headName && (
+            <>
+              <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
+                Bo'lim boshlig'i
               </div>
 
-              {/* Contact Info Grid */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
-                <div>
-                  <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    Telefon raqam:
+              <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative">
+                
+                {/* Top Right Badge (Qabul vaqtlari) */}
+                {centerData?.receptionHours && (
+                  <div className="absolute top-5 right-6 hidden md:block bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-right border border-blue-100">
+                    <div className="text-[12px] font-medium opacity-80">Qabul vaqtlari:</div>
+                    <div className="font-bold text-[14px]">{centerData.receptionHours}</div>
                   </div>
-                  <div className="text-slate-700 font-semibold">{centerInfo?.phone || "+998 62 224 81 00"}</div>
-                </div>
-                <div>
-                  <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    Elektron pochta:
-                  </div>
-                  <div className="text-slate-700 font-semibold">{centerInfo?.email || "info@urspi.uz"}</div>
-                </div>
-              </div>
+                )}
 
-              {/* Bottom Buttons */}
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                <Link to="/employee/1" className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
-                  Batafsil <ArrowRight size={16} />
-                </Link>
+                {/* Left Image */}
+                <div className="w-[180px] md:w-[220px] shrink-0 mx-auto md:mx-0">
+                  <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <img
+                      src={getFileUrl(centerData.headPhoto) || menImg}
+                      alt={centerData.headName}
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => { e.target.onerror = null; e.target.src = menImg; }}
+                    />
+                  </div>
+                </div>
+
+                {/* Right Content */}
+                <div className="flex-1 flex flex-col h-full w-full">
+                  <div className="mb-6 mt-2 text-center md:text-left pr-0 md:pr-[120px]">
+                    <h3 className="text-[20px] md:text-[24px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
+                      {centerData.headName}
+                    </h3>
+                    <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
+                      Bo'lim boshlig'i
+                    </p>
+                  </div>
+
+                  {/* Contact Info Grid */}
+                  {(centerData.phone || centerData.email) && (
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-4">
+                      {centerData.phone && (
+                        <div>
+                          <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            Telefon raqam:
+                          </div>
+                          <div className="text-slate-700 font-semibold">{centerData.phone}</div>
+                        </div>
+                      )}
+                      {centerData.email && (
+                        <div>
+                          <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            Elektron pochta:
+                          </div>
+                          <div className="text-slate-700 font-semibold">{centerData.email}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Bottom Buttons */}
+                  {centerData.headId && (
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
+                      <Link to={`/employee/${centerData.headId}`} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
+                        Batafsil <ArrowRight size={16} />
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Xodimlar Section */}
           <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 mt-12 text-[18px] sm:text-[20px]">

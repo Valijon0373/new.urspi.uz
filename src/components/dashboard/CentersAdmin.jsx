@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, Search, X, Check, Phone, Mail, Clock, User, Building } from 'lucide-react';
-import { getStoredCenters, saveStoredCenters, renderCenterIcon } from '../../data/centersData';
+import { getStoredCenters, saveStoredCenters, renderCenterIcon, getAutoIcon } from '../../data/centersData';
 import { centersAPI } from '../../api';
 
 const AVAILABLE_ICONS = [
+  { name: 'Monitor', label: "Kompyuter (Axborot texnologiyalari / AT)" },
+  { name: 'Cpu', label: "Protsessor (Texnik vositalar)" },
   { name: 'BookOpen', label: "Kitob (Ta'lim)" },
   { name: 'GraduationCap', label: "Shapka (Ilm-fan)" },
   { name: 'Library', label: "Kutubxona (O'quv-uslubiy)" },
@@ -12,18 +14,16 @@ const AVAILABLE_ICONS = [
   { name: 'Heart', label: "Yurak (Xotin-qizlar)" },
   { name: 'Sparkles', label: "Yulduzchalar (Yoshlar/Ma'naviyat)" },
   { name: 'Star', label: "Yulduz (Iqtidorli talabalar)" },
-  { name: 'Scale', label: "Tarozi (Yurist)" },
-  { name: 'Globe', label: "Globus (Xalqaro)" },
+  { name: 'Scale', label: "Tarozi (Yurist/Huquq)" },
+  { name: 'Globe', label: "Globus (Xalqaro aloqalar)" },
   { name: 'Shield', label: "Qalqon (Kasaba uyushmasi)" },
-  { name: 'Monitor', label: "Kompyuter (Raqamli ta'lim)" },
-  { name: 'Calculator', label: "Kalkulyator (Buxgalteriya)" },
+  { name: 'Calculator', label: "Kalkulyator (Buxgalteriya/Moliya)" },
   { name: 'FileText', label: "Hujjat (Axborot resurs)" },
   { name: 'Landmark', label: "Bino (Kengash)" },
   { name: 'ShieldCheck', label: "Himoya qalqoni (Komplayens-nazorat)" },
   { name: 'TrendingUp', label: "O'sish grafikasi (Marketing)" },
-  { name: 'UserCheck', label: "Foydalanuvchi (Xotin-qizlar kengashi)" },
-  { name: 'Briefcase', label: "Portfel (Registrator ofisi)" },
-  { name: 'Cpu', label: "Protsessor (Texnik vositalar)" }
+  { name: 'UserCheck', label: "Foydalanuvchi (Xodimlarga xizmat)" },
+  { name: 'Briefcase', label: "Portfel (Registrator ofisi)" }
 ];
 
 export default function CentersAdmin() {
@@ -46,7 +46,7 @@ export default function CentersAdmin() {
     phone: '',
     email: '',
     receptionHours: '',
-    iconName: 'BookOpen',
+    iconName: 'Monitor',
     borderColor: 'border-t-blue-500',
     iconBg: 'bg-blue-50'
   });
@@ -62,14 +62,17 @@ export default function CentersAdmin() {
     try {
       const res = await centersAPI.getAll();
       const rawData = Array.isArray(res) ? res : (res?.data || []);
-      const formatted = rawData.map(c => ({
-        id: c.id,
-        title: { uz: c.nameUz || c.name, ru: c.nameRu || c.name, en: c.nameEn || c.name },
-        description: { uz: c.descriptionUz || c.description, ru: c.descriptionRu || c.description, en: c.descriptionEn || c.description },
-        iconName: 'BookOpen',
-        borderColor: 'border-t-blue-500',
-        iconBg: 'bg-blue-50'
-      }));
+      const formatted = rawData.map(c => {
+        const titleUz = c.nameUz || c.name || '';
+        return {
+          id: c.id,
+          title: { uz: titleUz, ru: c.nameRu || c.name || titleUz, en: c.nameEn || c.name || titleUz },
+          description: { uz: c.descriptionUz || c.description || '', ru: c.descriptionRu || c.description || '', en: c.descriptionEn || c.description || '' },
+          iconName: c.iconName || c.icon || getAutoIcon(titleUz),
+          borderColor: 'border-t-blue-500',
+          iconBg: 'bg-blue-50'
+        };
+      });
       setCenters(formatted);
     } catch (e) {
       console.warn('API error in loadCenters:', e.message);
@@ -98,7 +101,9 @@ export default function CentersAdmin() {
         nameEn: formData.title.en || '',
         descriptionUz: formData.description.uz || '',
         descriptionRu: formData.description.ru || '',
-        descriptionEn: formData.description.en || ''
+        descriptionEn: formData.description.en || '',
+        icon: formData.iconName,
+        iconName: formData.iconName
       };
 
       if (editMode && formData.id) {
@@ -475,75 +480,19 @@ export default function CentersAdmin() {
                 );
               })()}
 
-              {/* Extra Metadata Section */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Bo'lim rekvizitlari va belgi (Icon)
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Bo'lim boshlig'i (F.I.SH)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.headName}
-                      onChange={e => setFormData({ ...formData, headName: e.target.value })}
-                      placeholder="Masalan: SOLIEV ANVAR"
-                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
-                    />
+              {/* Icon selection */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-3">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Bo'lim belgisi (Icon)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shrink-0">
+                    {renderCenterIcon(formData.iconName, "w-5 h-5 text-blue-600 dark:text-blue-400")}
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Telefon raqam
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.phone}
-                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+998 62 224 81 00"
-                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Elektron pochta
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="bolim@urspi.uz"
-                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Qabul vaqtlari
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.receptionHours}
-                      onChange={e => setFormData({ ...formData, receptionHours: e.target.value })}
-                      placeholder="09:00 - 17:00"
-                      className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
-                    />
-                  </div>
-                </div>
-
-                {/* Icon selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Belgini tanlang (Icon)
-                  </label>
                   <select
                     value={formData.iconName}
                     onChange={e => setFormData({ ...formData, iconName: e.target.value })}
-                    className="block w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c]"
+                    className="block flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                   >
                     {AVAILABLE_ICONS.map(icon => (
                       <option key={icon.name} value={icon.name}>{icon.label}</option>

@@ -55,6 +55,10 @@
       "title": "E'lonlar",
       "view_all": "Barchasi"
     },
+    "centers": {
+      "title": "Markaz va bo'limlar",
+      "view_all": "Barchasi"
+    },
     "statistics": {
       "title": "Statistika",
       "directions": "Yo'nalishlar",

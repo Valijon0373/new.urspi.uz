@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getStoredCenters, renderCenterIcon, initialCenters } from '../../data/centersData'
+import { renderCenterIcon, getAutoIcon } from '../../data/centersData'
 import { centersAPI } from '../../api'
 
-export const centers = initialCenters;
+export const centers = [];
 
 export default function CentersPage() {
   const { i18n } = useTranslation();
@@ -17,20 +17,28 @@ export default function CentersPage() {
     const handleUpdate = () => loadCenters();
     window.addEventListener('urspi_centers_updated', handleUpdate);
     return () => window.removeEventListener('urspi_centers_updated', handleUpdate);
-  }, []);
+  }, [currentLang]);
 
   const loadCenters = async () => {
     try {
-      const res = await centersAPI.getAll(currentLang);
-      const rawData = Array.isArray(res) ? res : (res?.data || []);
-      const formatted = rawData.map((c) => ({
-        id: c.id,
-        title: c.name || c.nameUz || "MARKAZ",
-        description: c.description || c.descriptionUz || "",
-        borderColor: "border-t-blue-500",
-        iconBg: "bg-blue-50",
-        iconName: "Building2"
-      }));
+      const res = await centersAPI.getLanding(0, 100, currentLang);
+      let rawData = res?.data?.content || res?.content || res?.data || (Array.isArray(res) ? res : []);
+      if (!rawData || rawData.length === 0) {
+        const fallback = await centersAPI.getAll(currentLang);
+        rawData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
+      }
+      const formatted = rawData.map((c, index) => {
+        const centerTitle = c.name || c.nameUz || c.title || "MARKAZ";
+        return {
+          id: c.id || index + 1,
+          title: centerTitle,
+          description: c.description || c.descriptionUz || "",
+          borderColor: index % 4 === 0 ? "border-t-blue-500" : index % 4 === 1 ? "border-t-indigo-500" : index % 4 === 2 ? "border-t-cyan-500" : "border-t-amber-500",
+          iconBg: index % 4 === 0 ? "bg-blue-50 text-blue-600" : index % 4 === 1 ? "bg-indigo-50 text-indigo-600" : index % 4 === 2 ? "bg-cyan-50 text-cyan-600" : "bg-amber-50 text-amber-600",
+          iconName: c.iconName || c.icon || getAutoIcon(centerTitle)
+        };
+      });
+      setCenterList(formatted);
       setCenterList(formatted);
     } catch (e) {
       console.warn('Failed to load centers from API:', e.message);
