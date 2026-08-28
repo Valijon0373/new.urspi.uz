@@ -49,9 +49,16 @@ export function buildFacultyStaffFormData({
 export const facultyStaffAPI = {
     getAll: (lang) => lang ? request(`/api/faculty-staff/lang/${lang}`) : request('/api/faculty-staff'),
     getById: (id) => request(`/api/faculty-staff/${id}`),
-    getByFaculty: (facultyId, lang) => lang 
-        ? request(`/api/faculty-staff/faculty/${facultyId}/lang/${lang}`)
-        : request(`/api/faculty-staff/faculty/${facultyId}`),
+    /** GET /api/landing/faculty-staff/{id}?lang=uz — bitta hodim */
+    getLandingById: (id, lang = 'uz') => request(`/api/landing/faculty-staff/${id}?lang=${lang}`),
+    /** GET /api/landing/faculty-staff?page=&size=&lang= — barcha hodimlar (pageable) */
+    getLanding: (page = 0, size = 50, lang = 'uz') =>
+        request(`/api/landing/faculty-staff?page=${page}&size=${size}&lang=${lang}`),
+    /** GET /api/landing/faculties/{facultyId}/staff — fakultet dekanati */
+    getByFaculty: (facultyId, lang = 'uz') =>
+        request(`/api/landing/faculties/${facultyId}/staff?page=0&size=50&lang=${lang}`),
+    getByFacultyLang: (facultyId, lang) =>
+        request(`/api/faculty-staff/faculty/${facultyId}/lang/${lang}`),
     create: (formData) => request('/api/faculty-staff', { method: 'POST', body: formData }),
     update: (id, formData) => request(`/api/faculty-staff/${id}`, { method: 'PUT', body: formData }),
     toggleStatus: (id) => request(`/api/faculty-staff/change/status/${id}`, { method: 'PUT' }),

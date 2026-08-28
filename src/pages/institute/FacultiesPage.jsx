@@ -37,7 +37,7 @@ const FacultyCard = ({ faculty }) => {
           </div>
 
           <div className="mt-auto pt-2 space-y-2">
-            <Link to={`/faculty-staff?facultyId=${faculty.id}`} state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+            <Link to={`/faculty-staff/${faculty.id}`} state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <Users size={16} />
               Xodimlar
             </Link>

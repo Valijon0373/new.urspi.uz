@@ -108,6 +108,13 @@ function App() {
         } />
 
         {/* Fakultet xodimlari sahifasi */}
+        <Route path="/faculty-staff/:facultyId" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <FacultyStaffPage />
+            <Footer />
+          </div>
+        } />
         <Route path="/faculty-staff" element={
           <div className="flex flex-col min-h-screen">
             <Navbar />

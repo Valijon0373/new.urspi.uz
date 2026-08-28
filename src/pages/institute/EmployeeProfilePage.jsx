@@ -20,14 +20,20 @@ export default function EmployeeProfilePage() {
       setLoading(true);
       let data = null;
       try {
-        const [teacherRes, empRes, staffRes, posRes] = await Promise.allSettled([
+        const [landingStaffRes, teacherRes, empRes, staffRes, posRes] = await Promise.allSettled([
+          facultyStaffAPI.getLandingById(id, lang),
           teachersAPI.getById(id),
           employeesAPI.getById(id),
           facultyStaffAPI.getById(id),
           positionsAPI.getAll()
         ]);
 
-        if (teacherRes.status === 'fulfilled' && teacherRes.value) {
+        const landingData = landingStaffRes.status === 'fulfilled'
+          ? (landingStaffRes.value?.data || landingStaffRes.value)
+          : null;
+        if (landingData && landingData.id != null) {
+          data = landingData;
+        } else if (teacherRes.status === 'fulfilled' && teacherRes.value) {
           data = teacherRes.value.data || teacherRes.value;
         } else if (empRes.status === 'fulfilled' && empRes.value) {
           data = empRes.value.data || empRes.value;
@@ -50,11 +56,11 @@ export default function EmployeeProfilePage() {
 
 
       if (isMounted && data) {
-        const rawImg = data.photo || data.image || data.photoLink || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
+        const rawImg = data.photoLink || data.photo || data.image || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
         setEmployeeData({
           id: data.id,
           name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
-          position: resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
+          position: data.positionTitle || resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
           phone: data.phoneNumber || data.phone || "",
           email: data.email || "info@urspi.uz",
           bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",

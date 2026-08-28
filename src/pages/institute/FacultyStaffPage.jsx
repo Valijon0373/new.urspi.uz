@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight, Building } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
 import { teachersAPI, facultyStaffAPI, facultiesAPI, getFileUrl, resolvePersonPosition, isFacultyDean, isViceDean, localizedField, positionsAPI } from '../../api'
@@ -28,7 +28,9 @@ export default function FacultyStaffPage() {
   const [faculties, setFaculties] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { facultyId: paramFacultyId } = useParams();
+  const [searchParams] = useSearchParams();
   const { i18n } = useTranslation();
   const lang = i18n.language || 'uz';
 
@@ -53,8 +55,14 @@ export default function FacultyStaffPage() {
 
   const searchFacultyId = searchParams.get('facultyId');
   const locationFaculty = location.state?.faculty;
-  const activeFacultyId = searchFacultyId || locationFaculty?.id || (faculties.length > 0 ? faculties[0].id : null);
+  const activeFacultyId = paramFacultyId || searchFacultyId || locationFaculty?.id || (faculties.length > 0 ? faculties[0].id : null);
   const activeFaculty = faculties.find(f => String(f.id) === String(activeFacultyId)) || locationFaculty;
+
+  useEffect(() => {
+    if (!paramFacultyId && searchFacultyId) {
+      navigate(`/faculty-staff/${searchFacultyId}`, { replace: true, state: location.state });
+    }
+  }, [paramFacultyId, searchFacultyId, navigate, location.state]);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,26 +72,30 @@ export default function FacultyStaffPage() {
       let positions = [];
       try {
         const promises = [
-          activeFacultyId ? facultyStaffAPI.getByFaculty(activeFacultyId, lang) : facultyStaffAPI.getAll(lang),
+          activeFacultyId
+            ? facultyStaffAPI.getByFaculty(activeFacultyId, lang)
+            : facultyStaffAPI.getLanding(0, 50, lang),
           activeFacultyId ? teachersAPI.getByFaculty(activeFacultyId) : teachersAPI.getLanding(0, 100),
           positionsAPI.getAll()
         ];
         const [staffRes, teachersRes, posRes] = await Promise.allSettled(promises);
 
-        let staffArr = [];
-        if (staffRes.status === 'fulfilled' && staffRes.value) {
-          const payload = staffRes.value;
-          staffArr = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
-        }
+        const unwrapList = (payload) => {
+          if (!payload) return [];
+          if (Array.isArray(payload)) return payload;
+          const data = payload.data;
+          if (Array.isArray(data)) return data;
+          if (Array.isArray(data?.content)) return data.content;
+          if (Array.isArray(payload.content)) return payload.content;
+          return [];
+        };
 
-        // If specific getByFaculty endpoint returned nothing, try fetching all staff and filtering locally
-        if (staffArr.length === 0) {
+        let staffArr = staffRes.status === 'fulfilled' ? unwrapList(staffRes.value) : [];
+
+        if (staffArr.length === 0 && activeFacultyId) {
           try {
-            const allStaffRes = await facultyStaffAPI.getAll();
-            const allStaff = Array.isArray(allStaffRes) ? allStaffRes : (allStaffRes?.data?.content || allStaffRes?.data || []);
-            staffArr = activeFacultyId 
-              ? allStaff.filter(st => String(st.facultyId || st.faculty?.id) === String(activeFacultyId))
-              : allStaff;
+            const fallback = await facultyStaffAPI.getByFacultyLang(activeFacultyId, lang);
+            staffArr = unwrapList(fallback);
           } catch (e) {}
         }
         staffArr.forEach(st => apiData.push({ ...st, isFacultyStaff: true }));
@@ -118,12 +130,14 @@ export default function FacultyStaffPage() {
         console.warn('Failed to fetch teachers for faculty from API:', err.message);
       }
 
-      // Filter by activeFacultyId strictly if present
+      // Landing localized staff has no facultyId — keep those already loaded for this faculty
       let filteredData = apiData;
       if (activeFacultyId) {
         filteredData = apiData.filter(item => {
-          const itemFacId = String(item.facultyId || item.faculty?.id || '');
-          return itemFacId === String(activeFacultyId);
+          if (item.isFacultyStaff) return true;
+          const itemFacId = item.facultyId || item.faculty?.id;
+          if (itemFacId == null || itemFacId === '') return true;
+          return String(itemFacId) === String(activeFacultyId);
         });
       }
 
@@ -135,11 +149,11 @@ export default function FacultyStaffPage() {
             ? nestedPos
             : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
           const person = { ...t, position: posObj || t.position };
-          const rawImg = t.photo || t.image || t.photoLink || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
+          const rawImg = t.photoLink || t.photo || t.image || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
           return {
             id: t.id,
             fullName: localizedField(t, 'fullName', lang, t.fullNameUz || t.fullName || "Fakultet xodimi"),
-            position: resolvePersonPosition(person, lang),
+            position: t.positionTitle || resolvePersonPosition(person, lang),
             phone: t.phoneNumber || t.phone || "",
             email: t.email || "",
             degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ""),
