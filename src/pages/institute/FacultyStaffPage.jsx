@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { ChevronRight, ArrowRight } from 'lucide-react'
+import { ChevronRight, ArrowRight, Building } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
-import { teachersAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, isFacultyDean, isViceDean, localizedField, positionsAPI } from '../../api'
+import { teachersAPI, facultyStaffAPI, facultiesAPI, getFileUrl, resolvePersonPosition, isFacultyDean, isViceDean, localizedField, positionsAPI } from '../../api'
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -25,9 +25,36 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
 
 export default function FacultyStaffPage() {
   const [teachers, setTeachers] = useState([]);
+  const [faculties, setFaculties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { i18n } = useTranslation();
   const lang = i18n.language || 'uz';
+
+  useEffect(() => {
+    const fetchFaculties = async () => {
+      try {
+        let list = [];
+        try {
+          const res = await facultiesAPI.getLanding(0, 50);
+          list = res?.data?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+        } catch (e1) {
+          const res = await facultiesAPI.getAll();
+          list = Array.isArray(res) ? res : (res?.data || []);
+        }
+        setFaculties(list);
+      } catch (err) {
+        console.warn('Failed to load faculties:', err.message);
+      }
+    };
+    fetchFaculties();
+  }, []);
+
+  const searchFacultyId = searchParams.get('facultyId');
+  const locationFaculty = location.state?.faculty;
+  const activeFacultyId = searchFacultyId || locationFaculty?.id || (faculties.length > 0 ? faculties[0].id : null);
+  const activeFaculty = faculties.find(f => String(f.id) === String(activeFacultyId)) || locationFaculty;
 
   useEffect(() => {
     let isMounted = true;
@@ -36,75 +63,72 @@ export default function FacultyStaffPage() {
       let apiData = [];
       let positions = [];
       try {
-        const [res, staffRes, posRes] = await Promise.allSettled([
-          teachersAPI.getLanding(0, 100),
-          facultyStaffAPI.getAll(),
+        const promises = [
+          activeFacultyId ? facultyStaffAPI.getByFaculty(activeFacultyId, lang) : facultyStaffAPI.getAll(lang),
+          activeFacultyId ? teachersAPI.getByFaculty(activeFacultyId) : teachersAPI.getLanding(0, 100),
           positionsAPI.getAll()
-        ]);
-        if (res.status === 'fulfilled') {
-          const payload = res.value;
-          apiData = payload?.data?.content || (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []));
-        } else {
-          try {
-            const fallback = await teachersAPI.getAll('uz');
-            apiData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
-          } catch (e2) {}
-        }
-        if (staffRes.status === 'fulfilled') {
+        ];
+        const [staffRes, teachersRes, posRes] = await Promise.allSettled(promises);
+
+        let staffArr = [];
+        if (staffRes.status === 'fulfilled' && staffRes.value) {
           const payload = staffRes.value;
-          const staffArr = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
-          staffArr.forEach(st => apiData.push({ ...st, isFacultyStaff: true }));
+          staffArr = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
         }
+
+        // If specific getByFaculty endpoint returned nothing, try fetching all staff and filtering locally
+        if (staffArr.length === 0) {
+          try {
+            const allStaffRes = await facultyStaffAPI.getAll();
+            const allStaff = Array.isArray(allStaffRes) ? allStaffRes : (allStaffRes?.data?.content || allStaffRes?.data || []);
+            staffArr = activeFacultyId 
+              ? allStaff.filter(st => String(st.facultyId || st.faculty?.id) === String(activeFacultyId))
+              : allStaff;
+          } catch (e) {}
+        }
+        staffArr.forEach(st => apiData.push({ ...st, isFacultyStaff: true }));
+
+        let teacherArr = [];
+        if (teachersRes.status === 'fulfilled' && teachersRes.value) {
+          const payload = teachersRes.value;
+          teacherArr = payload?.data?.content || (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []));
+        }
+        if (teacherArr.length === 0) {
+          try {
+            const landingRes = await teachersAPI.getLanding(0, 100);
+            const allTeachers = landingRes?.data?.content || (Array.isArray(landingRes?.data) ? landingRes.data : []);
+            teacherArr = activeFacultyId
+              ? allTeachers.filter(t => String(t.facultyId || t.faculty?.id) === String(activeFacultyId))
+              : allTeachers;
+          } catch (e) {}
+        }
+
+        teacherArr.forEach(t => {
+          if (!apiData.some(item => String(item.id) === String(t.id))) {
+            if (!activeFacultyId || String(t.facultyId || t.faculty?.id) === String(activeFacultyId)) {
+              apiData.push(t);
+            }
+          }
+        });
+
         if (posRes.status === 'fulfilled') {
           positions = Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []);
         }
       } catch (err) {
-        console.warn('Failed to fetch teachers from API:', err.message);
+        console.warn('Failed to fetch teachers for faculty from API:', err.message);
       }
 
-      let localPositions = [];
-      try {
-        localPositions = JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
-      } catch (e) {}
+      // Filter by activeFacultyId strictly if present
+      let filteredData = apiData;
+      if (activeFacultyId) {
+        filteredData = apiData.filter(item => {
+          const itemFacId = String(item.facultyId || item.faculty?.id || '');
+          return itemFacId === String(activeFacultyId);
+        });
+      }
 
-      const posMap = new Map();
-      positions.forEach(p => posMap.set(String(p.id), p));
-      localPositions.forEach(p => posMap.set(String(p.id), p));
-      positions = Array.from(posMap.values());
-
-      let localItems = [];
-      let localStaff = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
-        localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
-      } catch (e) {}
-
-      const combinedMap = new Map();
-      apiData.forEach(t => combinedMap.set(String(t.id), t));
-      localStaff.forEach(t => combinedMap.set(String(t.id), { ...t, isFacultyStaff: true }));
-      localItems.forEach(t => {
-        const key = String(t.id);
-        if (!combinedMap.has(key)) combinedMap.set(key, t);
-        else {
-          const api = combinedMap.get(key);
-          combinedMap.set(key, {
-            ...api,
-            ...t,
-            photo: t.photo || api.photo,
-            image: t.image || api.image,
-            photoLink: t.photoLink || api.photoLink,
-            position: t.position || api.position,
-            positionId: t.positionId || api.positionId || api.position?.id,
-            positionTitleUz: t.positionTitleUz || localizedField(api, 'positionTitle', 'uz', ''),
-            positionTitleRu: t.positionTitleRu || localizedField(api, 'positionTitle', 'ru', ''),
-            positionTitleEn: t.positionTitleEn || localizedField(api, 'positionTitle', 'en', ''),
-          });
-        }
-      });
-
-      const rawData = Array.from(combinedMap.values());
       if (isMounted) {
-        const formatted = rawData.map(t => {
+        const formatted = filteredData.map(t => {
           const posId = t.positionId || t.position?.id;
           const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
           const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
@@ -138,13 +162,13 @@ export default function FacultyStaffPage() {
       isMounted = false; 
       window.removeEventListener('urspi_teachers_updated', handleUpdate);
     };
-  }, [lang]);
+  }, [lang, activeFacultyId]);
 
   const dekan = teachers.find(t => {
     const raw = t.raw || t;
     const pos = (resolvePersonPosition(raw, 'uz', '') || raw.positionTitleUz || raw.position || '').toLowerCase();
     return (isFacultyDean(raw) || raw.isDean || pos.includes('dekan')) && !pos.includes("o'rinbosar");
-  }) || teachers[0];
+  }) || (teachers.length > 0 ? teachers[0] : null);
 
   const viceDeans = teachers.filter(t => {
     if (dekan && String(t.id) === String(dekan.id)) return false;
@@ -186,11 +210,21 @@ export default function FacultyStaffPage() {
 
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+
+          {activeFaculty && (
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0c1f4a]">
+                {activeFaculty[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || activeFaculty.nameUz || activeFaculty.name}
+              </h2>
+            </div>
+          )}
           
           {loading ? (
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
           ) : !dekan && viceDeans.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 font-medium">Fakultet xodimlari topilmadi</div>
+            <div className="text-center py-12 text-slate-500 font-medium bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+              Ushbu fakultet uchun xodimlar ma'lumotlari kiritilmagan
+            </div>
           ) : (
             <>
               {/* Fakultet dekani Section */}

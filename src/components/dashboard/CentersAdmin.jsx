@@ -110,32 +110,23 @@ export default function CentersAdmin() {
       }
       loadCenters();
     } catch (e) {
-      // Fallback local save
-      let updatedList;
-      if (editMode) {
-        updatedList = centers.map(item => item.id === formData.id ? { ...formData } : item);
-        showNotification("Muvaffaqiyatli tahrirlandi");
-      } else {
-        const newId = centers.length > 0 ? Math.max(...centers.map(c => c.id || 0)) + 1 : 1;
-        const newItem = { ...formData, id: newId };
-        updatedList = [...centers, newItem];
-        showNotification("Muvaffaqiyatli qo'shildi");
-      }
-      setCenters(updatedList);
-      saveStoredCenters(updatedList);
+      showNotification(e.message || "Saqlashda xatolik yuz berdi");
     } finally {
       setIsModalOpen(false);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedItem) return;
-    const updatedList = centers.filter(item => item.id !== selectedItem.id);
-    setCenters(updatedList);
-    saveStoredCenters(updatedList);
+    try {
+      await centersAPI.delete(selectedItem.id);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      loadCenters();
+    } catch (e) {
+      showNotification(e.message || "O'chirishda xatolik yuz berdi");
+    }
     setDeleteModalOpen(false);
     setSelectedItem(null);
-    showNotification("Muvaffaqiyatli o'chirildi");
   };
 
   const openEditModal = (item) => {

@@ -25,20 +25,6 @@ export default function NewsAdmin() {
     author: '©️ UrDPI matbuot xizmati'
   });
 
-  const getLocalNews = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalNews = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_news', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchNews = async () => {
     setLoading(true);
     let apiData = [];
@@ -49,17 +35,7 @@ export default function NewsAdmin() {
       console.warn('API error in fetchNews:', err.message);
     }
 
-    const localItems = getLocalNews();
-    const combinedMap = new Map();
-    localItems.forEach(item => combinedMap.set(item.id, item));
-    apiData.forEach(item => {
-      if (!combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => ({
+    const formatted = apiData.map(item => ({
       id: item.id,
       title: item.titleUz || item.title || "Yangilik",
       content: item.contentUz || item.content || "",
@@ -110,17 +86,12 @@ export default function NewsAdmin() {
   const handleToggleStatus = async (item) => {
     try {
       await newsAPI.toggleStatus(item.id);
+      showNotification("Yangilik holati o'zgartirildi");
+      fetchNews();
     } catch (err) {
       console.warn("Toggle status API error:", err.message);
+      showNotification(err.message || "Xatolik yuz berdi", 'error');
     }
-    const localList = getLocalNews();
-    const idx = localList.findIndex(x => x.id === item.id);
-    if (idx >= 0) {
-      localList[idx].active = !localList[idx].active;
-      setLocalNews(localList);
-    }
-    showNotification("Yangilik holati o'zgartirildi");
-    fetchNews();
   };
 
   const handleSave = async () => {
@@ -148,42 +119,11 @@ export default function NewsAdmin() {
         }
       });
 
-      let apiResItem = null;
-      try {
-        if (editMode && selectedItem) {
-          const res = await newsAPI.update(selectedItem.id, fd);
-          apiResItem = res?.data || res;
-        } else {
-          const res = await newsAPI.create(fd);
-          apiResItem = res?.data || res;
-        }
-      } catch (e) {
-        console.warn("Backend news post failed, falling back to local state:", e.message);
-      }
-
-      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
-      const fallbackObj = {
-        id: targetId,
-        titleUz: formData.title.uz || 'Yangilik',
-        titleRu: formData.title.ru || '',
-        titleEn: formData.title.en || '',
-        contentUz: formData.content.uz || '',
-        contentRu: formData.content.ru || '',
-        contentEn: formData.content.en || '',
-        author: formData.author || '©️ UrDPI matbuot xizmati',
-        createdAt: new Date().toISOString(),
-        active: true,
-        image: selectedFiles[0] ? URL.createObjectURL(selectedFiles[0]) : (selectedItem?.image || '')
-      };
-
-      const localList = getLocalNews();
-      const existingIdx = localList.findIndex(x => x.id === targetId);
-      if (existingIdx >= 0) {
-        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      if (editMode && selectedItem) {
+        await newsAPI.update(selectedItem.id, fd);
       } else {
-        localList.unshift(fallbackObj);
+        await newsAPI.create(fd);
       }
-      setLocalNews(localList);
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       fetchNews();
@@ -197,13 +137,12 @@ export default function NewsAdmin() {
     if (selectedItem) {
       try {
         await newsAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchNews();
       } catch (e) {
         console.warn("Backend delete error:", e.message);
+        showNotification(e.message || "O'chirishda xatolik", 'error');
       }
-      const localList = getLocalNews().filter(x => x.id !== selectedItem.id);
-      setLocalNews(localList);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchNews();
     }
     setDeleteModalOpen(false);
   };

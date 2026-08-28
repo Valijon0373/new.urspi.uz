@@ -24,20 +24,6 @@ export default function AnnouncementsAdmin() {
     author: '©️ UrDPI matbuot xizmati'
   });
 
-  const getLocalAnnouncements = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalAnnouncements = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_announcements', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchAnnouncements = async () => {
     setLoading(true);
     let apiData = [];
@@ -48,17 +34,7 @@ export default function AnnouncementsAdmin() {
       console.warn('API error in fetchAnnouncements:', e.message);
     }
 
-    const localItems = getLocalAnnouncements();
-    const combinedMap = new Map();
-    localItems.forEach(item => combinedMap.set(item.id, item));
-    apiData.forEach(item => {
-      if (!combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => ({
+    const formatted = apiData.map(item => ({
       id: item.id,
       title: item.titleUz || item.title || "E'lon",
       content: item.contentUz || item.content || "",
@@ -103,17 +79,12 @@ export default function AnnouncementsAdmin() {
   const handleToggleStatus = async (item) => {
     try {
       await announcementsAPI.toggleStatus(item.id);
+      showNotification("E'lon holati o'zgartirildi");
+      fetchAnnouncements();
     } catch (err) {
       console.warn("Toggle status API error:", err.message);
+      showNotification(err.message || "Xatolik yuz berdi", 'error');
     }
-    const localList = getLocalAnnouncements();
-    const idx = localList.findIndex(x => x.id === item.id);
-    if (idx >= 0) {
-      localList[idx].active = !localList[idx].active;
-      setLocalAnnouncements(localList);
-    }
-    showNotification("E'lon holati o'zgartirildi");
-    fetchAnnouncements();
   };
 
   const handleSave = async () => {
@@ -132,42 +103,11 @@ export default function AnnouncementsAdmin() {
         fd.append('image', imageFile);
       }
 
-      let apiResItem = null;
-      try {
-        if (editMode && selectedItem) {
-          const res = await announcementsAPI.update(selectedItem.id, fd);
-          apiResItem = res?.data || res;
-        } else {
-          const res = await announcementsAPI.create(fd);
-          apiResItem = res?.data || res;
-        }
-      } catch (e) {
-        console.warn("Backend announcement post failed, falling back to local storage:", e.message);
-      }
-
-      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
-      const fallbackObj = {
-        id: targetId,
-        titleUz: formData.title.uz || "E'lon",
-        titleRu: formData.title.ru || '',
-        titleEn: formData.title.en || '',
-        contentUz: formData.content.uz || '',
-        contentRu: formData.content.ru || '',
-        contentEn: formData.content.en || '',
-        author: formData.author || '©️ UrDPI matbuot xizmati',
-        createdAt: new Date().toISOString(),
-        active: true,
-        image: imageFile ? URL.createObjectURL(imageFile) : (selectedItem?.image || '')
-      };
-
-      const localList = getLocalAnnouncements();
-      const existingIdx = localList.findIndex(x => x.id === targetId);
-      if (existingIdx >= 0) {
-        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      if (editMode && selectedItem) {
+        await announcementsAPI.update(selectedItem.id, fd);
       } else {
-        localList.unshift(fallbackObj);
+        await announcementsAPI.create(fd);
       }
-      setLocalAnnouncements(localList);
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       fetchAnnouncements();
@@ -181,13 +121,12 @@ export default function AnnouncementsAdmin() {
     if (selectedItem) {
       try {
         await announcementsAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchAnnouncements();
       } catch (e) {
         console.warn("Backend delete error:", e.message);
+        showNotification(e.message || "O'chirishda xatolik", 'error');
       }
-      const localList = getLocalAnnouncements().filter(x => x.id !== selectedItem.id);
-      setLocalAnnouncements(localList);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchAnnouncements();
     }
     setDeleteModalOpen(false);
   };

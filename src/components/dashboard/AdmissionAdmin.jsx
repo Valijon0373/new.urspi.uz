@@ -20,10 +20,7 @@ const CATEGORIES = [
 ];
 
 export default function AdmissionAdmin({ activeSubCategory }) {
-  const [directions, setDirections] = useState(() => {
-    const saved = localStorage.getItem('admission_directions_data');
-    return saved ? JSON.parse(saved) : INITIAL_DIRECTIONS;
-  });
+  const [directions, setDirections] = useState(INITIAL_DIRECTIONS);
 
   const [selectedCat, setSelectedCat] = useState(() => {
     if (activeSubCategory && activeSubCategory !== 'Abituriyent') {
@@ -51,10 +48,6 @@ export default function AdmissionAdmin({ activeSubCategory }) {
     pdfUrl: '',
     fileName: ''
   });
-
-  useEffect(() => {
-    localStorage.setItem('admission_directions_data', JSON.stringify(directions));
-  }, [directions]);
 
   const showNotify = (msg) => {
     setNotification({ show: true, message: msg });

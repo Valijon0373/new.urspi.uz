@@ -127,27 +127,7 @@ export default function RentAdmin() {
       console.warn('Error fetching rentals from API:', err.message);
     }
 
-    let localItems = [];
-    try {
-      localItems = JSON.parse(localStorage.getItem('urspi_custom_rents') || '[]');
-    } catch (e) { }
-
-    const combinedMap = new Map();
-
-    // Local custom items
-
-    localItems.forEach(item => {
-      const norm = normalizeRentItem(item);
-      if (norm && norm.id) combinedMap.set(norm.id, norm);
-    });
-
-    // API items
-    apiData.forEach(item => {
-      const norm = normalizeRentItem(item);
-      if (norm && norm.id) combinedMap.set(norm.id, norm);
-    });
-
-    const list = Array.from(combinedMap.values());
+    const list = apiData.map(item => normalizeRentItem(item)).filter(Boolean);
     setRents(list);
     setLoading(false);
   };
@@ -231,43 +211,11 @@ export default function RentAdmin() {
         images: finalImages
       };
 
-      let apiResult = null;
-      try {
-        if (editMode && selectedItem && typeof selectedItem.id === 'number') {
-          apiResult = await rentalsAPI.update(selectedItem.id, payload);
-        } else if (!editMode) {
-          apiResult = await rentalsAPI.create(payload);
-        }
-      } catch (err) {
-        console.warn('API save rental failed, saving locally:', err.message);
+      if (editMode && selectedItem && typeof selectedItem.id === 'number') {
+        await rentalsAPI.update(selectedItem.id, payload);
+      } else if (!editMode) {
+        await rentalsAPI.create(payload);
       }
-
-      // Sync to localStorage
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_rents') || '[]');
-      } catch (e) { }
-
-      const newItem = {
-        id: apiResult?.id || selectedItem?.id || Date.now(),
-        title: formData.title,
-        address: formData.address,
-        price: formData.price,
-        contact: formData.contact,
-        date: new Date().toISOString().substring(0, 10),
-        images: finalImages.length > 0 ? finalImages : formData.images
-      };
-
-      let updatedLocal;
-      if (editMode && selectedItem) {
-        updatedLocal = localItems.map(item => item.id === selectedItem.id ? newItem : item);
-        if (!updatedLocal.some(item => item.id === newItem.id)) {
-          updatedLocal.unshift(newItem);
-        }
-      } else {
-        updatedLocal = [newItem, ...localItems];
-      }
-      localStorage.setItem('urspi_custom_rents', JSON.stringify(updatedLocal));
 
       setIsModalOpen(false);
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
@@ -285,20 +233,8 @@ export default function RentAdmin() {
     setSubmitting(true);
     try {
       if (typeof selectedItem.id === 'number') {
-        try {
-          await rentalsAPI.delete(selectedItem.id);
-        } catch (e) {
-          console.warn('API delete rental failed:', e.message);
-        }
+        await rentalsAPI.delete(selectedItem.id);
       }
-
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_rents') || '[]');
-      } catch (e) { }
-
-      const filteredLocal = localItems.filter(rent => rent.id !== selectedItem.id);
-      localStorage.setItem('urspi_custom_rents', JSON.stringify(filteredLocal));
 
       setDeleteModalOpen(false);
       showNotification("Muvaffaqiyatli o'chirildi");

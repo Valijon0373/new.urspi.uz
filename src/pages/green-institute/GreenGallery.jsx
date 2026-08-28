@@ -72,14 +72,6 @@ const GreenGallery = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const getLocalItems = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_green_institutes') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
   const fetchGallery = useCallback(async () => {
     setLoading(true);
     let apiItems = [];
@@ -90,22 +82,7 @@ const GreenGallery = () => {
       console.warn('Failed to fetch green institutes for gallery:', e.message);
     }
 
-    const localItems = getLocalItems();
-    const combinedMap = new Map();
-
-    // API items first
-    apiItems.forEach(item => {
-      if (item && item.id) combinedMap.set(item.id, item);
-    });
-
-    // Local fallback items second
-    localItems.forEach(item => {
-      if (item && item.id && !combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const itemsList = Array.from(combinedMap.values()).filter(item => {
+    const itemsList = apiItems.filter(item => {
       if (!item) return false;
       if (item.active === false) return false;
       if (item.status && item.status !== 'ACTIVE') return false;

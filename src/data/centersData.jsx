@@ -704,35 +704,9 @@ export const renderCenterIcon = (iconName, className = "w-10 h-10 text-blue-500"
 };
 
 export const getStoredCenters = () => {
-  try {
-    const data = localStorage.getItem('urspi_centers');
-    if (data) {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Ensure every item has tasks and staff fallbacks if edited from old state
-        return parsed.map(center => {
-          const matchingInitial = initialCenters.find(ic => ic.id === center.id);
-          return {
-            ...center,
-            tasks: (center.tasks && center.tasks.length > 0) ? center.tasks : (matchingInitial?.tasks || []),
-            staff: (center.staff && center.staff.length > 0) ? center.staff : (matchingInitial?.staff || [])
-          };
-        });
-      }
-    }
-  } catch (e) {
-    console.error('Error reading centers from localStorage', e);
-  }
-  // Initialize default data if none exists
-  localStorage.setItem('urspi_centers', JSON.stringify(initialCenters));
   return initialCenters;
 };
 
 export const saveStoredCenters = (centers) => {
-  try {
-    localStorage.setItem('urspi_centers', JSON.stringify(centers));
-    window.dispatchEvent(new Event('urspi_centers_updated'));
-  } catch (e) {
-    console.error('Error saving centers to localStorage', e);
-  }
+  // No-op to eliminate localStorage domain persistence
 };

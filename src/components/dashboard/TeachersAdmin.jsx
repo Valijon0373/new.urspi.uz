@@ -127,45 +127,6 @@ export default function TeachersAdmin() {
     
     setPhoneNumber(formatted);
   };
-  const getLocalTeachers = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalTeachers = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_teachers', JSON.stringify(items));
-      window.dispatchEvent(new Event('urspi_teachers_updated'));
-    } catch (e) {
-      console.warn('localStorage setItem failed, stripping heavy images and retrying:', e);
-      try {
-        const sanitized = items.map(item => ({
-          ...item,
-          photo: item.photo && item.photo.length > 50000 ? '' : item.photo,
-          image: item.image && item.image.length > 50000 ? '' : item.image,
-          photoLink: item.photoLink && item.photoLink.length > 50000 ? '' : item.photoLink,
-        }));
-        localStorage.setItem('urspi_custom_teachers', JSON.stringify(sanitized));
-        window.dispatchEvent(new Event('urspi_teachers_updated'));
-      } catch (e2) {
-        console.error('Failed to save to localStorage:', e2);
-      }
-    }
-  };
-
-  const fileToBase64 = (file) => {
-    return new Promise((resolve) => {
-      if (!file) return resolve(null);
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const fetchTeachers = async (currentFacs = faculties, currentDepts = departments, currentPositions = positions) => {
     setLoading(true);
     let apiData = [];
@@ -195,46 +156,15 @@ export default function TeachersAdmin() {
       } catch (e2) {}
     }
 
-    let localFacultyStaff = [];
-    try {
-      localFacultyStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
-    } catch (e) {}
-
-    const localItems = getLocalTeachers();
     const combinedMap = new Map();
 
     facultyStaffData.forEach(item => {
       combinedMap.set(String(item.id), { ...item, isFacultyStaff: true, isDean: true });
     });
 
-    localFacultyStaff.forEach(item => {
-      combinedMap.set(String(item.id), { ...item, isFacultyStaff: true, isDean: true });
-    });
-
     apiData.forEach(item => {
       if (!combinedMap.has(String(item.id))) {
         combinedMap.set(String(item.id), item);
-      }
-    });
-
-    localItems.forEach(item => {
-      const key = String(item.id);
-      if (!combinedMap.has(key)) {
-        combinedMap.set(key, item);
-      } else {
-        const api = combinedMap.get(key);
-        combinedMap.set(key, {
-          ...api,
-          ...item,
-          photo: item.photo || api.photo,
-          image: item.image || api.image,
-          photoLink: item.photoLink || api.photoLink,
-          position: item.position || api.position,
-          positionId: item.positionId || api.positionId || api.position?.id,
-          positionTitleUz: item.positionTitleUz || localizedField(api, 'positionTitle', 'uz', ''),
-          positionTitleRu: item.positionTitleRu || localizedField(api, 'positionTitle', 'ru', ''),
-          positionTitleEn: item.positionTitleEn || localizedField(api, 'positionTitle', 'en', ''),
-        });
       }
     });
 
@@ -299,30 +229,9 @@ export default function TeachersAdmin() {
       } catch (e2) {}
     }
     
-    let localFac = [];
-    let localDept = [];
-    let localPositions = [];
-    try {
-      localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
-      localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
-      localPositions = JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
-    } catch(e) {}
-
-    const facMap = new Map();
-    localFac.forEach(f => facMap.set(String(f.id), f));
-    rawFac.forEach(f => { if (!facMap.has(String(f.id))) facMap.set(String(f.id), f); });
-
-    const deptMap = new Map();
-    localDept.forEach(d => deptMap.set(String(d.id), d));
-    rawDept.forEach(d => { if (!deptMap.has(String(d.id))) deptMap.set(String(d.id), d); });
-
-    const posMap = new Map();
-    rawPositions.forEach(p => posMap.set(String(p.id), p));
-    localPositions.forEach(p => posMap.set(String(p.id), p));
-    const mergedPositions = Array.from(posMap.values());
-
-    let loadedFacs = Array.from(facMap.values());
-    let loadedDepts = Array.from(deptMap.values());
+    let loadedFacs = rawFac;
+    let loadedDepts = rawDept;
+    let mergedPositions = rawPositions;
 
     if (loadedFacs.length === 0) {
       loadedFacs = rawFac;
@@ -485,19 +394,10 @@ export default function TeachersAdmin() {
           sortOrder: Number(sortOrder) || 0,
         });
 
-        let apiRes;
         if (editMode && selectedItem) {
-          apiRes = await teachersAPI.update(selectedItem.id, fd);
+          await teachersAPI.update(selectedItem.id, fd);
         } else {
-          apiRes = await teachersAPI.create(fd);
-        }
-        const saved = apiRes?.data || apiRes;
-        if (saved?.id) {
-          teacherObj.id = saved.id;
-          if (saved.photoLink) {
-            teacherObj.photoLink = saved.photoLink;
-            teacherObj.image = getFileUrl(saved.photoLink);
-          }
+          await teachersAPI.create(fd);
         }
       } catch (apiErr) {
         console.warn('Backend API save failed:', apiErr.message);
@@ -505,40 +405,6 @@ export default function TeachersAdmin() {
         return;
       }
 
-      // Save to localStorage for offline/local persistence
-      const localItems = getLocalTeachers();
-      let updatedLocal;
-      if (editMode && selectedItem) {
-        updatedLocal = localItems.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...teacherObj } : item);
-        if (!updatedLocal.some(item => String(item.id) === String(selectedItem.id))) {
-          updatedLocal.push(teacherObj);
-        }
-      } else {
-        updatedLocal = [teacherObj, ...localItems];
-      }
-      setLocalTeachers(updatedLocal);
-
-      // Directly update local React state for immediate table render
-      const formattedItem = {
-        id: teacherObj.id,
-        faculty: teacherObj.facultyName || facObj?.nameUz || facObj?.name || 'Fakultet',
-        department: teacherObj.departmentName || deptObj?.nameUz || deptObj?.name || 'Kafedra',
-        position: resolvePersonPosition(teacherObj),
-        fullName: teacherObj.fullName,
-        phone: teacherObj.phone,
-        email: teacherObj.email,
-        image: teacherObj.image,
-        rawItem: teacherObj
-      };
-
-      setTeachersList(prev => {
-        if (editMode && selectedItem) {
-          return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
-        }
-        return [formattedItem, ...prev.filter(item => String(item.id) !== String(teacherObj.id))];
-      });
-
-      // Clear filters so new teacher is visible immediately
       setFilterFaculty('');
       setFilterDepartment('');
       setSearchQuery('');
@@ -582,14 +448,6 @@ export default function TeachersAdmin() {
     }
 
     try {
-      let base64Photo = imagePreview;
-      if (photoFile) {
-        const b64 = await fileToBase64(photoFile);
-        if (b64) base64Photo = b64;
-      }
-
-      const facObj = faculties.find(f => String(f.id) === String(facultyId));
-      const deptObj = departments.find(d => String(d.id) === String(departmentId));
       const posObj = positions.find(p => String(p.id) === String(positionId));
 
       const fullNameUz = fullName.uz.trim();
@@ -600,39 +458,6 @@ export default function TeachersAdmin() {
       const posNameUz = getPositionName(posObj, 'uz', "Fakultet dekani");
       const posNameRu = getPositionName(posObj, 'ru', "Декан факультета");
       const posNameEn = getPositionName(posObj, 'en', "Dean of Faculty");
-
-      const deanObj = {
-        id: editMode && selectedItem ? selectedItem.id : Date.now(),
-        fullNameUz,
-        fullNameRu,
-        fullNameEn,
-        fullName: fullNameUz,
-        phoneNumber: normalizedPhone,
-        phone: normalizedPhone,
-        email: email.trim(),
-        position: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
-        positionTitleUz: posNameUz,
-        positionTitleRu: posNameRu,
-        positionTitleEn: posNameEn,
-        facultyId,
-        facultyName: facObj?.nameUz || facObj?.name || 'Fakultet',
-        departmentId: departmentId || null,
-        departmentName: deptObj?.nameUz || deptObj?.name || '',
-        positionId,
-        academicDegreeId: academicDegreeId || null,
-        officeHours: officeHours.trim() || "10:00-18:00",
-        receptionTime: officeHours.trim() || "10:00-18:00",
-        sortOrder: Number(sortOrder) || 0,
-        faculty: facObj ? { id: facObj.id, nameUz: facObj.nameUz || facObj.name } : { id: facultyId },
-        department: deptObj ? { id: deptObj.id, nameUz: deptObj.nameUz || deptObj.name } : null,
-        positionObj: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
-        photo: base64Photo || "",
-        image: base64Photo || "",
-        photoLink: base64Photo || "",
-        isFacultyStaff: true,
-        isDean: true,
-        updatedAt: new Date().toISOString()
-      };
 
       try {
         const fd = buildFacultyStaffFormData({
@@ -650,77 +475,16 @@ export default function TeachersAdmin() {
           facultyId,
         });
 
-        let apiRes;
         if (editMode && selectedItem && (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff)) {
-          apiRes = await facultyStaffAPI.update(selectedItem.id, fd);
+          await facultyStaffAPI.update(selectedItem.id, fd);
         } else {
-          apiRes = await facultyStaffAPI.create(fd);
-        }
-        const saved = apiRes?.data || apiRes;
-        if (saved?.id) {
-          deanObj.id = saved.id;
-          if (saved.photoLink) {
-            deanObj.photoLink = saved.photoLink;
-            deanObj.image = getFileUrl(saved.photoLink);
-          }
+          await facultyStaffAPI.create(fd);
         }
       } catch (apiErr) {
         console.warn('FacultyStaff API save warning:', apiErr.message);
+        showNotification(apiErr.message || "Backendga saqlashda xatolik yuz berdi");
+        return;
       }
-
-      let localStaff = [];
-      try {
-        localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
-      } catch (e) {}
-
-      let updatedStaff;
-      if (editMode && selectedItem) {
-        updatedStaff = localStaff.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...deanObj } : item);
-        if (!updatedStaff.some(item => String(item.id) === String(selectedItem.id))) {
-          updatedStaff.unshift(deanObj);
-        }
-      } else {
-        updatedStaff = [deanObj, ...localStaff];
-      }
-
-      try {
-        localStorage.setItem('urspi_custom_faculty_staff', JSON.stringify(updatedStaff));
-      } catch (e) {}
-
-      const localTeachers = getLocalTeachers();
-      let updatedTeachers;
-      if (editMode && selectedItem) {
-        updatedTeachers = localTeachers.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...deanObj } : item);
-        if (!updatedTeachers.some(item => String(item.id) === String(selectedItem.id))) {
-          updatedTeachers.unshift(deanObj);
-        }
-      } else {
-        updatedTeachers = [deanObj, ...localTeachers];
-      }
-      setLocalTeachers(updatedTeachers);
-
-      window.dispatchEvent(new Event('urspi_teachers_updated'));
-
-      const formattedItem = {
-        id: deanObj.id,
-        faculty: deanObj.facultyName || facObj?.nameUz || facObj?.name || 'Fakultet',
-        department: deanObj.departmentName || deptObj?.nameUz || deptObj?.name || 'Dekanat',
-        position: resolvePersonPosition(deanObj, activeLang) || posNameUz,
-        fullName: deanObj.fullName,
-        phone: deanObj.phone,
-        email: deanObj.email,
-        image: deanObj.image,
-        isDean: true,
-        isFacultyStaff: true,
-        rawItem: deanObj
-      };
-
-      setTeachersList(prev => {
-        if (editMode && selectedItem) {
-          return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
-        }
-        return [formattedItem, ...prev.filter(item => String(item.id) !== String(deanObj.id))];
-      });
 
       showNotification(editMode ? "Dekan ma'lumotlari muvaffaqiyatli tahrirlandi" : "Yangi dekan muvaffaqiyatli qo'shildi");
       setIsDeanModalOpen(false);
@@ -741,24 +505,13 @@ export default function TeachersAdmin() {
       } else {
         await teachersAPI.delete(selectedItem.id);
       }
+      showNotification("Muvaffaqiyatli o'chirildi");
+      setDeleteModalOpen(false);
+      fetchTeachers();
     } catch (e) {
       console.warn("API delete warning:", e.message);
+      showNotification(e.message || "O'chirishda xatolik yuz berdi");
     }
-
-    try {
-      const localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
-      const updatedStaff = localStaff.filter(item => String(item.id) !== String(selectedItem.id));
-      localStorage.setItem('urspi_custom_faculty_staff', JSON.stringify(updatedStaff));
-    } catch (e) {}
-
-    const localItems = getLocalTeachers();
-    const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
-    setLocalTeachers(updatedLocal);
-
-    window.dispatchEvent(new Event('urspi_teachers_updated'));
-    showNotification("Muvaffaqiyatli o'chirildi");
-    setDeleteModalOpen(false);
-    fetchTeachers();
   };
 
   const openEditModal = (item) => {

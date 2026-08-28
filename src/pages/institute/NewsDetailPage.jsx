@@ -32,12 +32,7 @@ export default function NewsDetailPage() {
                 }
             }
 
-            if (!data) {
-                try {
-                    const localList = JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
-                    data = localList.find(x => String(x.id) === String(id));
-                } catch (e) {}
-            }
+
 
             if (isMounted && data) {
                 const imgList = [];

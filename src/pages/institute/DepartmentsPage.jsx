@@ -37,27 +37,8 @@ export default function DepartmentsPage() {
         console.warn('Failed to load landing departments from API:', err.message);
       }
 
-      let localFac = [];
-      let localDept = [];
-      try {
-        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
-        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
-      } catch (e) {}
-
-      const facMap = new Map();
-      localFac.forEach(item => facMap.set(item.id, item));
-      rawFac.forEach(item => {
-        if (!facMap.has(item.id)) facMap.set(item.id, item);
-      });
-
-      const deptMap = new Map();
-      localDept.forEach(item => deptMap.set(item.id, item));
-      rawDept.forEach(item => {
-        if (!deptMap.has(item.id)) deptMap.set(item.id, item);
-      });
-
-      const combinedFac = Array.from(facMap.values());
-      const combinedDept = Array.from(deptMap.values());
+      const combinedFac = rawFac;
+      const combinedDept = rawDept;
 
       if (isMounted) {
         const formatted = combinedFac.map(fac => {

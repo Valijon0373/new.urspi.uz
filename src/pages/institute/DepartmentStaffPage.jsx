@@ -86,46 +86,9 @@ export default function DepartmentStaffPage() {
         console.warn('Failed to fetch department teachers from API:', err.message);
       }
 
-      let localPositions = [];
-      try {
-        localPositions = JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
-      } catch (e) {}
-
-      const posMap = new Map();
-      positions.forEach(p => posMap.set(String(p.id), p));
-      localPositions.forEach(p => posMap.set(String(p.id), p));
-      positions = Array.from(posMap.values());
-
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
-      } catch (e) {}
-
-      const combinedMap = new Map();
-      apiData.forEach(t => combinedMap.set(String(t.id), t));
-      localItems.forEach(t => {
-        const key = String(t.id);
-        if (!combinedMap.has(key)) combinedMap.set(key, t);
-        else {
-          const api = combinedMap.get(key);
-          combinedMap.set(key, {
-            ...api,
-            ...t,
-            photo: t.photo || api.photo,
-            image: t.image || api.image,
-            photoLink: t.photoLink || api.photoLink,
-            position: t.position || api.position,
-            positionId: t.positionId || api.positionId || api.position?.id,
-            positionTitleUz: t.positionTitleUz || localizedField(api, 'positionTitle', 'uz', ''),
-            positionTitleRu: t.positionTitleRu || localizedField(api, 'positionTitle', 'ru', ''),
-            positionTitleEn: t.positionTitleEn || localizedField(api, 'positionTitle', 'en', ''),
-          });
-        }
-      });
-
-      const rawData = Array.from(combinedMap.values());
+      const combinedData = apiData;
       if (isMounted) {
-        let formatted = rawData.map(t => {
+        let formatted = combinedData.map(t => {
           const posId = t.positionId || t.position?.id;
           const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
           const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
@@ -149,16 +112,13 @@ export default function DepartmentStaffPage() {
         if (selectedDepartment) {
           const deptIdStr = String(selectedDepartment.id || '');
           const deptNameStr = (typeof selectedDepartment === 'string' ? selectedDepartment : (selectedDepartment.name || '')).toLowerCase();
-          const filtered = formatted.filter(t => {
+          formatted = formatted.filter(t => {
             const tDeptId = String(t.departmentId || '');
             const tDeptName = String(t.departmentName || '').toLowerCase();
             return (deptIdStr && tDeptId === deptIdStr) || 
                    (deptNameStr && tDeptName.includes(deptNameStr)) ||
                    (tDeptName && deptNameStr.includes(tDeptName));
           });
-          if (filtered.length > 0) {
-            formatted = filtered;
-          }
         }
 
         setTeachers(formatted);

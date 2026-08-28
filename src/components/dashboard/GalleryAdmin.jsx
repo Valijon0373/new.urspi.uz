@@ -33,23 +33,7 @@ export default function GalleryAdmin() {
       console.warn('Error fetching gallery photos:', err.message);
     }
 
-    let localItems = [];
-    try {
-      localItems = JSON.parse(localStorage.getItem('urspi_custom_gallery') || '[]');
-    } catch (e) {}
-
-    const combinedMap = new Map();
-    localItems.forEach(item => {
-      if (item && item.id) combinedMap.set(item.id, item);
-    });
-    apiData.forEach(item => {
-      if (item && item.id && !combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const list = Array.from(combinedMap.values());
-    setPhotos(list);
+    setPhotos(apiData);
     setLoading(false);
   };
 
@@ -98,33 +82,7 @@ export default function GalleryAdmin() {
       formData.append('image', selectedFile);
       formData.append('photo', selectedFile);
 
-      let createdItem = null;
-      try {
-        createdItem = await photoGalleriesAPI.create(formData);
-      } catch (err) {
-        console.warn('API create gallery photo failed, saving locally:', err.message);
-      }
-
-      // Sync to localStorage
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_gallery') || '[]');
-      } catch (e) {}
-
-      const newItem = {
-        id: createdItem?.id || Date.now(),
-        title: title,
-        titleUz: title,
-        titleRu: title,
-        titleEn: title,
-        photoLink: uploadedFileName || (createdItem ? (createdItem.photoLink || createdItem.imageLink) : ''),
-        image: previewUrl || (uploadedFileName ? getFileUrl(uploadedFileName) : ''),
-        photo: previewUrl || (uploadedFileName ? getFileUrl(uploadedFileName) : ''),
-        createdAt: new Date().toISOString()
-      };
-
-      const updatedLocal = [newItem, ...localItems];
-      localStorage.setItem('urspi_custom_gallery', JSON.stringify(updatedLocal));
+      await photoGalleriesAPI.create(formData);
 
       showNotification("Rasm muvaffaqiyatli yuklandi");
       setIsModalOpen(false);
@@ -145,25 +103,12 @@ export default function GalleryAdmin() {
     setSubmitting(true);
     try {
       if (selectedItem.id) {
-        try {
-          await photoGalleriesAPI.delete(selectedItem.id);
-        } catch (e) {
-          console.warn('API delete photo failed:', e.message);
-        }
+        await photoGalleriesAPI.delete(selectedItem.id);
       }
-      
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_gallery') || '[]');
-      } catch (e) {}
-
-      const filteredLocal = localItems.filter(p => p.id !== selectedItem.id);
-      localStorage.setItem('urspi_custom_gallery', JSON.stringify(filteredLocal));
-
-      setPhotos(photos.filter(photo => photo.id !== selectedItem.id));
       showNotification("Rasm muvaffaqiyatli o'chirildi");
       setDeleteModalOpen(false);
       setSelectedItem(null);
+      fetchPhotos();
     } catch (err) {
       console.error('Failed to delete gallery photo:', err);
       alert(err.message || "Rasmni o'chirishda xatolik yuz berdi");

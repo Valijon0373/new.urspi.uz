@@ -45,25 +45,7 @@ export default function Gallery() {
                 }
             }
 
-            // 4. Merge with local custom gallery storage (from Admin panel uploads)
-            let localItems = [];
-            try {
-                localItems = JSON.parse(localStorage.getItem('urspi_custom_gallery') || '[]');
-            } catch (e) {}
-
-            const combinedMap = new Map();
-            localItems.forEach(item => {
-                if (item && item.id) combinedMap.set(item.id, item);
-            });
-            apiData.forEach(item => {
-                if (item && item.id && !combinedMap.has(item.id)) {
-                    combinedMap.set(item.id, item);
-                } else if (item && !item.id) {
-                    combinedMap.set(Math.random(), item);
-                }
-            });
-
-            const combinedData = Array.from(combinedMap.values());
+            const combinedData = apiData;
 
             if (isMounted) {
                 if (combinedData && combinedData.length > 0) {

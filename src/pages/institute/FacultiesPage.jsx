@@ -37,7 +37,7 @@ const FacultyCard = ({ faculty }) => {
           </div>
 
           <div className="mt-auto pt-2 space-y-2">
-            <Link to="/faculty-staff" className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
+            <Link to={`/faculty-staff?facultyId=${faculty.id}`} state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <Users size={16} />
               Xodimlar
             </Link>
@@ -63,12 +63,12 @@ const FacultyCard = ({ faculty }) => {
       >
         <div className="p-5 bg-slate-50/50 flex flex-col gap-2">
           {faculty.departments?.map((dep, idx) => (
-            <Link to="/department-staff" key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
+            <Link to="/department-staff" state={{ department: dep, faculty }} key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
               <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors">
                 <ChevronRight size={16} />
               </div>
               <span className="text-[13px] text-slate-700 font-medium group-hover:text-[#0c1f4a] transition-colors leading-tight">
-                {dep}
+                {typeof dep === 'string' ? dep : dep.name}
               </span>
             </Link>
           ))}
@@ -101,27 +101,8 @@ export default function FacultiesPage() {
         console.warn('Failed to load landing faculties/departments from API:', err.message);
       }
 
-      let localFac = [];
-      let localDept = [];
-      try {
-        localFac = JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
-        localDept = JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
-      } catch (e) {}
-
-      const facMap = new Map();
-      rawFac.forEach(item => facMap.set(item.id, item));
-      localFac.forEach(item => {
-        if (!facMap.has(item.id)) facMap.set(item.id, item);
-      });
-
-      const deptMap = new Map();
-      rawDept.forEach(item => deptMap.set(item.id, item));
-      localDept.forEach(item => {
-        if (!deptMap.has(item.id)) deptMap.set(item.id, item);
-      });
-
-      const combinedFac = Array.from(facMap.values());
-      const combinedDept = Array.from(deptMap.values());
+      const combinedFac = rawFac;
+      const combinedDept = rawDept;
 
       if (isMounted) {
         const formatted = combinedFac.map(fac => {

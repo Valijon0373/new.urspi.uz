@@ -21,20 +21,6 @@ export default function GreenInstituteAdmin() {
     description: { uz: '', ru: '', en: '' }
   });
 
-  const getLocalItems = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_green_institutes') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalItems = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_green_institutes', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchItems = async () => {
     setLoading(true);
     let apiData = [];
@@ -45,19 +31,7 @@ export default function GreenInstituteAdmin() {
       console.warn('API fetch error in GreenInstituteAdmin:', e.message);
     }
 
-    const localItems = getLocalItems();
-    const combinedMap = new Map();
-    apiData.forEach(item => {
-      if (item && item.id) combinedMap.set(item.id, item);
-    });
-    localItems.forEach(item => {
-      if (item && item.id && !combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => {
+    const formatted = apiData.map(item => {
       const keys = ['image', 'photo', 'imageLink', 'photoLink', 'filePath', 'fileName', 'fileLink', 'file', 'url', 'path', 'link'];
       let imgRaw = '';
       for (const k of keys) {
@@ -119,17 +93,12 @@ export default function GreenInstituteAdmin() {
   const handleToggleStatus = async (item) => {
     try {
       await greenInstitutesAPI.toggleStatus(item.id);
+      showNotification("Holati o'zgartirildi");
+      fetchItems();
     } catch (err) {
       console.warn("Toggle status API error:", err.message);
+      showNotification(err.message || "Xatolik yuz berdi", 'error');
     }
-    const localList = getLocalItems();
-    const idx = localList.findIndex(x => x.id === item.id);
-    if (idx >= 0) {
-      localList[idx].active = !localList[idx].active;
-      setLocalItems(localList);
-    }
-    showNotification("Holati o'zgartirildi");
-    fetchItems();
   };
 
   const handleSave = async () => {
@@ -168,54 +137,11 @@ export default function GreenInstituteAdmin() {
         fd.append('photo', imageFile);
       }
 
-      let apiResItem = null;
-      try {
-        if (editMode && selectedItem) {
-          const res = await greenInstitutesAPI.update(selectedItem.id, fd);
-          apiResItem = res?.data || res;
-        } else {
-          const res = await greenInstitutesAPI.create(fd);
-          apiResItem = res?.data || res;
-        }
-      } catch (e) {
-        console.warn("Backend green institute save failed, falling back to local storage:", e.message);
-      }
-
-      let base64Image = '';
-      if (imageFile) {
-        base64Image = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = () => resolve('');
-          reader.readAsDataURL(imageFile);
-        });
-      }
-
-      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
-      const fallbackObj = {
-        id: targetId,
-        title: formData.title.uz || "Yashil Institut",
-        titleUz: formData.title.uz || "Yashil Institut",
-        titleRu: formData.title.ru || '',
-        titleEn: formData.title.en || '',
-        description: formData.description.uz || '',
-        descriptionUz: formData.description.uz || '',
-        descriptionRu: formData.description.ru || '',
-        descriptionEn: formData.description.en || '',
-        active: true,
-        imageLink: uploadedFileName || (apiResItem?.imageLink || apiResItem?.photoLink || ''),
-        image: uploadedFileName ? getFileUrl(uploadedFileName) : (base64Image || (apiResItem?.image || selectedItem?.image || ''))
-      };
-
-      const localList = getLocalItems();
-      const existingIdx = localList.findIndex(x => x.id === targetId);
-      if (existingIdx >= 0) {
-        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      if (editMode && selectedItem) {
+        await greenInstitutesAPI.update(selectedItem.id, fd);
       } else {
-        localList.unshift(fallbackObj);
+        await greenInstitutesAPI.create(fd);
       }
-      setLocalItems(localList);
-      window.dispatchEvent(new Event('storage'));
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       fetchItems();
@@ -229,14 +155,12 @@ export default function GreenInstituteAdmin() {
     if (selectedItem) {
       try {
         await greenInstitutesAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchItems();
       } catch (e) {
         console.warn("Backend delete error:", e.message);
+        showNotification(e.message || "O'chirishda xatolik", 'error');
       }
-      const localList = getLocalItems().filter(x => x.id !== selectedItem.id);
-      setLocalItems(localList);
-      window.dispatchEvent(new Event('storage'));
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchItems();
     }
     setDeleteModalOpen(false);
   };

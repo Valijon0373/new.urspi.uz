@@ -21,20 +21,6 @@ export default function DepartmentsAdmin() {
     facultyId: ''
   });
 
-  const getLocalDepartments = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_departments') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalDepartments = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_departments', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchData = async () => {
     setLoading(true);
     let rawDept = [];
@@ -53,17 +39,7 @@ export default function DepartmentsAdmin() {
 
     setFacultiesList(rawFac.map(f => ({ id: f.id, title: f.nameUz || f.name || "Fakultet" })));
 
-    const localDepts = getLocalDepartments();
-    const combinedMap = new Map();
-    localDepts.forEach(item => combinedMap.set(item.id, item));
-    rawDept.forEach(item => {
-      if (!combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => ({
+    const formatted = rawDept.map(item => ({
       id: item.id,
       title: item.nameUz || item.name || "Kafedra",
       description: item.descriptionUz || item.description || "Kafedra haqida qisqacha ma'lumot",
@@ -98,7 +74,6 @@ export default function DepartmentsAdmin() {
 
   const handleSave = async () => {
     try {
-      const selectedFac = facultiesList.find(f => String(f.id) === String(formData.facultyId));
       const dto = {
         nameUz: formData.title.uz || 'Kafedra',
         nameRu: formData.title.ru || '',
@@ -109,40 +84,11 @@ export default function DepartmentsAdmin() {
         facultyId: parseInt(formData.facultyId) || 1
       };
 
-      let apiResItem = null;
-      try {
-        if (editMode && selectedItem) {
-          const res = await departmentsAPI.update(selectedItem.id, dto);
-          apiResItem = res?.data || res;
-        } else {
-          const res = await departmentsAPI.create(dto);
-          apiResItem = res?.data || res;
-        }
-      } catch (e) {
-        console.warn("Backend department post failed, falling back to local state:", e.message);
-      }
-
-      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
-      const fallbackObj = {
-        id: targetId,
-        nameUz: formData.title.uz || 'Kafedra',
-        nameRu: formData.title.ru || '',
-        nameEn: formData.title.en || '',
-        descriptionUz: formData.description.uz || '',
-        descriptionRu: formData.description.ru || '',
-        descriptionEn: formData.description.en || '',
-        facultyId: parseInt(formData.facultyId) || 1,
-        faculty: { id: parseInt(formData.facultyId) || 1, nameUz: selectedFac?.title || "Fakultet" }
-      };
-
-      const localList = getLocalDepartments();
-      const existingIdx = localList.findIndex(x => x.id === targetId);
-      if (existingIdx >= 0) {
-        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      if (editMode && selectedItem) {
+        await departmentsAPI.update(selectedItem.id, dto);
       } else {
-        localList.unshift(fallbackObj);
+        await departmentsAPI.create(dto);
       }
-      setLocalDepartments(localList);
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       fetchData();
@@ -156,13 +102,12 @@ export default function DepartmentsAdmin() {
     if (selectedItem) {
       try {
         await departmentsAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchData();
       } catch (e) {
         console.warn("Backend delete error:", e.message);
+        showNotification(e.message || "O'chirishda xatolik", 'error');
       }
-      const localList = getLocalDepartments().filter(x => x.id !== selectedItem.id);
-      setLocalDepartments(localList);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchData();
     }
     setDeleteModalOpen(false);
   };

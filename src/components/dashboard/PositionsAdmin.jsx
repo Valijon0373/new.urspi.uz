@@ -17,23 +17,6 @@ export default function PositionsAdmin() {
     title: { uz: '', ru: '', en: '' }
   });
 
-  const getLocalPositions = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_positions') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalPositions = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_positions', JSON.stringify(items));
-      window.dispatchEvent(new Event('urspi_positions_updated'));
-    } catch (e) {
-      console.error('Failed to save positions to localStorage:', e);
-    }
-  };
-
   const defaultTranslations = {
     "katta o'qituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
     "katta oqituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
@@ -57,33 +40,9 @@ export default function PositionsAdmin() {
       console.warn('API error in fetchPositions:', e.message);
     }
 
-    const localItems = getLocalPositions();
     const norm = (s) => (s || '').toLowerCase().trim().replace(/[''`ʼ‘’]/g, "'");
 
-    const nameMap = new Map();
-    const allItems = [...localItems, ...apiData];
-    allItems.forEach(item => {
-      const titleUz = item.nameUz || item.titleUz || item.name || item.title || '';
-      const key = norm(titleUz) || String(item.id);
-      if (!nameMap.has(key)) {
-        nameMap.set(key, item);
-      } else {
-        const existing = nameMap.get(key);
-        nameMap.set(key, {
-          ...existing,
-          ...item,
-          nameUz: item.nameUz || existing.nameUz || titleUz,
-          titleUz: item.titleUz || existing.titleUz || titleUz,
-          nameRu: item.nameRu || item.titleRu || existing.nameRu || existing.titleRu || '',
-          titleRu: item.titleRu || item.nameRu || existing.titleRu || existing.nameRu || '',
-          nameEn: item.nameEn || item.titleEn || existing.nameEn || existing.titleEn || '',
-          titleEn: item.titleEn || item.nameEn || existing.titleEn || existing.nameEn || '',
-        });
-      }
-    });
-
-    const rawData = Array.from(nameMap.values());
-    const formatted = rawData.map(item => {
+    const formatted = apiData.map(item => {
       const uz = item.nameUz || item.titleUz || item.name || item.title || "Lavozim";
       const key = norm(uz);
       const def = defaultTranslations[key] || {};
@@ -126,7 +85,6 @@ export default function PositionsAdmin() {
         return;
       }
       const dto = {
-        id: editMode && selectedItem ? selectedItem.id : Date.now(),
         name: nameUz,
         nameUz,
         nameRu,
@@ -137,27 +95,11 @@ export default function PositionsAdmin() {
         description: 'Lavozim tavsifi'
       };
 
-      try {
-        if (editMode && selectedItem) {
-          await positionsAPI.update(selectedItem.id, dto);
-        } else {
-          await positionsAPI.create(dto);
-        }
-      } catch (apiErr) {
-        console.warn("Backend API save failed for position:", apiErr.message);
-      }
-
-      const localItems = getLocalPositions();
-      let updatedLocal;
       if (editMode && selectedItem) {
-        updatedLocal = localItems.map(p => String(p.id) === String(selectedItem.id) ? { ...p, ...dto } : p);
-        if (!updatedLocal.some(p => String(p.id) === String(selectedItem.id))) {
-          updatedLocal.push(dto);
-        }
+        await positionsAPI.update(selectedItem.id, dto);
       } else {
-        updatedLocal = [dto, ...localItems];
+        await positionsAPI.create(dto);
       }
-      setLocalPositions(updatedLocal);
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       setIsModalOpen(false);
@@ -171,12 +113,11 @@ export default function PositionsAdmin() {
     if (selectedItem) {
       try {
         await positionsAPI.delete(selectedItem.id);
-      } catch (e) {}
-      const localItems = getLocalPositions();
-      const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
-      setLocalPositions(updatedLocal);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchPositions();
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchPositions();
+      } catch (e) {
+        showNotification("O'chirishda xatolik yuz berdi");
+      }
     }
     setDeleteModalOpen(false);
   };

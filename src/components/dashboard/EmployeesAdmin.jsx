@@ -65,21 +65,8 @@ export default function EmployeesAdmin() {
         console.warn('Failed to fetch centers:', e2.message);
       }
     }
-
-    try {
-      const localCenters = JSON.parse(localStorage.getItem('urspi_custom_centers') || '[]');
-      const centerMap = new Map();
-      rawData.forEach(c => centerMap.set(String(c.id), c));
-      localCenters.forEach(c => {
-        if (!centerMap.has(String(c.id))) centerMap.set(String(c.id), c);
-      });
-      const list = Array.from(centerMap.values());
-      setCenters(list);
-      return list;
-    } catch (e) {
-      setCenters(rawData);
-      return rawData;
-    }
+    setCenters(rawData);
+    return rawData;
   };
 
   const fetchEmployees = async (loadedCenters = centers) => {
@@ -97,20 +84,6 @@ export default function EmployeesAdmin() {
       }
     }
 
-    let localItems = [];
-    try {
-      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
-    } catch (e) {}
-
-    const combinedMap = new Map();
-    localItems.forEach(item => combinedMap.set(String(item.id), item));
-    apiData.forEach(item => {
-      if (!combinedMap.has(String(item.id))) {
-        combinedMap.set(String(item.id), item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
     const cardColors = [
       'from-blue-600 to-indigo-600',
       'from-emerald-600 to-teal-600',
@@ -118,7 +91,7 @@ export default function EmployeesAdmin() {
       'from-purple-600 to-indigo-600',
       'from-rose-600 to-pink-600'
     ];
-    const formatted = rawData.map((emp, idx) => {
+    const formatted = apiData.map((emp, idx) => {
       const matchedCenter = loadedCenters.find(c => String(c.id) === String(emp.centerId || emp.center?.id));
       const deptName = emp.center?.nameUz || emp.center?.name || matchedCenter?.nameUz || matchedCenter?.name || emp.department || "Markaz";
       return {
@@ -180,32 +153,6 @@ export default function EmployeesAdmin() {
     const posRu = formData.position.ru || posUz;
     const posEn = formData.position.en || posUz;
 
-    const selCenter = centers.find(c => String(c.id) === String(centerId));
-    const deptName = selCenter?.nameUz || selCenter?.name || formData.department || 'Markaz';
-
-    const empObj = {
-      id: editMode && selectedItem ? selectedItem.id : Date.now(),
-      fullNameUz,
-      fullNameRu,
-      fullNameEn,
-      fullName: fullNameUz,
-      positionTitleUz: posUz,
-      positionTitleRu: posRu,
-      positionTitleEn: posEn,
-      positionTitle: posUz,
-      position: posUz,
-      phoneNumber: formData.phone,
-      phone: formData.phone,
-      email: formData.email,
-      department: deptName,
-      centerId: centerId || '',
-      center: selCenter ? { id: selCenter.id, nameUz: selCenter.nameUz || selCenter.name } : null,
-      photo: imagePreview || "",
-      image: imagePreview || "",
-      photoLink: imagePreview || "",
-      updatedAt: new Date().toISOString()
-    };
-
     try {
       const fd = new FormData();
       fd.append('fullNameUz', fullNameUz);
@@ -221,71 +168,16 @@ export default function EmployeesAdmin() {
       if (photoFile) fd.append('photo', photoFile);
       if (cvFile) fd.append('cv', cvFile);
 
-      let apiRes;
       if (editMode && selectedItem) {
-        apiRes = await employeesAPI.update(selectedItem.id, fd);
+        await employeesAPI.update(selectedItem.id, fd);
       } else {
-        apiRes = await employeesAPI.create(fd);
-      }
-      const saved = apiRes?.data || apiRes;
-      if (saved?.id) {
-        empObj.id = saved.id;
+        await employeesAPI.create(fd);
       }
     } catch (apiErr) {
       console.warn('Backend API save failed:', apiErr.message);
       showNotification(apiErr.message || "Backendga saqlashda xatolik yuz berdi");
       return;
     }
-
-    let localItems = [];
-    try {
-      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
-    } catch(e) {}
-
-    let updatedLocal;
-    if (editMode && selectedItem) {
-      updatedLocal = localItems.map(item => String(item.id) === String(selectedItem.id) ? { ...item, ...empObj } : item);
-      if (!updatedLocal.some(item => String(item.id) === String(selectedItem.id))) {
-        updatedLocal.push(empObj);
-      }
-    } else {
-      updatedLocal = [empObj, ...localItems];
-    }
-    
-    try {
-      localStorage.setItem('urspi_custom_employees', JSON.stringify(updatedLocal));
-    } catch (e) {
-      try {
-        const sanitized = updatedLocal.map(item => ({
-          ...item,
-          photo: item.photo && item.photo.length > 50000 ? '' : item.photo,
-          image: item.image && item.image.length > 50000 ? '' : item.image,
-          photoLink: item.photoLink && item.photoLink.length > 50000 ? '' : item.photoLink,
-        }));
-        localStorage.setItem('urspi_custom_employees', JSON.stringify(sanitized));
-      } catch (e2) {}
-    }
-
-    const cardColors = ['from-blue-600 to-indigo-600', 'from-emerald-600 to-teal-600', 'from-amber-500 to-orange-600'];
-    const formattedItem = {
-      id: empObj.id,
-      fullName: empObj.fullName,
-      position: empObj.position,
-      phone: empObj.phone,
-      email: empObj.email,
-      department: deptName,
-      centerId: centerId || '',
-      image: empObj.image,
-      color: cardColors[0],
-      rawItem: empObj
-    };
-
-    setEmployeesList(prev => {
-      if (editMode && selectedItem) {
-        return prev.map(item => String(item.id) === String(selectedItem.id) ? formattedItem : item);
-      }
-      return [formattedItem, ...prev.filter(item => String(item.id) !== String(empObj.id))];
-    });
 
     setSearchTerm('');
     setSelectedDepartment('');
@@ -300,19 +192,13 @@ export default function EmployeesAdmin() {
     if (!selectedItem) return;
     try {
       await employeesAPI.delete(selectedItem.id);
+      showNotification("Muvaffaqiyatli o'chirildi");
+      setDeleteModalOpen(false);
+      fetchEmployees();
     } catch (e) {
-      console.warn("API delete failed, removing from local storage:", e.message);
+      console.warn("API delete failed:", e.message);
+      showNotification(e.message || "O'chirishda xatolik yuz berdi");
     }
-    let localItems = [];
-    try {
-      localItems = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
-    } catch(e) {}
-    const updatedLocal = localItems.filter(item => String(item.id) !== String(selectedItem.id));
-    localStorage.setItem('urspi_custom_employees', JSON.stringify(updatedLocal));
-
-    showNotification("Muvaffaqiyatli o'chirildi");
-    setDeleteModalOpen(false);
-    fetchEmployees();
   };
 
   const openEditModal = (item) => {

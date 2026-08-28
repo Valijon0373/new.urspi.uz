@@ -252,24 +252,7 @@ export default function BachelorPage() {
   const [mandateResult, setMandateResult] = useState(null);
 
   const handleViewPdf = (dir) => {
-    const saved = localStorage.getItem('admission_directions_data');
-    let pdfUrl = null;
-    if (saved) {
-      try {
-        const list = JSON.parse(saved);
-        const match = list.find(item => item.code === dir.code || item.name.toLowerCase().includes(dir.name.toLowerCase()));
-        if (match && match.pdfUrl) {
-          pdfUrl = match.pdfUrl;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    
-    if (!pdfUrl) {
-      pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-    }
-
+    let pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
     window.open(pdfUrl, '_blank');
   };
 

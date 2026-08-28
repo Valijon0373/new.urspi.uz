@@ -31,12 +31,7 @@ export default function AnnouncementDetailPage() {
                 }
             }
 
-            if (!data) {
-                try {
-                    const localList = JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
-                    data = localList.find(x => String(x.id) === String(id));
-                } catch (e) {}
-            }
+
 
             if (isMounted && data) {
                 const lang = i18n.language || 'uz';

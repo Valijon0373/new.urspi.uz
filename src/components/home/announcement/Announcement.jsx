@@ -32,21 +32,7 @@ export default function Announcement() {
                 }
             }
 
-            let localItems = [];
-            try {
-                localItems = JSON.parse(localStorage.getItem('urspi_custom_announcements') || '[]');
-            } catch (e) {}
-
-            const combinedMap = new Map();
-            localItems.forEach(item => combinedMap.set(item.id, item));
-            apiData.forEach(item => {
-                if (!combinedMap.has(item.id)) {
-                    combinedMap.set(item.id, item);
-                }
-            });
-
-            const rawData = Array.from(combinedMap.values());
-            // Sort by latest first
+            const rawData = [...apiData];
             rawData.sort((a, b) => (b.id || 0) - (a.id || 0));
 
             if (isMounted) {

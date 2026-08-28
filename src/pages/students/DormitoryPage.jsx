@@ -413,20 +413,7 @@ export default function DormitoryPage() {
         }
       }
 
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_dormitories') || '[]');
-      } catch (e) {}
-
-      const combinedMap = new Map();
-      localItems.forEach(item => {
-        if (item && item.id != null) combinedMap.set(String(item.id), item);
-      });
-      apiItems.forEach(item => {
-        if (item && item.id != null) combinedMap.set(String(item.id), item);
-      });
-
-      const combined = Array.from(combinedMap.values());
+      const combined = apiItems;
       if (isMounted) {
         if (combined.length > 0) {
           const formatted = combined.map((item, idx) => {
@@ -475,20 +462,7 @@ export default function DormitoryPage() {
         }
       }
 
-      let localItems = [];
-      try {
-        localItems = JSON.parse(localStorage.getItem('urspi_custom_rents') || '[]');
-      } catch (e) {}
-
-      const combinedMap = new Map();
-      localItems.forEach(item => {
-        if (item && item.id != null) combinedMap.set(String(item.id), item);
-      });
-      apiItems.forEach(item => {
-        if (item && item.id != null) combinedMap.set(String(item.id), item);
-      });
-
-      const combined = Array.from(combinedMap.values());
+      const combined = apiItems;
 
       if (isMounted) {
         if (combined.length > 0) {

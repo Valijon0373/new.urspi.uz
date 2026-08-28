@@ -21,20 +21,6 @@ export default function DormitoryAdmin() {
     description: { uz: '', ru: '', en: '' }
   });
 
-  const getLocalItems = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_dormitories') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalItems = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_dormitories', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchItems = async () => {
     setLoading(true);
     let apiData = [];
@@ -45,19 +31,7 @@ export default function DormitoryAdmin() {
       console.warn('API fetch error in DormitoryAdmin:', e.message);
     }
 
-    const localItems = getLocalItems();
-    const combinedMap = new Map();
-    apiData.forEach(item => {
-      if (item && item.id != null) combinedMap.set(String(item.id), item);
-    });
-    localItems.forEach(item => {
-      if (item && item.id != null && !combinedMap.has(String(item.id))) {
-        combinedMap.set(String(item.id), item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => {
+    const formatted = apiData.map(item => {
       const keys = ['image', 'photo', 'imageLink', 'photoLink', 'filePath', 'fileName', 'fileLink', 'file', 'url', 'path', 'link', 'mainImageLink'];
       let imgRaw = '';
       for (const k of keys) {
@@ -128,35 +102,9 @@ export default function DormitoryAdmin() {
 
   const handleToggleStatus = async (item) => {
     try {
-      let updatedStatus = item.active ? 'DISABLED' : 'ACTIVE';
-      try {
-        await dormitoriesAPI.toggleStatus(item.id);
-      } catch (err) {
-        console.warn('API status update error:', err.message);
-      }
-
-      const updatedList = itemsList.map(i => {
-        if (i.id === item.id) {
-          const newActive = !i.active;
-          return {
-            ...i,
-            active: newActive,
-            status: newActive ? 'ACTIVE' : 'DISABLED'
-          };
-        }
-        return i;
-      });
-
-      setItemsList(updatedList);
-      const local = getLocalItems();
-      const updatedLocal = local.map(l => {
-        if (String(l.id) === String(item.id)) {
-          return { ...l, active: !item.active, status: updatedStatus };
-        }
-        return l;
-      });
-      setLocalItems(updatedLocal);
+      await dormitoriesAPI.toggleStatus(item.id);
       showNotification(`Holat ${!item.active ? 'FAOL' : 'FAOL EMAS'} holatiga o'zgartirildi`);
+      fetchItems();
     } catch (e) {
       showNotification("Holatni o'zgartirishda xatolik: " + e.message, 'error');
     }
@@ -232,41 +180,10 @@ export default function DormitoryAdmin() {
 
     try {
       if (editMode && selectedItem) {
-        try {
-          await dormitoriesAPI.update(selectedItem.id, payload);
-        } catch (err) {
-          console.warn('API update failed, saving locally:', err.message);
-        }
-
-        const local = getLocalItems();
-        const updatedLocal = local.map(l => {
-          if (String(l.id) === String(selectedItem.id)) {
-            return { ...l, ...payload, id: l.id };
-          }
-          return l;
-        });
-        if (!local.some(l => String(l.id) === String(selectedItem.id))) {
-          updatedLocal.push({ id: selectedItem.id, ...payload });
-        }
-        setLocalItems(updatedLocal);
+        await dormitoriesAPI.update(selectedItem.id, payload);
         showNotification("Turar joy ma'lumotlari yangilandi");
       } else {
-        let created = null;
-        try {
-          created = await dormitoriesAPI.create(payload);
-        } catch (err) {
-          console.warn('API create failed, saving locally:', err.message);
-        }
-
-        const newItemId = created?.id || created?.data?.id || `dorm-${Date.now()}`;
-        const newLocalItem = {
-          id: newItemId,
-          ...payload,
-          image: imageFile ? URL.createObjectURL(imageFile) : uploadedImageLink
-        };
-
-        const local = getLocalItems();
-        setLocalItems([newLocalItem, ...local]);
+        await dormitoriesAPI.create(payload);
         showNotification("Yangi turar joy muvaffaqiyatli qo'shildi");
       }
 
@@ -280,20 +197,11 @@ export default function DormitoryAdmin() {
   const handleDelete = async () => {
     if (!selectedItem) return;
     try {
-      try {
-        await dormitoriesAPI.delete(selectedItem.id);
-      } catch (err) {
-        console.warn('API delete failed, removing locally:', err.message);
-      }
-
-      const local = getLocalItems();
-      const updatedLocal = local.filter(l => String(l.id) !== String(selectedItem.id));
-      setLocalItems(updatedLocal);
-
-      setItemsList(itemsList.filter(i => i.id !== selectedItem.id));
+      await dormitoriesAPI.delete(selectedItem.id);
       setDeleteModalOpen(false);
       setSelectedItem(null);
       showNotification("Turar joy muvaffaqiyatli o'chirildi");
+      fetchItems();
     } catch (err) {
       showNotification("O'chirishda xatolik: " + err.message, 'error');
     }

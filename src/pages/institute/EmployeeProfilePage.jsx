@@ -47,17 +47,7 @@ export default function EmployeeProfilePage() {
         console.warn('Failed to load profile from API:', err.message);
       }
 
-      try {
-        const localTeachers = JSON.parse(localStorage.getItem('urspi_custom_teachers') || '[]');
-        const localEmployees = JSON.parse(localStorage.getItem('urspi_custom_employees') || '[]');
-        const localStaff = JSON.parse(localStorage.getItem('urspi_custom_faculty_staff') || '[]');
-        const localItem = localTeachers.find(t => String(t.id) === String(id)) || 
-                          localEmployees.find(e => String(e.id) === String(id)) ||
-                          localStaff.find(s => String(s.id) === String(id));
-        if (localItem) {
-          data = data ? { ...data, ...localItem } : localItem;
-        }
-      } catch (e) {}
+
 
       if (isMounted && data) {
         const rawImg = data.photo || data.image || data.photoLink || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');

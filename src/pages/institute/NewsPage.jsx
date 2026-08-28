@@ -31,20 +31,7 @@ export default function NewsPage() {
                 }
             }
 
-            let localItems = [];
-            try {
-                localItems = JSON.parse(localStorage.getItem('urspi_custom_news') || '[]');
-            } catch (e) {}
-
-            const combinedMap = new Map();
-            localItems.forEach(item => combinedMap.set(item.id, item));
-            apiData.forEach(item => {
-                if (!combinedMap.has(item.id)) {
-                    combinedMap.set(item.id, item);
-                }
-            });
-
-            const rawData = Array.from(combinedMap.values());
+            const rawData = [...apiData];
 
             if (isMounted) {
                 const formatted = rawData.map((item, index) => {

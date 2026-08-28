@@ -19,20 +19,6 @@ export default function FacultiesAdmin() {
     description: { uz: '', ru: '', en: '' }
   });
 
-  const getLocalFaculties = () => {
-    try {
-      return JSON.parse(localStorage.getItem('urspi_custom_faculties') || '[]');
-    } catch (e) {
-      return [];
-    }
-  };
-
-  const setLocalFaculties = (items) => {
-    try {
-      localStorage.setItem('urspi_custom_faculties', JSON.stringify(items));
-    } catch (e) {}
-  };
-
   const fetchFaculties = async () => {
     setLoading(true);
     let apiData = [];
@@ -43,19 +29,7 @@ export default function FacultiesAdmin() {
       console.warn('API error in fetchFaculties:', e.message);
     }
 
-    const localItems = getLocalFaculties();
-    const combinedMap = new Map();
-    apiData.forEach(item => {
-      combinedMap.set(item.id, item);
-    });
-    localItems.forEach(item => {
-      if (!combinedMap.has(item.id)) {
-        combinedMap.set(item.id, item);
-      }
-    });
-
-    const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(item => ({
+    const formatted = apiData.map(item => ({
       id: item.id,
       code: item.code || `FAC_${item.id}`,
       title: item.nameUz || item.name || "Fakultet",
@@ -99,39 +73,11 @@ export default function FacultiesAdmin() {
         fd.append('logo', logoFile);
       }
 
-      let apiResItem = null;
-      try {
-        if (editMode && selectedItem) {
-          const res = await facultiesAPI.update(selectedItem.id, fd);
-          apiResItem = res?.data || res;
-        } else {
-          const res = await facultiesAPI.create(fd);
-          apiResItem = res?.data || res;
-        }
-      } catch (e) {
-        console.warn("Backend faculty post failed, falling back to local state:", e.message);
-      }
-
-      const targetId = (apiResItem && apiResItem.id) || (editMode && selectedItem ? selectedItem.id : Date.now());
-      const fallbackObj = {
-        id: targetId,
-        nameUz: formData.title.uz || 'Fakultet',
-        nameRu: formData.title.ru || '',
-        nameEn: formData.title.en || '',
-        descriptionUz: formData.description.uz || '',
-        descriptionRu: formData.description.ru || '',
-        descriptionEn: formData.description.en || '',
-        logo: logoFile ? URL.createObjectURL(logoFile) : (selectedItem?.logo || '')
-      };
-
-      const localList = getLocalFaculties();
-      const existingIdx = localList.findIndex(x => x.id === targetId);
-      if (existingIdx >= 0) {
-        localList[existingIdx] = { ...localList[existingIdx], ...fallbackObj };
+      if (editMode && selectedItem) {
+        await facultiesAPI.update(selectedItem.id, fd);
       } else {
-        localList.unshift(fallbackObj);
+        await facultiesAPI.create(fd);
       }
-      setLocalFaculties(localList);
 
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       fetchFaculties();
@@ -145,13 +91,12 @@ export default function FacultiesAdmin() {
     if (selectedItem) {
       try {
         await facultiesAPI.delete(selectedItem.id);
+        showNotification("Muvaffaqiyatli o'chirildi");
+        fetchFaculties();
       } catch (e) {
         console.warn("Backend delete error:", e.message);
+        showNotification(e.message || "O'chirishda xatolik", 'error');
       }
-      const localList = getLocalFaculties().filter(x => x.id !== selectedItem.id);
-      setLocalFaculties(localList);
-      showNotification("Muvaffaqiyatli o'chirildi");
-      fetchFaculties();
     }
     setDeleteModalOpen(false);
   };
