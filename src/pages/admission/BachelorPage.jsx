@@ -103,7 +103,7 @@ const localTranslations = {
     colGrant: "Учебный год",
     colContract: "ПЛАТНЫЙ КОНТРАКТ",
     colAction: "ДЕЙСТВИЕ",
-    btnDetails: "Ko'rish",
+    btnDetails: "Просмотр",
     
     // Filters
     filterFullTime: "Дневное",
@@ -161,7 +161,7 @@ const localTranslations = {
     colGrant: "Academic Year",
     colContract: "PAID CONTRACT",
     colAction: "ACTION",
-    btnDetails: "Ko'rish",
+    btnDetails: "View",
     
     // Filters
     filterFullTime: "Full-time",

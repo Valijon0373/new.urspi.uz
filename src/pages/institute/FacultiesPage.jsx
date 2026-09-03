@@ -9,6 +9,7 @@ import { facultiesAPI, departmentsAPI, getFileUrl } from '../../api'
 
 
 const FacultyCard = ({ faculty }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -29,7 +30,7 @@ const FacultyCard = ({ faculty }) => {
         <div className="w-full flex flex-col justify-start flex-1 h-full">
           <div className="mb-4 text-center xl:text-left">
             <span className="inline-block px-3 py-1.5 rounded-full bg-blue-50/50 text-[#3b82f6] border border-blue-200/60 text-[12px] font-semibold mb-3 leading-tight">
-              Fakultet
+              {t('common.faculty')}
             </span>
             <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-tight">
               {faculty.name}
@@ -39,19 +40,19 @@ const FacultyCard = ({ faculty }) => {
           <div className="mt-auto pt-2 space-y-2">
             <Link to={`/faculty-staff/${faculty.id}`} state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <Users size={16} />
-              Xodimlar
+              {t('common.staff')}
             </Link>
             <button 
               onClick={() => setIsOpen(!isOpen)}
               className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95"
             >
               <Layers size={16} />
-              Kafedralar
+              {t('common.departments')}
               <ChevronDown size={16} className={`ml-auto transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <Link to="/faculty-about" state={{ faculty }} className="flex items-center justify-center xl:justify-start gap-2 w-full px-4 py-2 bg-blue-50 text-[#0c1f4a] font-semibold text-[13px] rounded-xl hover:bg-[#0c1f4a] hover:text-white transition-all duration-300 border border-blue-100 shadow-sm active:scale-95">
               <BsInfoCircle size={16} />
-              Batafsil
+              {t('home.carousel.details')}
             </Link>
           </div>
         </div>
@@ -79,7 +80,7 @@ const FacultyCard = ({ faculty }) => {
 }
 
 export default function FacultiesPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [facultiesList, setFacultiesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -88,42 +89,41 @@ export default function FacultiesPage() {
     const fetchFaculties = async () => {
       setLoading(true);
       const lang = i18n.language || 'uz';
-      let rawFac = [];
-      let rawDept = [];
       try {
         const [facRes, deptRes] = await Promise.allSettled([
           facultiesAPI.getLanding(0, 50, lang),
           departmentsAPI.getLanding(0, 50, lang)
         ]);
 
-        rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
-        rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || deptRes.value?.data || []) : [];
-      } catch (err) {
-        console.warn('Failed to load landing faculties/departments from API:', err.message);
-      }
+        const rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
+        const rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || deptRes.value?.data || []) : [];
 
-      const combinedFac = rawFac;
-      const combinedDept = rawDept;
+        const formatted = rawFac.map(fac => {
+          const facName = localizedField(fac, 'name', lang, "FAKULTET");
+          const desc = localizedField(fac, 'description', lang, "");
 
-      if (isMounted) {
-        const formatted = combinedFac.map(fac => {
-          const name = localizedField(fac, 'name', lang, "Fakultet");
-          const desc = localizedField(fac, 'description', lang, "Fakultet haqida batafsil ma'lumot");
-
-          const facDepts = combinedDept
+          const facDepts = rawDept
             .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
-            .map(d => localizedField(d, 'name', lang, "Kafedra"));
+            .map(d => ({
+              id: d.id,
+              name: localizedField(d, 'name', lang, "Kafedra")
+            }));
 
           return {
             id: fac.id,
-            name,
+            name: facName,
             description: desc,
             logo: getFileUrl(fac.logoLink || fac.logo) || facultyImg,
             departments: facDepts
           };
         });
-        setFacultiesList(formatted);
-        setLoading(false);
+        if (isMounted) {
+          setFacultiesList(formatted);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.warn('Failed to load landing faculties from API:', err.message);
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -140,13 +140,13 @@ export default function FacultiesPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Fakultetlar</span>
+                  <span className="text-white font-medium">{t('common.faculties')}</span>
                 </div>
               </li>
             </ol>
@@ -158,7 +158,7 @@ export default function FacultiesPage() {
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
 
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#0c1f4a]">Fakultetlar</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#0c1f4a]">{t('common.faculties')}</h1>
             <p className="text-slate-500 mt-3 max-w-2xl mx-auto">Urganch davlat pedagogika institutidagi mavjud fakultetlar va ularning tuzilmasi bilan tanishing.</p>
           </div>
 

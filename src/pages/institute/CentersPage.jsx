@@ -8,7 +8,7 @@ import { centersAPI, localizedField } from '../../api'
 export const centers = [];
 
 export default function CentersPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const currentLang = i18n.language || 'uz';
   const [centerList, setCenterList] = useState([]);
 
@@ -75,11 +75,8 @@ export default function CentersPage() {
           
           <div className="mb-10 pt-4 md:pt-8">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#0c1f4a] mb-4">
-              Markazlar va bo'limlar
+              {t('common.centers')}
             </h1>
-            <p className="text-slate-500 text-[15px] md:text-base">
-              Urganch davlat pedagogika institutining markazlari va bo'limlari bilan tanishing.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -107,7 +104,7 @@ export default function CentersPage() {
                       to={`/centers/${center.id}`} 
                       className="inline-flex items-center gap-2 text-blue-600 font-bold text-[13px] hover:text-[#0c1f4a] transition-colors"
                     >
-                      Batafsil <ArrowRight size={16} />
+                      {t('home.carousel.details')} <ArrowRight size={16} />
                     </Link>
                   </div>
                 </div>

@@ -10,7 +10,7 @@ const prorektorCardClass =
   'w-full h-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col xl:flex-row items-start p-5 gap-5 xl:gap-6 transition-all duration-300 hover:shadow-lg hover:shadow-slate-300/60 hover:-translate-y-0.5'
 
 export default function LeadershipPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,13 +80,13 @@ export default function LeadershipPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Rahbariyat</span>
+                  <span className="text-white font-medium">{t('common.leadership')}</span>
                 </div>
               </li>
             </ol>

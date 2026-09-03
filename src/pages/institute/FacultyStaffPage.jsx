@@ -31,7 +31,7 @@ export default function FacultyStaffPage() {
   const navigate = useNavigate();
   const { facultyId: paramFacultyId } = useParams();
   const [searchParams] = useSearchParams();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'uz';
 
   useEffect(() => {
@@ -200,21 +200,21 @@ export default function FacultyStaffPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
                   <Link to="/faculties" className="hover:text-white transition-colors">
-                    Fakultetlar
+                    {t('common.faculties')}
                   </Link>
                 </div>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Fakultet xodimlari</span>
+                  <span className="text-white font-medium">{t('common.staff')}</span>
                 </div>
               </li>
             </ol>

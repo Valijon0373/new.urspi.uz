@@ -9,49 +9,49 @@ import { useTranslation } from 'react-i18next'
 const systems = [
     {
         id: 1,
-        title: "HEMIS Student axborot tizimi",
+        titleKey: "home.esystems.hemis",
         icon: GraduationCap,
         link: "https://hemis.urspi.uz/dashboard/login"
     },
     {
         id: 2,
-        title: "AKBT Elektron kutubxona",
+        titleKey: "home.esystems.akbt",
         icon: Book,
         link: "https://akbt.urspi.uz/"
     },
     {
         id: 3,
-        title: "Elektron pochta",
+        titleKey: "home.esystems.email",
         icon: Mail,
         link: "https://webmail.urspi.uz/webmail/login/"
     },
     {
         id: 4,
-        title: "Feedback Platformasi",
+        titleKey: "home.esystems.feedback",
         icon: VscFeedback,
         link: "https://feedback.urspi.uz/"
     },
     {
         id: 5,
-        title: "110 Ballik Platforma",
+        titleKey: "home.esystems.point110",
         icon: BarChart,
         link: "https://110b.urspi.uz/"
     },
     {
         id: 6,
-        title: "Onlayn kuzatuv",
+        titleKey: "home.esystems.live",
         icon: BsCameraVideo,
         link: "https://live.urspi.uz/"
     },
     {
         id: 7,
-        title: "Masofaviy ta'lim",
+        titleKey: "home.esystems.moodle",
         icon: RiPinDistanceLine,
         link: "https://moodle.urspi.uz/"
     },
     {
         id: 8,
-        title: "Rektorga murojaat",
+        titleKey: "home.esystems.appeal",
         icon: RiMailSendLine,
         link: "#"
     }
@@ -72,7 +72,7 @@ export default function Esystems() {
                         -
                     </h2>
                     <a href="#" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
-                        Barchasi <ChevronRight className="h-4 w-4 ml-0.5" />
+                        {t('home.esystems.view_all')} <ChevronRight className="h-4 w-4 ml-0.5" />
                     </a>
                 </div>
 
@@ -96,7 +96,7 @@ export default function Esystems() {
 
                                 {/* Text */}
                                 <h3 className="text-[14px] leading-snug font-medium text-slate-600 transition-colors duration-300 group-hover:text-blue-700 max-w-[90%]">
-                                    {sys.title}
+                                    {t(sys.titleKey)}
                                 </h3>
                             </a>
                         )

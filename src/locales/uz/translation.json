@@ -7,13 +7,26 @@
     "close_search": "Qidirishni yopish",
     "menu": "Menyu",
     "links": {
+      "home": "Bosh sahifa",
+      "news": "Yangiliklar",
+      "announcements": "E'lonlar",
       "institut": "INSTITUT",
       "institut_about": "Institut haqida",
+      "history": "Institut tarixi",
+      "charter": "Institut nizomi",
+      "leadership": "Rahbariyat",
       "rector": "Rektor",
       "structure": "Tuzilma",
       "faculties": "Fakultetlar",
       "departments": "Kafedralar",
+      "centers": "Markaz va bo'limlar",
+      "docs": "Me'yoriy hujjatlar",
       "activity": "FAOLIYAT",
+      "council": "Kengash",
+      "finance": "Moliya bo'limi",
+      "spirituality": "Ma'naviyat",
+      "recruitment": "Institutga ishga qabul",
+      "scientific_activity": "Ilmiy va innovatsion faoliyat",
       "science": "Ilmiy faoliyat",
       "education": "Ta'lim faoliyati",
       "international": "Xalqaro hamkorlik",
@@ -26,6 +39,11 @@
       "dormitory_rent_info": "Talabalar uchun ijara xonadonlari",
       "library": "Kutubxona",
       "admission": "ABITURIYENT",
+      "bachelor": "Bakalavr",
+      "master": "Magistratura",
+      "transfer": "O'qishni ko'chirish",
+      "second_specialty": "Ikkinchi mutaxassislik",
+      "technicum_graduates": "Texnikum bitiruvchilari",
       "green_uni": "YASHIL INSTITUT",
       "foreign": "XORIJIY TALABALAR",
       "for_foreign": "Xorijiy talabalar uchun",
@@ -33,7 +51,6 @@
       "visa": "Viza va hujjatlar",
       "anticorruption": "KORRUPSIYAGA QARSHI KURASHISH",
       "appeal": "Murojaat qilish",
-      "docs": "Me'yoriy hujjatlar",
       "reports": "Hisobotlar",
       "stats": "STATISTIKA"
     }
@@ -67,15 +84,49 @@
       "science_potential": "Ilmiy salohiyat"
     },
     "esystems": {
-      "title": "Elektron tizimlar"
+      "title": "Elektron tizimlar",
+      "view_all": "Barchasi",
+      "hemis": "HEMIS Student axborot tizimi",
+      "akbt": "AKBT Elektron kutubxona",
+      "email": "Elektron pochta",
+      "feedback": "Feedback Platformasi",
+      "point110": "110 Ballik Platforma",
+      "live": "Onlayn kuzatuv",
+      "moodle": "Masofaviy ta'lim",
+      "appeal": "Rektorga murojaat"
     },
     "links": {
-      "title": "Foydali havolalar"
+      "title": "Foydali havolalar",
+      "mygov": "Yagona interaktiv davlat xizmatlari portali",
+      "president": "O'zbekiston Respublikasi Prezidenti",
+      "data_gov": "O'zbekiston Respublikasi ochiq ma'lumotlar portali",
+      "lex_uz": "O'zbekiston Respublikasi Qonunchilik ma'lumotlari milliy bazasi",
+      "regulation": "Normativ-huquqiy hujjatlar loyihalarini muhokama qilish"
     },
     "galery": {
       "title": "Fotogalereya",
       "view_all": "Barcha rasmlar"
     }
+  },
+  "anticorruption": {
+    "badge": "Korrupsiyasiz ta'lim",
+    "title_main": "Adolat va shaffoflik —",
+    "title_sub": "bosh mezonimiz",
+    "report_title": "Korrupsiya haqida xabar bering",
+    "report_desc": "Agar siz korrupsiya holatiga duch kelsangiz yoki bu haqda ma'lumotga ega bo'lsangiz, quyidagi forma orqali yoki ishonch telefonlariga murojaat qilishingiz mumkin. Murojaatchining shaxsi sir saqlanishi kafolatlanadi.",
+    "hotline_title": "Ishonch telefoni",
+    "hotline_desc": "Tunu-kun xizmat ko'rsatuvchi ishonch telefoni orqali bog'laning:",
+    "email_title": "Elektron pochta",
+    "email_desc": "Xat va hujjatlarni quyidagi elektron manzilga yuborishingiz mumkin:",
+    "form_title": "Murojaat yuborish",
+    "name_label": "F.I.O (ixtiyoriy)",
+    "name_placeholder": "Ism-familiyangizni kiriting",
+    "phone_label": "Telefon raqamingiz",
+    "phone_placeholder": "+998 90 123 45 67",
+    "message_label": "Murojaat matni",
+    "message_placeholder": "Batafsil ma'lumot qoldiring...",
+    "submit_btn": "Murojaatni yuborish",
+    "anonymous_note": "Murojaat anonim tarzda yuborilishi mumkin"
   },
   "footer": {
     "institute_name": "Urganch Davlat\nPedagogika Instituti",
@@ -106,5 +157,18 @@
       "news_count": "Yangiliklar soni",
       "announcements_count": "E'lonlar soni"
     }
+  "common": {
+    "home": "Bosh sahifa",
+    "structure": "Tuzilma",
+    "faculties": "Fakultetlar",
+    "departments": "Kafedralar",
+    "faculty": "Fakultet",
+    "department": "Kafedra",
+    "staff": "Xodimlar",
+    "leadership": "Rahbariyat",
+    "centers": "Markaz va bo'limlar",
+    "news": "Yangiliklar",
+    "announcements": "E'lonlar",
+    "back": "Orqaga"
   }
 }

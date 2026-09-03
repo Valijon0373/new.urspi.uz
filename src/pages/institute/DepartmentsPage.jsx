@@ -4,20 +4,22 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { facultiesAPI, departmentsAPI, localizedField } from '../../api'
 
-const sidebarLinks = [
-  { name: 'Institut tarixi', path: '#' },
-  { name: 'Institut nizomi', path: '#' },
-  { name: 'Rahbariyat', path: '/leadership' },
-  { name: 'Fakultetlar', path: '/faculties' },
-  { name: 'Kafedralar', path: '/departments' },
-  { name: 'Markaz va bo\'limlar', path: '/centers' },
+const getSidebarLinks = (t) => [
+  { name: t('navbar.links.history'), path: '/infographic' },
+  { name: t('navbar.links.charter'), path: '#' },
+  { name: t('navbar.links.leadership'), path: '/leadership' },
+  { name: t('navbar.links.faculties'), path: '/faculties' },
+  { name: t('navbar.links.departments'), path: '/departments' },
+  { name: t('navbar.links.centers'), path: '/centers' },
 ];
 
 export default function DepartmentsPage() {
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [facultiesList, setFacultiesList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const sidebarLinks = getSidebarLinks(t);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,13 +78,13 @@ export default function DepartmentsPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('navbar.links.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Kafedralar</span>
+                  <span className="text-white font-medium">{t('navbar.links.departments')}</span>
                 </div>
               </li>
             </ol>
@@ -97,7 +99,7 @@ export default function DepartmentsPage() {
             {/* Sidebar */}
             <div className="w-full lg:w-[300px] shrink-0 border border-slate-200 rounded-sm overflow-hidden">
               <div className="bg-[#0c1f4a] px-5 py-4">
-                <h3 className="font-bold text-white text-[15px] uppercase tracking-wide">Tuzilma</h3>
+                <h3 className="font-bold text-white text-[15px] uppercase tracking-wide">{t('navbar.links.structure')}</h3>
               </div>
               <ul className="flex flex-col">
                 {sidebarLinks.map((link, index) => {
@@ -123,7 +125,7 @@ export default function DepartmentsPage() {
             {/* Main Content */}
             <div className="flex-1 w-full">
               <div className="mb-8 border-b-2 border-slate-200 pb-3">
-                <h1 className="text-2xl md:text-[28px] font-bold text-[#0c1f4a]">Kafedralar</h1>
+                <h1 className="text-2xl md:text-[28px] font-bold text-[#0c1f4a]">{t('navbar.links.departments')}</h1>
               </div>
 
               {loading ? (

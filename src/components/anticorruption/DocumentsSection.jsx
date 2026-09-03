@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, Download, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const documents = [
@@ -40,6 +41,7 @@ const policyHighlights = [
 ];
 
 export default function DocumentsSection() {
+    const { t } = useTranslation();
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 3;
     const totalPages = Math.ceil(documents.length / itemsPerPage);
@@ -50,10 +52,10 @@ export default function DocumentsSection() {
             <div className="max-w-[1200px] mx-auto">
                 <div className="text-center mb-12 reveal-on-scroll opacity-0">
                     <h2 className="text-3xl md:text-4xl font-bold text-[#0c1f4a] mb-4">
-                        Me'yoriy hujjatlar va qoidalar
+                        {t('navbar.links.docs')}
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto">
-                        Institutimizda korrupsiyaga qarshi kurashish siyosatini belgilovchi asosiy hujjatlar va qonunchilik hujjatlari bilan tanishishingiz mumkin.
+                        {t('anticorruption.report_desc')}
                     </p>
                 </div>
 

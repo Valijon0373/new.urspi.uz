@@ -51,7 +51,7 @@ const StaffCard = ({ id, name, degree, position, img }) => (
 
 export default function DepartmentStaffPage() {
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'uz';
   const selectedDepartment = location.state?.department;
   const [teachers, setTeachers] = useState([]);
@@ -150,14 +150,14 @@ export default function DepartmentStaffPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
                   <Link to="/departments" className="hover:text-white transition-colors">
-                    Kafedralar
+                    {t('common.departments')}
                   </Link>
                 </div>
               </li>

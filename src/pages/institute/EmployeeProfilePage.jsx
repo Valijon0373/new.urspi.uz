@@ -7,7 +7,7 @@ import { teachersAPI, employeesAPI, facultyStaffAPI, getFileUrl, resolvePersonPo
 
 export default function EmployeeProfilePage() {
   const { id } = useParams()
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'uz';
   const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
   const [employeeData, setEmployeeData] = useState(null);
@@ -95,7 +95,7 @@ export default function EmployeeProfilePage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>

@@ -8,7 +8,7 @@ import urspiImage from '../../assets/images/urspi_new.png';
 import { newsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function NewsPage() {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [newsList, setNewsList] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -70,13 +70,13 @@ export default function NewsPage() {
                         <ol className="inline-flex items-center space-x-1 md:space-x-3">
                             <li className="inline-flex items-center">
                                 <Link to="/" className="hover:text-white transition-colors">
-                                    Bosh sahifa
+                                    {t('common.home')}
                                 </Link>
                             </li>
                             <li>
                                 <div className="flex items-center">
                                     <ChevronRight className="w-4 h-4 mx-1" />
-                                    <span className="text-white font-medium">Yangiliklar</span>
+                                    <span className="text-white font-medium">{t('common.news')}</span>
                                 </div>
                             </li>
                         </ol>

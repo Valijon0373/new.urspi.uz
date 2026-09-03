@@ -31,31 +31,31 @@ const Links = () => {
   const officialLinks = [
     {
       id: 1,
-      title: "Yagona interaktiv davlat xizmatlari portali",
+      titleKey: "home.links.mygov",
       url: "https://my.gov.uz/ru",
       image: mygovImg
     },
     {
       id: 2,
-      title: "O'zbekiston Respublikasi Prezidenti",
+      titleKey: "home.links.president",
       url: "https://president.uz/oz",
       image: gerbImg
     },
     {
       id: 3,
-      title: "O'zbekiston Respublikasi ochiq ma'lumotlar portali",
+      titleKey: "home.links.data_gov",
       url: "https://data.egov.uz/",
       image: gerbImg
     },
     {
       id: 4,
-      title: "O`zbekiston Respublikasi Qonunchilik ma`lumotlari milliy bazasi",
+      titleKey: "home.links.lex_uz",
       url: "http://lex.uz/",
       image: lexuzImg
     },
     {
       id: 5,
-      title: "Normativ-huquqiy hujjatlar loyihalarini muhokama qilish",
+      titleKey: "home.links.regulation",
       url: "https://regulation.gov.uz/",
       image: gerbImg
     }
@@ -120,7 +120,7 @@ const Links = () => {
                     {link.image ? (
                       <img
                         src={link.image}
-                        alt={link.title}
+                        alt={t(link.titleKey)}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
                           e.target.style.display = 'none';
@@ -132,11 +132,11 @@ const Links = () => {
                       className="w-full h-full bg-blue-50 rounded-full flex items-center justify-center text-blue-500 font-bold text-xl"
                       style={{ display: link.image ? 'none' : 'flex' }}
                     >
-                      {link.title.charAt(0)}
+                      {t(link.titleKey).charAt(0)}
                     </div>
                   </div>
                   <h3 className="text-sm font-medium text-gray-700 leading-snug group-hover:text-blue-700 transition-colors">
-                    {link.title}
+                    {t(link.titleKey)}
                   </h3>
                 </div>
 

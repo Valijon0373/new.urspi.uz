@@ -8,7 +8,7 @@ import urspiImage from '../../assets/images/urspi_new.png';
 import { announcementsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function AnnouncementsPage() {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [announcementsList, setAnnouncementsList] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,13 +71,13 @@ export default function AnnouncementsPage() {
                         <ol className="inline-flex items-center space-x-1 md:space-x-3">
                             <li className="inline-flex items-center">
                                 <Link to="/" className="hover:text-white transition-colors">
-                                    Bosh sahifa
+                                    {t('common.home')}
                                 </Link>
                             </li>
                             <li>
                                 <div className="flex items-center">
                                     <ChevronRight className="w-4 h-4 mx-1" />
-                                    <span className="text-white font-medium">E'lonlar</span>
+                                    <span className="text-white font-medium">{t('common.announcements')}</span>
                                 </div>
                             </li>
                         </ol>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   ChevronRight, 
   Building2, 
@@ -202,6 +203,7 @@ const mastersData = [
 ];
 
 export default function InfographicPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('kunduzgi');
 
   const tabs = [
@@ -240,7 +242,7 @@ export default function InfographicPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 w-full h-full">
               <div className="flex items-center gap-3 mb-8">
                 <Building2 className="w-6 h-6 text-blue-800" />
-                <h2 className="text-xl font-bold text-slate-800">Institut tarixi</h2>
+                <h2 className="text-xl font-bold text-slate-800">{t('navbar.links.history')}</h2>
               </div>
 
               <div className="relative pl-3">

@@ -7,13 +7,26 @@
     "close_search": "Close search",
     "menu": "Menu",
     "links": {
+      "home": "Home",
+      "news": "News",
+      "announcements": "Announcements",
       "institut": "INSTITUTE",
       "institut_about": "About the Institute",
+      "history": "Institute History",
+      "charter": "Institute Charter",
+      "leadership": "Leadership",
       "rector": "Rector",
       "structure": "Structure",
       "faculties": "Faculties",
       "departments": "Departments",
+      "centers": "Centers and Departments",
+      "docs": "Regulatory Documents",
       "activity": "ACTIVITY",
+      "council": "Council",
+      "finance": "Finance Department",
+      "spirituality": "Spirituality and Enlightenment",
+      "recruitment": "Recruitment",
+      "scientific_activity": "Scientific and Innovation Activity",
       "science": "Scientific Activity",
       "education": "Educational Activity",
       "international": "International Cooperation",
@@ -26,6 +39,11 @@
       "dormitory_rent_info": "Rental Housing for Students",
       "library": "Library",
       "admission": "APPLICANT",
+      "bachelor": "Bachelor's",
+      "master": "Master's",
+      "transfer": "Study Transfer",
+      "second_specialty": "Second Specialty",
+      "technicum_graduates": "Technicum Graduates",
       "green_uni": "GREEN INSTITUTE",
       "foreign": "FOREIGN STUDENTS",
       "for_foreign": "For Foreign Students",
@@ -33,7 +51,6 @@
       "visa": "Visa and Documents",
       "anticorruption": "ANTI-CORRUPTION",
       "appeal": "Make an Appeal",
-      "docs": "Regulatory Documents",
       "reports": "Reports",
       "stats": "STATISTICS"
     }
@@ -67,15 +84,49 @@
       "science_potential": "Scientific potential"
     },
     "esystems": {
-      "title": "Electronic systems"
+      "title": "E-Systems",
+      "view_all": "View all",
+      "hemis": "HEMIS Student Information System",
+      "akbt": "AKBT Electronic Library",
+      "email": "Webmail",
+      "feedback": "Feedback Platform",
+      "point110": "110 Point Platform",
+      "live": "Online Streaming",
+      "moodle": "Distance Learning",
+      "appeal": "Appeal to Rector"
     },
     "links": {
-      "title": "Useful links"
+      "title": "Useful Links",
+      "mygov": "Single Interactive State Services Portal",
+      "president": "President of the Republic of Uzbekistan",
+      "data_gov": "Open Data Portal of the Republic of Uzbekistan",
+      "lex_uz": "National Database of Legislation of the Republic of Uzbekistan",
+      "regulation": "Discussion of Draft Regulatory Legal Acts"
     },
     "galery": {
-      "title": "Photo gallery",
+      "title": "Photo Gallery",
       "view_all": "All photos"
     }
+  },
+  "anticorruption": {
+    "badge": "Education without corruption",
+    "title_main": "Justice and transparency —",
+    "title_sub": "our main criterion",
+    "report_title": "Report Corruption",
+    "report_desc": "If you encounter corruption or have information about it, you can contact us using the form below or via hotline numbers. Confidentiality of applicant identity is guaranteed.",
+    "hotline_title": "Hotline",
+    "hotline_desc": "Contact via 24/7 hotline service:",
+    "email_title": "Email",
+    "email_desc": "You can send letters and documents to the following email address:",
+    "form_title": "Send Appeal",
+    "name_label": "Full Name (optional)",
+    "name_placeholder": "Enter your full name",
+    "phone_label": "Phone Number",
+    "phone_placeholder": "+998 90 123 45 67",
+    "message_label": "Message Text",
+    "message_placeholder": "Leave detailed information...",
+    "submit_btn": "Send Appeal",
+    "anonymous_note": "Appeal can be sent anonymously"
   },
   "footer": {
     "institute_name": "Urgench State\nPedagogical Institute",
@@ -106,5 +157,18 @@
       "news_count": "Number of news",
       "announcements_count": "Number of announcements"
     }
+  "common": {
+    "home": "Home",
+    "structure": "Structure",
+    "faculties": "Faculties",
+    "departments": "Departments",
+    "faculty": "Faculty",
+    "department": "Department",
+    "staff": "Staff",
+    "leadership": "Leadership",
+    "centers": "Centers and Departments",
+    "news": "News",
+    "announcements": "Announcements",
+    "back": "Back"
   }
 }

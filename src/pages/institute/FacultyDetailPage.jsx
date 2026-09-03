@@ -7,7 +7,7 @@ import { facultiesAPI, getFileUrl, localizedField } from '../../api'
 
 export default function FacultyDetailPage() {
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const stateFaculty = location.state?.faculty;
 
   const [faculty, setFaculty] = useState(stateFaculty || null);
@@ -51,21 +51,21 @@ export default function FacultyDetailPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <Link to="/fakultetlar" className="hover:text-white transition-colors">
-                    Fakultetlar
+                  <Link to="/faculties" className="hover:text-white transition-colors">
+                    {t('common.faculties')}
                   </Link>
                 </div>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Fakultet haqida</span>
+                  <span className="text-white font-medium">{t('common.faculty')}</span>
                 </div>
               </li>
             </ol>

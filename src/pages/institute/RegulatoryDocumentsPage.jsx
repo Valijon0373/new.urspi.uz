@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ChevronRight, ChevronLeft, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import docsBg from '../../assets/images/docs.jpg'
 
 const documents = [
@@ -61,6 +62,7 @@ const DocumentCard = ({ number, title, type, color, onMoreClick }) => (
 )
 
 export default function RegulatoryDocumentsPage() {
+  const { t } = useTranslation();
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -88,21 +90,21 @@ export default function RegulatoryDocumentsPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
                   <Link to="#" className="hover:text-white transition-colors">
-                    Institut
+                    {t('navbar.links.institut')}
                   </Link>
                 </div>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Me'yoriy hujjatlar</span>
+                  <span className="text-white font-medium">{t('navbar.links.docs')}</span>
                 </div>
               </li>
             </ol>

@@ -8,7 +8,7 @@ import { newsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function NewsDetailPage() {
     const { id } = useParams();
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [currentImageIdx, setCurrentImageIdx] = useState(0);
     const [news, setNews] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -101,19 +101,19 @@ export default function NewsDetailPage() {
             {/* Header Banner */}
             <div className="w-full bg-[#0c1f4a] py-8 md:py-12 flex flex-col justify-center">
                 <div className="px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
-                    <h1 className="text-3xl font-bold text-white mb-4">Yangiliklar</h1>
+                    <h1 className="text-3xl font-bold text-white mb-4">{t('common.news')}</h1>
                     <nav className="flex text-sm text-white/80" aria-label="Breadcrumb">
                         <ol className="inline-flex items-center space-x-1 md:space-x-2 whitespace-nowrap overflow-hidden text-ellipsis">
                             <li className="inline-flex items-center shrink-0">
                                 <Link to="/" className="hover:text-white transition-colors">
-                                    Bosh sahifa
+                                    {t('common.home')}
                                 </Link>
                             </li>
                             <li className="shrink-0">
                                 <div className="flex items-center">
                                     <ChevronRight className="w-4 h-4 mx-1" />
                                     <Link to="/news" className="hover:text-white transition-colors">
-                                        Yangiliklar
+                                        {t('common.news')}
                                     </Link>
                                 </div>
                             </li>

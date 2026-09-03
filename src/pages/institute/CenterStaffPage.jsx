@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight, Phone } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getStoredCenters } from '../../data/centersData'
 import menImg from '../../assets/men.jpg'
 import { employeesAPI, centersAPI, getFileUrl } from '../../api'
@@ -18,12 +19,6 @@ const StaffCard = ({ id = '1', name, phone, position, img }) => (
         {position}
       </p>
       
-      {phone && (
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-4">
-          <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-          <span>{phone}</span>
-        </div>
-      )}
 
       <div className="mt-auto">
         <Link to={`/employee/${id}`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
@@ -122,21 +117,21 @@ export default function CenterStaffPage() {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
               <li className="inline-flex items-center">
                 <Link to="/" className="hover:text-white transition-colors">
-                  Bosh sahifa
+                  {t('common.home')}
                 </Link>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <Link to="/markazlar" className="hover:text-white transition-colors">
-                    Markazlar va bo'limlar
+                  <Link to="/centers" className="hover:text-white transition-colors">
+                    {t('common.centers')}
                   </Link>
                 </div>
               </li>
               <li>
                 <div className="flex items-center">
                   <ChevronRight className="w-4 h-4 mx-1" />
-                  <span className="text-white font-medium">Bo'lim xodimlari</span>
+                  <span className="text-white font-medium">{t('common.staff')}</span>
                 </div>
               </li>
             </ol>
