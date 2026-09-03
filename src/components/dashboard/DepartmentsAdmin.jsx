@@ -31,8 +31,8 @@ export default function DepartmentsAdmin() {
         facultiesAPI.getAll()
       ]);
 
-      rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data || []) : [];
-      rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data || []) : [];
+      rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || (Array.isArray(facRes.value?.data) ? facRes.value.data : facRes.value?.content || [])) : [];
+      rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || (Array.isArray(deptRes.value?.data) ? deptRes.value.data : deptRes.value?.content || [])) : [];
     } catch (e) {
       console.warn('API error in fetchData:', e.message);
     }

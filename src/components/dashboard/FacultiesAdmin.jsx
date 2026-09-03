@@ -24,9 +24,14 @@ export default function FacultiesAdmin() {
     let apiData = [];
     try {
       const res = await facultiesAPI.getAll();
-      apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+      apiData = Array.isArray(res) ? res : (res?.data?.content || (Array.isArray(res?.data) ? res.data : res?.content || []));
     } catch (e) {
-      console.warn('API error in fetchFaculties:', e.message);
+      try {
+        const landingRes = await facultiesAPI.getLanding(0, 50);
+        apiData = landingRes?.data?.content || (Array.isArray(landingRes?.data) ? landingRes.data : landingRes?.content || []);
+      } catch (err) {
+        console.warn('API error in fetchFaculties:', err.message);
+      }
     }
 
     const formatted = apiData.map(item => ({

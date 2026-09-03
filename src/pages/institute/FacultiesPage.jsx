@@ -4,7 +4,7 @@ import { BsInfoCircle } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import facultyImg from '../../assets/images/logo1.jpg'
-import { facultiesAPI, departmentsAPI, getFileUrl } from '../../api'
+import { facultiesAPI, departmentsAPI, getFileUrl, localizedField } from '../../api'
 
 
 
@@ -19,9 +19,10 @@ const FacultyCard = ({ faculty }) => {
         <div className="w-full xl:w-[180px] shrink-0 self-start flex justify-center mt-2 xl:mt-4">
           <div className="w-[150px] sm:w-[180px] aspect-square rounded-full overflow-hidden mx-auto xl:mx-0 shadow-sm border border-slate-100">
             <img
-              src={facultyImg}
+              src={faculty.logo || facultyImg}
               alt={faculty.name}
               className="w-full h-full object-cover rounded-full object-center"
+              onError={(e) => { e.target.onerror = null; e.target.src = facultyImg; }}
             />
           </div>
         </div>
@@ -95,8 +96,8 @@ export default function FacultiesPage() {
           departmentsAPI.getLanding(0, 50, lang)
         ]);
 
-        const rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
-        const rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || deptRes.value?.data || []) : [];
+        const rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || (Array.isArray(facRes.value?.data) ? facRes.value.data : facRes.value?.content || [])) : [];
+        const rawDept = deptRes.status === 'fulfilled' ? (Array.isArray(deptRes.value) ? deptRes.value : deptRes.value?.data?.content || (Array.isArray(deptRes.value?.data) ? deptRes.value.data : deptRes.value?.content || [])) : [];
 
         const formatted = rawFac.map(fac => {
           const facName = localizedField(fac, 'name', lang, "FAKULTET");
