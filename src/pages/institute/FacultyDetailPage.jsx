@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import logoImg from '../../assets/images/logo1.jpg'
-import { facultiesAPI, getFileUrl } from '../../api'
+import { facultiesAPI, getFileUrl, localizedField } from '../../api'
 
 export default function FacultyDetailPage() {
   const location = useLocation();
@@ -17,15 +17,15 @@ export default function FacultyDetailPage() {
     if (!stateFaculty) {
       const fetchFirstFaculty = async () => {
         setLoading(true);
+        const lang = i18n.language || 'uz';
         try {
-          const res = await facultiesAPI.getLanding(0, 1);
+          const res = await facultiesAPI.getLanding(0, 1, lang);
           const data = res?.data?.content?.[0] || res?.data?.[0] || res?.[0];
           if (data) {
-            const langKey = i18n.language ? (i18n.language.charAt(0).toUpperCase() + i18n.language.slice(1).toLowerCase()) : 'Uz';
             setFaculty({
               id: data.id,
-              name: data[`name${langKey}`] || data.name || data.nameUz || "Fakultet",
-              description: data[`description${langKey}`] || data.description || data.descriptionUz || "Fakultet haqida batafsil ma'lumot",
+              name: localizedField(data, 'name', lang, "Fakultet"),
+              description: localizedField(data, 'description', lang, "Fakultet haqida batafsil ma'lumot"),
               logo: getFileUrl(data.logoLink || data.logo) || logoImg
             });
           }

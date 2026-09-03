@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-import { newsAPI, getFileUrl } from '../../../api'
+import { newsAPI, getFileUrl, localizedField } from '../../../api'
 
 export default function News() {
     const { t, i18n } = useTranslation()
@@ -20,7 +20,7 @@ export default function News() {
             let apiData = [];
             const lang = i18n.language || 'uz';
             try {
-                const landingRes = await newsAPI.getLanding(0, 10);
+                const landingRes = await newsAPI.getLanding(0, 10, lang);
                 apiData = landingRes?.data?.content || landingRes?.data || landingRes?.content || (Array.isArray(landingRes) ? landingRes : []);
             } catch (err) {
                 console.warn('Failed to load landing news from API:', err.message);
@@ -37,8 +37,7 @@ export default function News() {
 
             if (isMounted) {
                 const formatted = rawData.map((item, index) => {
-                    const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
-                    const title = item[`title${langKey}`] || item.title || item.titleUz || item.titleRu || item.titleEn || "Yangilik";
+                    const title = localizedField(item, 'title', lang, "Yangilik");
                     let dateStr = "2026-08-21";
                     if (item.createdAt) {
                         dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');

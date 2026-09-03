@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import { announcementsAPI, getFileUrl } from '../../api';
+import { announcementsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function AnnouncementDetailPage() {
     const { id } = useParams();
@@ -18,8 +18,9 @@ export default function AnnouncementDetailPage() {
             if (!id) return;
             setLoading(true);
             let data = null;
+            const lang = i18n.language || 'uz';
             try {
-                const res = await announcementsAPI.getLandingById(id);
+                const res = await announcementsAPI.getLandingById(id, lang);
                 data = res?.data || res;
             } catch (err) {
                 console.warn('Failed to fetch landing announcement detail from API:', err.message);
@@ -31,13 +32,9 @@ export default function AnnouncementDetailPage() {
                 }
             }
 
-
-
             if (isMounted && data) {
-                const lang = i18n.language || 'uz';
-                const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
-                const title = data[`title${langKey}`] || data.title || data.titleUz || data.titleRu || data.titleEn || "E'lon";
-                const content = data[`content${langKey}`] || data.content || data.contentUz || data.contentRu || data.contentEn || "";
+                const title = localizedField(data, 'title', lang, "E'lon");
+                const content = localizedField(data, 'content', lang, "");
 
                 setAnnouncement({
                     id: data.id,

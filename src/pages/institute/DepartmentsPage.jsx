@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { facultiesAPI, departmentsAPI } from '../../api'
+import { facultiesAPI, departmentsAPI, localizedField } from '../../api'
 
 const sidebarLinks = [
   { name: 'Institut tarixi', path: '#' },
@@ -23,12 +23,13 @@ export default function DepartmentsPage() {
     let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
+      const lang = i18n.language || 'uz';
       let rawFac = [];
       let rawDept = [];
       try {
         const [facRes, deptRes] = await Promise.allSettled([
-          facultiesAPI.getLanding(0, 50),
-          departmentsAPI.getLanding(0, 50)
+          facultiesAPI.getLanding(0, 50, lang),
+          departmentsAPI.getLanding(0, 50, lang)
         ]);
 
         rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
@@ -42,14 +43,13 @@ export default function DepartmentsPage() {
 
       if (isMounted) {
         const formatted = combinedFac.map(fac => {
-          const langKey = i18n.language ? (i18n.language.charAt(0).toUpperCase() + i18n.language.slice(1).toLowerCase()) : 'Uz';
-          const facName = fac[`name${langKey}`] || fac.name || fac.nameUz || fac.title || "FAKULTET";
+          const facName = localizedField(fac, 'name', lang, "FAKULTET");
 
           const depts = combinedDept
             .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
             .map(d => ({
               id: d.id,
-              name: d[`name${langKey}`] || d.name || d.nameUz || d.title || "Kafedra"
+              name: localizedField(d, 'name', lang, "Kafedra")
             }));
 
           return {

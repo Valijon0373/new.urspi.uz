@@ -5,7 +5,7 @@ import { ChevronRight, Eye } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import { Commet } from 'react-loading-indicators';
 import urspiImage from '../../assets/images/urspi_new.png';
-import { announcementsAPI, getFileUrl } from '../../api';
+import { announcementsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function AnnouncementsPage() {
     const { i18n } = useTranslation();
@@ -19,7 +19,7 @@ export default function AnnouncementsPage() {
             let apiData = [];
             const lang = i18n.language || 'uz';
             try {
-                const landingRes = await announcementsAPI.getLanding(0, 50);
+                const landingRes = await announcementsAPI.getLanding(0, 50, lang);
                 apiData = landingRes?.data?.content || landingRes?.data || landingRes?.content || (Array.isArray(landingRes) ? landingRes : []);
             } catch (err) {
                 console.warn('Failed to load landing announcements from API:', err.message);
@@ -36,9 +36,8 @@ export default function AnnouncementsPage() {
 
             if (isMounted) {
                 const formatted = rawData.map((item, index) => {
-                    const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
-                    const title = item[`title${langKey}`] || item.title || item.titleUz || item.titleRu || item.titleEn || "E'lon";
-                    const content = item[`content${langKey}`] || item.content || item.contentUz || item.contentRu || item.contentEn || "";
+                    const title = localizedField(item, 'title', lang, "E'lon");
+                    const content = localizedField(item, 'content', lang, "");
                     let dateStr = "2026-08-21";
                     if (item.createdAt) {
                         dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');

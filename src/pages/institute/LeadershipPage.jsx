@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Commet } from 'react-loading-indicators'
 import rektorImg from '../../assets/men.jpg'
-import { leadersAPI, getFileUrl } from '../../api'
+import { leadersAPI, getFileUrl, localizedField } from '../../api'
 
 const prorektorCardClass =
   'w-full h-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col xl:flex-row items-start p-5 gap-5 xl:gap-6 transition-all duration-300 hover:shadow-lg hover:shadow-slate-300/60 hover:-translate-y-0.5'
@@ -20,10 +20,9 @@ export default function LeadershipPage() {
       setLoading(true);
       try {
         const lang = i18n.language || 'uz';
-        const langCap = lang.charAt(0).toUpperCase() + lang.slice(1);
         let res;
         try {
-          res = await leadersAPI.getLanding(0, 50);
+          res = await leadersAPI.getLanding(0, 50, lang);
         } catch (e) {
           res = await leadersAPI.getAll(lang);
         }
@@ -32,10 +31,10 @@ export default function LeadershipPage() {
         
         if (isMounted) {
           const formatted = rawData.map((item, index) => {
-            const fullName = item[`fullName${langCap}`] || item.fullName || item.fullNameUz || item.fullNameRu || item.fullNameEn || "Rahbar";
-            const positionTitle = item[`positionTitle${langCap}`] || item.positionTitle || item.positionTitleUz || item.positionTitleRu || item.positionTitleEn || "Lavozim";
-            const address = item[`address${langCap}`] || item.address || item.addressUz || item.addressRu || item.addressEn || "Urganch shahri, Gurlan ko'chasi 1A-uy";
-            const receptionTime = item[`receptionTime${langCap}`] || item.receptionTime || item.receptionTimeUz || item.receptionTimeRu || item.receptionTimeEn || "09:00 - 17:00";
+            const fullName = localizedField(item, 'fullName', lang, "Rahbar");
+            const positionTitle = localizedField(item, 'positionTitle', lang, "Lavozim");
+            const address = localizedField(item, 'address', lang, "Urganch shahri, Gurlan ko'chasi 1A-uy");
+            const receptionTime = localizedField(item, 'receptionTime', lang, "09:00 - 17:00");
             const email = item.email || "info@urspi.uz";
             const phoneNumber = item.phoneNumber || item.phone || "+998622261840";
             const photo = getFileUrl(item.photoLink || item.photo || item.image || item.fileLink) || rektorImg;

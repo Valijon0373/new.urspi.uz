@@ -169,8 +169,16 @@ export default function GreenInstituteAdmin() {
     setEditMode(true);
     setSelectedItem(item);
     setFormData({
-      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
-      description: { uz: item.descriptionUz || item.description, ru: item.descriptionRu || item.description, en: item.descriptionEn || item.description }
+      title: { 
+        uz: item.titleUz || (typeof item.title === 'string' ? item.title : ''),
+        ru: item.titleRu || '',
+        en: item.titleEn || ''
+      },
+      description: {
+        uz: item.descriptionUz || (typeof item.description === 'string' ? item.description : ''),
+        ru: item.descriptionRu || '',
+        en: item.descriptionEn || ''
+      }
     });
     setImageFile(null);
     setIsModalOpen(true);

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import urspiImage from '../../assets/images/urspi_new.png';
-import { newsAPI, getFileUrl } from '../../api';
+import { newsAPI, getFileUrl, localizedField } from '../../api';
 
 export default function NewsDetailPage() {
     const { id } = useParams();
@@ -19,8 +19,9 @@ export default function NewsDetailPage() {
             if (!id) return;
             setLoading(true);
             let data = null;
+            const lang = i18n.language || 'uz';
             try {
-                const res = await newsAPI.getLandingById(id);
+                const res = await newsAPI.getLandingById(id, lang);
                 data = res?.data || res;
             } catch (err) {
                 console.warn('Failed to load landing news detail from API:', err.message);
@@ -31,8 +32,6 @@ export default function NewsDetailPage() {
                     console.warn('Failed to load fallback news detail from API:', e.message);
                 }
             }
-
-
 
             if (isMounted && data) {
                 const imgList = [];
@@ -51,10 +50,8 @@ export default function NewsDetailPage() {
                     imgList.push(urspiImage);
                 }
 
-                const lang = i18n.language || 'uz';
-                const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
-                const title = data[`title${langKey}`] || data.title || data.titleUz || data.titleRu || data.titleEn || "Yangilik";
-                const content = data[`content${langKey}`] || data.content || data.contentUz || data.contentRu || data.contentEn || "";
+                const title = localizedField(data, 'title', lang, "Yangilik");
+                const content = localizedField(data, 'content', lang, "");
 
                 setNews({
                     id: data.id,

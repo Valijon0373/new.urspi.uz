@@ -87,12 +87,13 @@ export default function FacultiesPage() {
     let isMounted = true;
     const fetchFaculties = async () => {
       setLoading(true);
+      const lang = i18n.language || 'uz';
       let rawFac = [];
       let rawDept = [];
       try {
         const [facRes, deptRes] = await Promise.allSettled([
-          facultiesAPI.getLanding(0, 50),
-          departmentsAPI.getLanding(0, 50)
+          facultiesAPI.getLanding(0, 50, lang),
+          departmentsAPI.getLanding(0, 50, lang)
         ]);
 
         rawFac = facRes.status === 'fulfilled' ? (Array.isArray(facRes.value) ? facRes.value : facRes.value?.data?.content || facRes.value?.data || []) : [];
@@ -106,13 +107,12 @@ export default function FacultiesPage() {
 
       if (isMounted) {
         const formatted = combinedFac.map(fac => {
-          const langKey = i18n.language ? (i18n.language.charAt(0).toUpperCase() + i18n.language.slice(1).toLowerCase()) : 'Uz';
-          const name = fac[`name${langKey}`] || fac.name || fac.nameUz || fac.title || "Fakultet";
-          const desc = fac[`description${langKey}`] || fac.description || fac.descriptionUz || "Fakultet haqida batafsil ma'lumot";
+          const name = localizedField(fac, 'name', lang, "Fakultet");
+          const desc = localizedField(fac, 'description', lang, "Fakultet haqida batafsil ma'lumot");
 
           const facDepts = combinedDept
             .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
-            .map(d => d[`name${langKey}`] || d.name || d.nameUz || d.title || "Kafedra");
+            .map(d => localizedField(d, 'name', lang, "Kafedra"));
 
           return {
             id: fac.id,

@@ -138,12 +138,20 @@ export default function CentersAdmin() {
     setEditMode(true);
     setFormData({
       id: item.id,
-      title: typeof item.title === 'object' ? { ...item.title } : { uz: item.title, ru: item.title, en: item.title },
-      description: typeof item.description === 'object' ? { ...item.description } : { uz: item.description, ru: item.description, en: item.description },
-      headName: item.headName || '',
-      phone: item.phone || '',
-      email: item.email || '',
-      receptionHours: item.receptionHours || '',
+      title: {
+        uz: item.nameUz || item.rawItem?.nameUz || (typeof item.title === 'string' ? item.title : item.title?.uz) || '',
+        ru: item.nameRu || item.rawItem?.nameRu || (typeof item.title === 'object' ? item.title?.ru : '') || '',
+        en: item.nameEn || item.rawItem?.nameEn || (typeof item.title === 'object' ? item.title?.en : '') || ''
+      },
+      description: {
+        uz: item.descriptionUz || item.rawItem?.descriptionUz || (typeof item.description === 'string' ? item.description : item.description?.uz) || '',
+        ru: item.descriptionRu || item.rawItem?.descriptionRu || (typeof item.description === 'object' ? item.description?.ru : '') || '',
+        en: item.descriptionEn || item.rawItem?.descriptionEn || (typeof item.description === 'object' ? item.description?.en : '') || ''
+      },
+      headName: item.headName || item.rawItem?.headName || '',
+      phone: item.phone || item.rawItem?.phone || '',
+      email: item.email || item.rawItem?.email || '',
+      receptionHours: item.receptionHours || item.rawItem?.receptionHours || '',
       iconName: item.iconName || 'BookOpen',
       borderColor: item.borderColor || 'border-t-blue-500',
       iconBg: item.iconBg || 'bg-blue-50'

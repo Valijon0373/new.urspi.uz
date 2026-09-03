@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { rentalsAPI, dormitoriesAPI, getFileUrl } from '../../api';
+import { rentalsAPI, dormitoriesAPI, getFileUrl, localizedField } from '../../api';
 import { 
   ChevronRight, 
   Wifi, 
@@ -417,15 +417,13 @@ export default function DormitoryPage() {
       if (isMounted) {
         if (combined.length > 0) {
           const formatted = combined.map((item, idx) => {
-            const titleObj = item.title;
-            const titleUz = item.titleUz || (typeof titleObj === 'object' ? titleObj?.uz : titleObj) || (typeof item.title === 'string' ? item.title : 'Talabalar turar joyi');
-            const titleRu = item.titleRu || (typeof titleObj === 'object' ? titleObj?.ru : titleObj) || titleUz;
-            const titleEn = item.titleEn || (typeof titleObj === 'object' ? titleObj?.en : titleObj) || titleUz;
+            const titleUz = localizedField(item, 'title', 'uz', 'Talabalar turar joyi');
+            const titleRu = localizedField(item, 'title', 'ru', titleUz);
+            const titleEn = localizedField(item, 'title', 'en', titleUz);
 
-            const descObj = item.description;
-            const descUz = item.descriptionUz || item.contentUz || (typeof descObj === 'object' ? descObj?.uz : descObj) || (typeof item.description === 'string' ? item.description : "");
-            const descRu = item.descriptionRu || item.contentRu || (typeof descObj === 'object' ? descObj?.ru : descObj) || descUz;
-            const descEn = item.descriptionEn || item.contentEn || (typeof descObj === 'object' ? descObj?.en : descObj) || descUz;
+            const descUz = localizedField(item, 'description', 'uz', localizedField(item, 'content', 'uz', ""));
+            const descRu = localizedField(item, 'description', 'ru', localizedField(item, 'content', 'ru', descUz));
+            const descEn = localizedField(item, 'description', 'en', localizedField(item, 'content', 'en', descUz));
 
             let rawImg = item.image || item.photo || item.imageLink || item.photoLink || item.fileLink || item.mainImageLink || item.filePath || '';
             if (typeof rawImg === 'object') {

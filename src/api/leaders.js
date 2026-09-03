@@ -70,8 +70,8 @@ export function buildLeaderFormData(data) {
 
 export const leadersAPI = {
     getAll: (lang) => lang ? request(`/api/leaders/lang/${lang}`) : request('/api/leaders'),
-    getLanding: (page = 0, size = 50) => request(`/api/landing/leaders?page=${page}&size=${size}`),
-    getLandingById: (id) => request(`/api/landing/leaders/${id}`),
+    getLanding: (page = 0, size = 50, lang = 'uz') => request(`/api/landing/leaders?page=${page}&size=${size}&lang=${lang}`),
+    getLandingById: (id, lang = 'uz') => request(`/api/landing/leaders/${id}?lang=${lang}`),
     getById: (id) => request(`/api/leaders/${id}`),
     create: async (data) => {
         if (data instanceof FormData) {

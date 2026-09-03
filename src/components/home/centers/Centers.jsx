@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, ArrowRight, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { centersAPI } from '../../../api';
+import { centersAPI, localizedField } from '../../../api';
 
 export default function Centers() {
   const { t, i18n } = useTranslation();
@@ -26,8 +26,8 @@ export default function Centers() {
 
         if (isMounted) {
           const formatted = rawData.slice(0, 8).map((c, index) => {
-            const title = c.name || c.nameUz || c.title || c.nameRu || c.nameEn || "MARKAZ VA BO'LIM";
-            const description = c.description || c.descriptionUz || c.descriptionRu || c.descriptionEn || "";
+            const title = localizedField(c, 'name', currentLang, localizedField(c, 'title', currentLang, "MARKAZ VA BO'LIM"));
+            const description = localizedField(c, 'description', currentLang, "");
             return {
               id: c.id || index + 1,
               title,

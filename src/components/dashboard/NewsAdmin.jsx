@@ -151,9 +151,17 @@ export default function NewsAdmin() {
     setEditMode(true);
     setSelectedItem(item);
     setFormData({
-      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
-      content: { uz: item.contentUz || item.content, ru: item.contentRu || item.content, en: item.contentEn || item.content },
-      author: item.author
+      title: { 
+        uz: item.titleUz || item.rawItem?.titleUz || (typeof item.title === 'string' ? item.title : ''),
+        ru: item.titleRu || item.rawItem?.titleRu || '',
+        en: item.titleEn || item.rawItem?.titleEn || ''
+      },
+      content: {
+        uz: item.contentUz || item.rawItem?.contentUz || (typeof item.content === 'string' ? item.content : ''),
+        ru: item.contentRu || item.rawItem?.contentRu || '',
+        en: item.contentEn || item.rawItem?.contentEn || ''
+      },
+      author: item.author || '©️ UrDPI matbuot xizmati'
     });
     setSelectedFiles({});
     setImageIds([1]);

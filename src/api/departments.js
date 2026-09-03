@@ -6,8 +6,8 @@ export const departmentsAPI = {
         ? request(`/api/departments/faculty/${facultyId}/lang/${lang}`) 
         : request(`/api/departments/faculty/${facultyId}`),
     getById: (id) => request(`/api/departments/${id}`),
-    getLanding: (page = 0, size = 50) => request(`/api/landing/departments?page=${page}&size=${size}`),
-    getLandingById: (id) => request(`/api/landing/departments/${id}`),
+    getLanding: (page = 0, size = 50, lang = 'uz') => request(`/api/landing/departments?page=${page}&size=${size}&lang=${lang}`),
+    getLandingById: (id, lang = 'uz') => request(`/api/landing/departments/${id}?lang=${lang}`),
     create: (deptDto) => request('/api/departments', { method: 'POST', body: deptDto }),
     update: (id, deptDto) => request(`/api/departments/${id}`, { method: 'PUT', body: deptDto }),
     toggleStatus: (id) => request(`/api/departments/change/status/${id}`, { method: 'PUT' }),

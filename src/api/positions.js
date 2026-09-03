@@ -5,19 +5,45 @@ export function localizedField(obj, base, lang = 'uz', fallback = '') {
     if (typeof obj === 'string') return obj || fallback;
     const code = String(lang || 'uz').slice(0, 2).toLowerCase();
     const cap = code.charAt(0).toUpperCase() + code.slice(1);
+
+    // 1. Check nested object: e.g. obj[base][code] (obj.title.ru, obj.name.en)
     const nested = obj[base];
     if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
-        const fromNested = nested[code] || nested.uz || nested.ru || nested.en;
-        if (fromNested) return fromNested;
+        const fromNested = nested[code] || nested[code.toUpperCase()] || nested.uz || nested.ru || nested.en;
+        if (fromNested && typeof fromNested === 'string' && fromNested.trim()) return fromNested;
     }
-    return (
-        obj[`${base}${cap}`] ||
-        obj[`${base}Uz`] ||
-        obj[`${base}Ru`] ||
-        obj[`${base}En`] ||
-        (typeof nested === 'string' ? nested : '') ||
-        fallback
-    );
+
+    // 2. Check exact property matching requested language: e.g. titleRu, nameRu, fullNameRu, descriptionRu, contentRu
+    const keyWithCap = `${base}${cap}`;
+    if (obj[keyWithCap] && typeof obj[keyWithCap] === 'string' && obj[keyWithCap].trim()) {
+        return obj[keyWithCap];
+    }
+    const snakeKey = `${base}_${code}`;
+    if (obj[snakeKey] && typeof obj[snakeKey] === 'string' && obj[snakeKey].trim()) {
+        return obj[snakeKey];
+    }
+
+    // 3. Fallback to Uzbek: baseUz or base_uz
+    const uzKey = `${base}Uz`;
+    if (obj[uzKey] && typeof obj[uzKey] === 'string' && obj[uzKey].trim()) {
+        return obj[uzKey];
+    }
+    const snakeUz = `${base}_uz`;
+    if (obj[snakeUz] && typeof obj[snakeUz] === 'string' && obj[snakeUz].trim()) {
+        return obj[snakeUz];
+    }
+
+    // 4. Fallback to plain string property: e.g. obj[base] (landing API responses)
+    if (typeof nested === 'string' && nested.trim()) return nested;
+    if (obj[base] && typeof obj[base] === 'string' && obj[base].trim()) return obj[base];
+
+    // 5. Fallback to Russian or English
+    const ruKey = `${base}Ru`;
+    if (obj[ruKey] && typeof obj[ruKey] === 'string' && obj[ruKey].trim()) return obj[ruKey];
+    const enKey = `${base}En`;
+    if (obj[enKey] && typeof obj[enKey] === 'string' && obj[enKey].trim()) return obj[enKey];
+
+    return fallback;
 }
 
 export function getPositionName(position, lang = 'uz', fallback = "O'qituvchi") {

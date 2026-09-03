@@ -39,8 +39,8 @@ export function buildTeacherFormData({
 
 export const teachersAPI = {
     getAll: (lang) => lang ? request(`/api/teachers/lang/${lang}`) : request('/api/teachers'),
-    getLanding: (page = 0, size = 50) => request(`/api/landing/teachers?page=${page}&size=${size}`),
-    getLandingById: (id) => request(`/api/landing/teachers/${id}`),
+    getLanding: (page = 0, size = 50, lang = 'uz') => request(`/api/landing/teachers?page=${page}&size=${size}&lang=${lang}`),
+    getLandingById: (id, lang = 'uz') => request(`/api/landing/teachers/${id}?lang=${lang}`),
     getByFaculty: (facultyId) => request(`/api/teachers/faculty/${facultyId}`),
     getByDepartment: (departmentId) => request(`/api/teachers/department/${departmentId}`),
     getByFacultyAndDepartment: (facultyId, departmentId, lang) => lang 

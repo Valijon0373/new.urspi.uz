@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { renderCenterIcon, getAutoIcon } from '../../data/centersData'
-import { centersAPI } from '../../api'
+import { centersAPI, localizedField } from '../../api'
 
 export const centers = [];
 
@@ -28,11 +28,11 @@ export default function CentersPage() {
         rawData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
       }
       const formatted = rawData.map((c, index) => {
-        const centerTitle = c.name || c.nameUz || c.title || "MARKAZ";
+        const centerTitle = localizedField(c, 'name', currentLang, localizedField(c, 'title', currentLang, "MARKAZ"));
         return {
           id: c.id || index + 1,
           title: centerTitle,
-          description: c.description || c.descriptionUz || "",
+          description: localizedField(c, 'description', currentLang, ""),
           borderColor: index % 4 === 0 ? "border-t-blue-500" : index % 4 === 1 ? "border-t-indigo-500" : index % 4 === 2 ? "border-t-cyan-500" : "border-t-amber-500",
           iconBg: index % 4 === 0 ? "bg-blue-50 text-blue-600" : index % 4 === 1 ? "bg-indigo-50 text-indigo-600" : index % 4 === 2 ? "bg-cyan-50 text-cyan-600" : "bg-amber-50 text-amber-600",
           iconName: c.iconName || c.icon || getAutoIcon(centerTitle)

@@ -25,13 +25,13 @@ export default function Gallery() {
 
             // 1. Try landing endpoint
             try {
-                const landingRes = await photoGalleriesAPI.getLanding(0, 20);
+                const landingRes = await photoGalleriesAPI.getLanding(0, 20, lang);
                 apiData = Array.isArray(landingRes) ? landingRes : (landingRes?.content || landingRes?.data?.content || landingRes?.data || []);
             } catch (err) {
                 console.warn('Landing photo galleries API failed:', err.message);
                 // 2. Try main getAll endpoint
                 try {
-                    const res = await photoGalleriesAPI.getAll();
+                    const res = await photoGalleriesAPI.getAll(lang);
                     apiData = Array.isArray(res) ? res : (res?.content || res?.data?.content || res?.data || []);
                 } catch (e) {
                     console.warn('getAll photo galleries API failed:', e.message);

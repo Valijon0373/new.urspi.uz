@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-import { announcementsAPI, getFileUrl } from '../../../api'
+import { announcementsAPI, getFileUrl, localizedField } from '../../../api'
 
 export default function Announcement() {
     const { t, i18n } = useTranslation()
@@ -20,7 +20,7 @@ export default function Announcement() {
             let apiData = [];
             const lang = i18n.language || 'uz';
             try {
-                const landingRes = await announcementsAPI.getLanding(0, 10);
+                const landingRes = await announcementsAPI.getLanding(0, 10, lang);
                 apiData = landingRes?.data?.content || landingRes?.data || landingRes?.content || (Array.isArray(landingRes) ? landingRes : []);
             } catch (err) {
                 console.warn('Failed to load landing announcements from API:', err.message);
@@ -37,8 +37,7 @@ export default function Announcement() {
 
             if (isMounted) {
                 const formatted = rawData.map((item, index) => {
-                    const langKey = lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
-                    const title = item[`title${langKey}`] || item.title || item.titleUz || item.titleRu || item.titleEn || "E'lon";
+                    const title = localizedField(item, 'title', lang, "E'lon");
                     let dateStr = "2026-08-21";
                     if (item.createdAt) {
                         dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');
