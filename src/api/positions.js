@@ -54,6 +54,14 @@ export function getPositionName(position, lang = 'uz', fallback = "O'qituvchi") 
 
 export function resolvePersonPosition(person, lang = 'uz', fallback = "O'qituvchi") {
     if (!person) return fallback;
+
+    if (isFacultyDean(person)) {
+        return lang === 'ru' ? "Декан факультета" : lang === 'en' ? "Dean of Faculty" : "Fakultet dekani";
+    }
+    if (isDepartmentHead(person)) {
+        return lang === 'ru' ? "Заведующий кафедрой" : lang === 'en' ? "Head of Department" : "Kafedra mudiri";
+    }
+
     const nested = person.position;
     if (nested && typeof nested === 'object') {
         const fromNested = getPositionName(nested, lang, '');

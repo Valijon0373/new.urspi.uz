@@ -57,6 +57,17 @@ export default function DepartmentStaffPage() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const extractArray = (payload) => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.content)) return payload.content;
+    if (Array.isArray(payload.data?.content)) return payload.data.content;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.items)) return payload.items;
+    if (Array.isArray(payload.result)) return payload.result;
+    return [];
+  };
+
   useEffect(() => {
     let isMounted = true;
     const fetchTeachers = async () => {
@@ -64,23 +75,30 @@ export default function DepartmentStaffPage() {
       let apiData = [];
       let positions = [];
       try {
-        const [res, posRes] = await Promise.allSettled([
-          teachersAPI.getLanding(0, 100),
+        const deptId = selectedDepartment?.id || selectedDepartment?._id;
+        const promises = [
+          deptId ? teachersAPI.getLandingByDepartment(deptId, 0, 100, lang) : Promise.resolve(null),
+          teachersAPI.getLanding(0, 100, lang),
+          teachersAPI.getAll(lang),
           positionsAPI.getAll()
-        ]);
-        if (res.status === 'fulfilled') {
-          const payload = res.value;
-          apiData = payload?.data?.content || (Array.isArray(payload?.data) ? payload.data : (Array.isArray(payload) ? payload : []));
-        } else {
-          try {
-            const fallback = await teachersAPI.getAll('uz');
-            apiData = Array.isArray(fallback) ? fallback : (fallback?.data || []);
-          } catch (e2) {
-            console.warn('Failed to fetch department teachers from API:', e2.message);
+        ];
+        const [deptRes, landingRes, allRes, posRes] = await Promise.allSettled(promises);
+
+        const listDirect = deptRes.status === 'fulfilled' ? extractArray(deptRes.value) : [];
+        const listLanding = landingRes.status === 'fulfilled' ? extractArray(landingRes.value) : [];
+        const listAll = allRes.status === 'fulfilled' ? extractArray(allRes.value) : [];
+
+        const combinedMap = new Map();
+        [...listDirect, ...listLanding, ...listAll].forEach(item => {
+          if (item && item.id != null) {
+            const isDirectDeptItem = listDirect.some(d => String(d.id) === String(item.id));
+            combinedMap.set(String(item.id), { ...item, isDirectDeptItem });
           }
-        }
+        });
+        apiData = Array.from(combinedMap.values());
+
         if (posRes.status === 'fulfilled') {
-          positions = Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []);
+          positions = extractArray(posRes.value);
         }
       } catch (err) {
         console.warn('Failed to fetch department teachers from API:', err.message);
@@ -96,28 +114,46 @@ export default function DepartmentStaffPage() {
             : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
           const person = { ...t, position: posObj || t.position };
           return {
-          id: t.id,
-          name: localizedField(t, 'fullName', lang, t.fullName || "O'qituvchi"),
-          position: resolvePersonPosition(person, lang),
-          degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ''),
-          phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
-          email: t.email || "info@urspi.uz",
-          img: getFileUrl(t.photoLink || t.photo || t.image) || menImg,
-          departmentId: t.departmentId || t.department?.id,
-          departmentName: t.departmentName || t.department?.nameUz || t.department?.name,
-          raw: person,
-        };
+            id: t.id,
+            name: localizedField(t, 'fullName', lang, t.fullName || t.fullNameUz || "O'qituvchi"),
+            position: resolvePersonPosition(person, lang),
+            degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : (t.academicDegree?.nameUz || t.academicDegree?.name || '')),
+            phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
+            email: t.email || "info@urspi.uz",
+            img: getFileUrl(t.photoLink || t.photo || t.image) || menImg,
+            departmentId: t.departmentId || t.department?.id,
+            departmentName: t.departmentName || t.department?.nameUz || t.department?.name,
+            raw: person,
+          };
         });
 
         if (selectedDepartment) {
-          const deptIdStr = String(selectedDepartment.id || '');
-          const deptNameStr = (typeof selectedDepartment === 'string' ? selectedDepartment : (selectedDepartment.name || '')).toLowerCase();
+          const deptIdStr = String(selectedDepartment.id || selectedDepartment._id || '');
+          const deptNameStr = (typeof selectedDepartment === 'string' 
+            ? selectedDepartment 
+            : (selectedDepartment.name || selectedDepartment.nameUz || selectedDepartment.title || '')
+          ).toLowerCase().trim();
+
+          const cleanDeptName = deptNameStr
+            .replace(/kafedrasi|kafedra|department|кафедра/gi, '')
+            .trim();
+
           formatted = formatted.filter(t => {
-            const tDeptId = String(t.departmentId || '');
-            const tDeptName = String(t.departmentName || '').toLowerCase();
-            return (deptIdStr && tDeptId === deptIdStr) || 
-                   (deptNameStr && tDeptName.includes(deptNameStr)) ||
-                   (tDeptName && deptNameStr.includes(tDeptName));
+            if (t.raw?.isDirectDeptItem) return true;
+
+            const tDeptId = String(t.departmentId || t.department?.id || '');
+            const tDeptName = String(t.departmentName || t.department?.nameUz || t.department?.name || localizedField(t.department, 'name', lang, '')).toLowerCase().trim();
+            const cleanTDeptName = tDeptName
+              .replace(/kafedrasi|kafedra|department|каfeдра/gi, '')
+              .trim();
+
+            const matchId = Boolean(deptIdStr && tDeptId && deptIdStr === tDeptId);
+            const matchName = Boolean(cleanDeptName && cleanTDeptName && (
+              cleanTDeptName.includes(cleanDeptName) || 
+              cleanDeptName.includes(cleanTDeptName)
+            ));
+
+            return matchId || matchName;
           });
         }
 
@@ -137,8 +173,19 @@ export default function DepartmentStaffPage() {
     };
   }, [selectedDepartment, lang]);
 
-  const mudir = teachers.find(t => isDepartmentHead(t.raw || t));
-  const otherTeachers = mudir ? teachers.filter(t => t !== mudir) : teachers;
+  const mudir = teachers.find(t => {
+    const posStr = [
+      t.position,
+      t.raw?.positionTitleUz,
+      t.raw?.positionTitle,
+      t.raw?.positionObj?.nameUz,
+      t.raw?.position?.nameUz,
+      t.raw?.position
+    ].filter(Boolean).join(' ').toLowerCase();
+    return isDepartmentHead(t.raw || t) || posStr.includes('mudir') || posStr.includes('мудир') || posStr.includes('head');
+  }) || (teachers.length > 0 ? teachers[0] : null);
+
+  const otherTeachers = mudir ? teachers.filter(t => String(t.id) !== String(mudir.id)) : teachers;
   const deptTitle = (typeof selectedDepartment === 'string' ? selectedDepartment : selectedDepartment?.name) || "Kafedra o'qituvchilari";
 
   return (
@@ -206,7 +253,7 @@ export default function DepartmentStaffPage() {
                           {mudir.name}
                         </h3>
                         <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                          {mudir.position}
+                          {(!mudir.position || mudir.position === "O'qituvchi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position}
                         </p>
                       </div>
 

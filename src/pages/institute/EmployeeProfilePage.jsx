@@ -20,25 +20,34 @@ export default function EmployeeProfilePage() {
       setLoading(true);
       let data = null;
       try {
-        const [landingStaffRes, teacherRes, empRes, staffRes, posRes] = await Promise.allSettled([
-          facultyStaffAPI.getLandingById(id, lang),
+        const [teacherRes, landingTeacherRes, empRes, landingStaffRes, staffRes, posRes] = await Promise.allSettled([
           teachersAPI.getById(id),
+          teachersAPI.getLandingById(id, lang),
           employeesAPI.getById(id),
+          facultyStaffAPI.getLandingById(id, lang),
           facultyStaffAPI.getById(id),
           positionsAPI.getAll()
         ]);
 
-        const landingData = landingStaffRes.status === 'fulfilled'
-          ? (landingStaffRes.value?.data || landingStaffRes.value)
-          : null;
-        if (landingData && landingData.id != null) {
-          data = landingData;
-        } else if (teacherRes.status === 'fulfilled' && teacherRes.value) {
-          data = teacherRes.value.data || teacherRes.value;
-        } else if (empRes.status === 'fulfilled' && empRes.value) {
-          data = empRes.value.data || empRes.value;
-        } else if (staffRes.status === 'fulfilled' && staffRes.value) {
-          data = staffRes.value.data || staffRes.value;
+        const getObj = (res) => (res.status === 'fulfilled' && res.value) ? (res.value.data || res.value) : null;
+
+        const teacherObj = getObj(teacherRes);
+        const landingTeacherObj = getObj(landingTeacherRes);
+        const empObj = getObj(empRes);
+        const landingStaffObj = getObj(landingStaffRes);
+        const staffObj = getObj(staffRes);
+
+        // Prioritize teacher data over faculty staff (dean) data
+        if (teacherObj && (teacherObj.fullName || teacherObj.fullNameUz || teacherObj.id)) {
+          data = teacherObj;
+        } else if (landingTeacherObj && (landingTeacherObj.fullName || landingTeacherObj.fullNameUz || landingTeacherObj.id)) {
+          data = landingTeacherObj;
+        } else if (empObj && (empObj.fullName || empObj.fullNameUz || empObj.id)) {
+          data = empObj;
+        } else if (landingStaffObj && (landingStaffObj.fullName || landingStaffObj.fullNameUz || landingStaffObj.id)) {
+          data = landingStaffObj;
+        } else if (staffObj && (staffObj.fullName || staffObj.fullNameUz || staffObj.id)) {
+          data = staffObj;
         }
 
         const positions = posRes.status === 'fulfilled'

@@ -1,48 +1,102 @@
 import { request } from './client';
 
 /**
- * Swagger FacultyStaffDTO (multipart/form-data)
- * Fields:
- * - fullNameUz (required)
- * - fullNameRu, fullNameEn
- * - phoneNumber, email
- * - photo (binary), cv (binary)
- * - positionTitleUz (required), positionTitleRu, positionTitleEn
- * - sortOrder (integer)
- * - facultyId (required integer)
+ * Builds JSON payload for FacultyStaffDTO
  */
-export function buildFacultyStaffFormData({
-    fullNameUz,
-    fullNameRu,
-    fullNameEn,
-    phoneNumber,
-    email,
-    photo,
-    cv,
-    positionTitleUz,
-    positionTitleRu,
-    positionTitleEn,
-    sortOrder = 1,
-    facultyId,
-}) {
+export function buildFacultyStaffPayload(data = {}) {
+    if (data instanceof FormData) return data;
+    const {
+        fullNameUz = '', fullNameRu = '', fullNameEn = '',
+        phoneNumber = '', email = '',
+        positionTitleUz = 'Dekan', positionTitleRu = '', positionTitleEn = '',
+        sortOrder = 1, facultyId,
+    } = data;
+
+    const mainName = fullNameUz || data.fullName || '';
+    const mainPos = positionTitleUz || data.positionTitle || 'Dekan';
+
+    const payload = {
+        fullNameUz: mainName,
+        fullName: mainName,
+        fullNameRu,
+        fullNameEn,
+        phoneNumber,
+        email,
+        positionTitleUz: mainPos,
+        positionTitle: mainPos,
+        positionTitleRu,
+        positionTitleEn,
+        sortOrder: Number(sortOrder) || 1
+    };
+
+    if (facultyId != null && facultyId !== '' && String(facultyId) !== 'undefined') {
+        payload.facultyId = Number(facultyId) || facultyId;
+    }
+
+    return payload;
+}
+
+/**
+ * Swagger FacultyStaffDTO (multipart/form-data)
+ */
+export function buildFacultyStaffFormData(data = {}) {
+    if (data instanceof FormData) return data;
+    const {
+        fullNameUz,
+        fullNameRu,
+        fullNameEn,
+        phoneNumber,
+        email,
+        photo,
+        cv,
+        positionTitleUz,
+        positionTitleRu,
+        positionTitleEn,
+        sortOrder = 1,
+        facultyId,
+    } = data;
+
     const fd = new FormData();
-    fd.append('fullNameUz', fullNameUz || '');
-    fd.append('fullName', fullNameUz || ''); // Legacy DB fallback
+    const mainName = fullNameUz || data.fullName || '';
+    const mainPos = positionTitleUz || data.positionTitle || 'Dekan';
+
+    fd.append('fullNameUz', mainName);
+    fd.append('fullName', mainName);
     if (fullNameRu) fd.append('fullNameRu', fullNameRu);
     if (fullNameEn) fd.append('fullNameEn', fullNameEn);
     if (phoneNumber) fd.append('phoneNumber', phoneNumber);
     if (email) fd.append('email', email);
+
     if (photo) {
-        fd.append('photo', photo);
-        fd.append('file', photo);
-        fd.append('image', photo);
+        if (photo instanceof File) {
+            fd.append('photo', photo);
+            fd.append('file', photo);
+            fd.append('image', photo);
+        } else if (typeof photo === 'string' && photo) {
+            fd.append('photo', photo);
+            fd.append('photoLink', photo);
+            fd.append('image', photo);
+        }
     }
-    if (cv) fd.append('cv', cv);
-    fd.append('positionTitleUz', positionTitleUz || 'Dekan');
+    if (cv) {
+        if (cv instanceof File) {
+            fd.append('cv', cv);
+            fd.append('fileCv', cv);
+        } else if (typeof cv === 'string' && cv) {
+            fd.append('cv', cv);
+        }
+    }
+
+    fd.append('positionTitleUz', mainPos);
+    fd.append('positionTitle', mainPos);
     if (positionTitleRu) fd.append('positionTitleRu', positionTitleRu);
     if (positionTitleEn) fd.append('positionTitleEn', positionTitleEn);
     fd.append('sortOrder', String(sortOrder != null && sortOrder !== '' ? sortOrder : 1));
-    if (facultyId) fd.append('facultyId', String(facultyId));
+
+    if (facultyId != null && facultyId !== '' && String(facultyId) !== 'undefined') {
+        fd.append('facultyId', String(facultyId));
+    }
+
     return fd;
 }
 
@@ -59,8 +113,37 @@ export const facultyStaffAPI = {
         request(`/api/landing/faculties/${facultyId}/staff?page=0&size=50&lang=${lang}`),
     getByFacultyLang: (facultyId, lang) =>
         request(`/api/faculty-staff/faculty/${facultyId}/lang/${lang}`),
-    create: (formData) => request('/api/faculty-staff', { method: 'POST', body: formData }),
-    update: (id, formData) => request(`/api/faculty-staff/${id}`, { method: 'PUT', body: formData }),
+    create: async (data) => {
+        if (data instanceof FormData) {
+            return request('/api/faculty-staff', { method: 'POST', body: data });
+        }
+        const formData = buildFacultyStaffFormData(data);
+        try {
+            return await request('/api/faculty-staff', { method: 'POST', body: formData });
+        } catch (err) {
+            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+                const payload = buildFacultyStaffPayload(data);
+                return await request('/api/faculty-staff', { method: 'POST', body: payload });
+            }
+            throw err;
+        }
+    },
+    update: async (id, data) => {
+        if (data instanceof FormData) {
+            return request(`/api/faculty-staff/${id}`, { method: 'PUT', body: data });
+        }
+        const formData = buildFacultyStaffFormData(data);
+        try {
+            return await request(`/api/faculty-staff/${id}`, { method: 'PUT', body: formData });
+        } catch (err) {
+            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+                const payload = buildFacultyStaffPayload(data);
+                return await request(`/api/faculty-staff/${id}`, { method: 'PUT', body: payload });
+            }
+            throw err;
+        }
+    },
     toggleStatus: (id) => request(`/api/faculty-staff/change/status/${id}`, { method: 'PUT' }),
     delete: (id) => request(`/api/faculty-staff/${id}`, { method: 'DELETE' }),
 };
+

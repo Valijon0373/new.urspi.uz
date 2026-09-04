@@ -6,6 +6,15 @@ import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
 import { teachersAPI, buildTeacherFormData, facultyStaffAPI, buildFacultyStaffFormData, facultiesAPI, departmentsAPI, positionsAPI, getPositionName, resolvePersonPosition, academicDegreesAPI, getFileUrl, localizedField } from '../../api';
 
+const fileToBase64 = (file) => {
+  return new Promise((resolve) => {
+    if (!file || !(file instanceof File)) return resolve(null);
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function TeachersAdmin() {
   const [activeMenuId, setActiveMenuId] = useState(null);
@@ -127,6 +136,17 @@ export default function TeachersAdmin() {
     
     setPhoneNumber(formatted);
   };
+  const extractArray = (payload) => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.content)) return payload.content;
+    if (Array.isArray(payload.data?.content)) return payload.data.content;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.items)) return payload.items;
+    if (Array.isArray(payload.result)) return payload.result;
+    return [];
+  };
+
   const fetchTeachers = async (currentFacs = faculties, currentDepts = departments, currentPositions = positions) => {
     setLoading(true);
     let apiData = [];
@@ -138,12 +158,10 @@ export default function TeachersAdmin() {
         facultyStaffAPI.getAll()
       ]);
       if (res.status === 'fulfilled') {
-        const payload = res.value;
-        apiData = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
+        apiData = extractArray(res.value);
       }
       if (staffRes.status === 'fulfilled') {
-        const payload = staffRes.value;
-        facultyStaffData = Array.isArray(payload) ? payload : (payload?.data?.content || payload?.data || []);
+        facultyStaffData = extractArray(staffRes.value);
       }
     } catch (e) {
       console.warn('API error in fetchTeachers:', e.message);
@@ -152,19 +170,21 @@ export default function TeachersAdmin() {
     if (apiData.length === 0) {
       try {
         const res = await teachersAPI.getLanding(0, 100);
-        apiData = res?.data?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+        apiData = extractArray(res);
       } catch (e2) {}
     }
 
     const combinedMap = new Map();
 
     facultyStaffData.forEach(item => {
-      combinedMap.set(String(item.id), { ...item, isFacultyStaff: true, isDean: true });
+      if (item && item.id != null) {
+        combinedMap.set(`staff_${item.id}`, { ...item, isFacultyStaff: true, isDean: true });
+      }
     });
 
     apiData.forEach(item => {
-      if (!combinedMap.has(String(item.id))) {
-        combinedMap.set(String(item.id), item);
+      if (item && item.id != null) {
+        combinedMap.set(`teacher_${item.id}`, item);
       }
     });
 
@@ -288,12 +308,9 @@ export default function TeachersAdmin() {
   };
 
   const handleSave = async () => {
-    if (!fullName.uz?.trim()) {
-      showNotification("Iltimos, F.I.O ni o'zbek tilida kiriting");
-      return;
-    }
-    if (!photoFile && !imagePreview) {
-      showNotification("Iltimos, rasm yuklang (rasm yuklash majburiy)");
+    const mainFullName = fullName.uz?.trim() || fullName.ru?.trim() || fullName.en?.trim() || '';
+    if (!mainFullName) {
+      showNotification("Iltimos, F.I.O ni kiriting");
       return;
     }
     if (!email?.trim()) {
@@ -312,12 +329,12 @@ export default function TeachersAdmin() {
       showNotification("Iltimos, lavozimni tanlang");
       return;
     }
-    if (!academicDegreeId) {
+    if (academicDegrees.length > 0 && !academicDegreeId) {
       showNotification("Iltimos, ilmiy darajani tanlang");
       return;
     }
     const phoneDigits = phoneNumber.replace(/\D/g, '');
-    if (phoneDigits.length < 12) {
+    if (phoneDigits.length > 0 && phoneDigits.length < 9) {
       showNotification("Iltimos, to'liq telefon raqamini kiriting");
       return;
     }
@@ -325,12 +342,8 @@ export default function TeachersAdmin() {
       showNotification("Lavozimlar ro'yxati bo'sh. Avval «Lavozimlar» bo'limida lavozim qo'shing.");
       return;
     }
-    if (academicDegrees.length === 0) {
-      showNotification("Ilmiy darajalar ro'yxati bo'sh. Avval «Ilmiy darajalar» bo'limida qo'shing.");
-      return;
-    }
     try {
-      let base64Photo = imagePreview;
+      let base64Photo = imagePreview || "";
       if (photoFile) {
         const b64 = await fileToBase64(photoFile);
         if (b64) base64Photo = b64;
@@ -340,46 +353,19 @@ export default function TeachersAdmin() {
       const deptObj = departments.find(d => String(d.id) === String(departmentId));
       const posObj = positions.find(p => String(p.id) === String(positionId));
 
-      const fullNameUz = fullName.uz.trim();
-      const fullNameRu = fullName.ru?.trim() || '';
-      const fullNameEn = fullName.en?.trim() || '';
-      const normalizedPhone = phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`;
+      const fullNameUz = fullName.uz?.trim() || mainFullName;
+      const fullNameRu = fullName.ru?.trim() || mainFullName;
+      const fullNameEn = fullName.en?.trim() || mainFullName;
+      const normalizedPhone = phoneDigits.length >= 9
+        ? (phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`)
+        : phoneNumber;
 
       const posNameUz = getPositionName(posObj, 'uz', '');
       const posNameRu = getPositionName(posObj, 'ru', '');
       const posNameEn = getPositionName(posObj, 'en', '');
 
-      const teacherObj = {
-        id: editMode && selectedItem ? selectedItem.id : Date.now(),
-        fullNameUz,
-        fullNameRu,
-        fullNameEn,
-        fullName: fullNameUz,
-        phoneNumber: normalizedPhone,
-        phone: normalizedPhone,
-        email: email.trim(),
-        position: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
-        positionTitleUz: posNameUz,
-        positionTitleRu: posNameRu,
-        positionTitleEn: posNameEn,
-        facultyId,
-        facultyName: facObj?.nameUz || facObj?.name || 'Fakultet',
-        departmentId,
-        departmentName: deptObj?.nameUz || deptObj?.name || 'Kafedra',
-        positionId,
-        academicDegreeId,
-        sortOrder: Number(sortOrder) || 0,
-        faculty: facObj ? { id: facObj.id, nameUz: facObj.nameUz || facObj.name } : { id: facultyId },
-        department: deptObj ? { id: deptObj.id, nameUz: deptObj.nameUz || deptObj.name } : { id: departmentId },
-        positionObj: posObj || { id: positionId, nameUz: posNameUz, nameRu: posNameRu, nameEn: posNameEn, name: posNameUz },
-        photo: base64Photo || "",
-        image: base64Photo || "",
-        photoLink: base64Photo || "",
-        updatedAt: new Date().toISOString()
-      };
-
       try {
-        const fd = buildTeacherFormData({
+        const payloadData = {
           fullNameUz,
           fullNameRu,
           fullNameEn,
@@ -389,15 +375,18 @@ export default function TeachersAdmin() {
           departmentId,
           positionId,
           academicDegreeId,
-          photo: photoFile,
+          positionTitleUz: posNameUz,
+          positionTitleRu: posNameRu,
+          positionTitleEn: posNameEn,
+          photo: photoFile || imagePreview || '',
           cv: cvFile,
           sortOrder: Number(sortOrder) || 0,
-        });
+        };
 
         if (editMode && selectedItem) {
-          await teachersAPI.update(selectedItem.id, fd);
+          await teachersAPI.update(selectedItem.id, payloadData);
         } else {
-          await teachersAPI.create(fd);
+          await teachersAPI.create(payloadData);
         }
       } catch (apiErr) {
         console.warn('Backend API save failed:', apiErr.message);
@@ -421,12 +410,9 @@ export default function TeachersAdmin() {
   };
 
   const handleSaveDean = async () => {
-    if (!fullName.uz?.trim()) {
-      showNotification("Iltimos, F.I.O ni o'zbek tilida kiriting");
-      return;
-    }
-    if (!photoFile && !imagePreview) {
-      showNotification("Iltimos, rasm yuklang (rasm yuklash majburiy)");
+    const mainFullName = fullName.uz?.trim() || fullName.ru?.trim() || fullName.en?.trim() || '';
+    if (!mainFullName) {
+      showNotification("Iltimos, F.I.O ni kiriting");
       return;
     }
     if (!email?.trim()) {
@@ -442,7 +428,7 @@ export default function TeachersAdmin() {
       return;
     }
     const phoneDigits = phoneNumber.replace(/\D/g, '');
-    if (phoneDigits.length < 12) {
+    if (phoneDigits.length > 0 && phoneDigits.length < 9) {
       showNotification("Iltimos, to'liq telefon raqamini kiriting");
       return;
     }
@@ -450,35 +436,37 @@ export default function TeachersAdmin() {
     try {
       const posObj = positions.find(p => String(p.id) === String(positionId));
 
-      const fullNameUz = fullName.uz.trim();
-      const fullNameRu = fullName.ru?.trim() || '';
-      const fullNameEn = fullName.en?.trim() || '';
-      const normalizedPhone = phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`;
+      const fullNameUz = fullName.uz?.trim() || mainFullName;
+      const fullNameRu = fullName.ru?.trim() || mainFullName;
+      const fullNameEn = fullName.en?.trim() || mainFullName;
+      const normalizedPhone = phoneDigits.length >= 9
+        ? (phoneDigits.startsWith('998') ? `+${phoneDigits}` : `+998${phoneDigits}`)
+        : phoneNumber;
 
       const posNameUz = getPositionName(posObj, 'uz', "Fakultet dekani");
       const posNameRu = getPositionName(posObj, 'ru', "Декан факультета");
       const posNameEn = getPositionName(posObj, 'en', "Dean of Faculty");
 
       try {
-        const fd = buildFacultyStaffFormData({
+        const payloadData = {
           fullNameUz,
           fullNameRu,
           fullNameEn,
           phoneNumber: normalizedPhone,
           email: email.trim(),
-          photo: photoFile,
+          photo: photoFile || imagePreview || '',
           cv: cvFile,
           positionTitleUz: posNameUz || "Dekan",
           positionTitleRu: posNameRu || "Декан",
           positionTitleEn: posNameEn || "Dean",
           sortOrder: Number(sortOrder) || 1,
           facultyId,
-        });
+        };
 
         if (editMode && selectedItem && (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff)) {
-          await facultyStaffAPI.update(selectedItem.id, fd);
+          await facultyStaffAPI.update(selectedItem.id, payloadData);
         } else {
-          await facultyStaffAPI.create(fd);
+          await facultyStaffAPI.create(payloadData);
         }
       } catch (apiErr) {
         console.warn('FacultyStaff API save warning:', apiErr.message);
@@ -1109,14 +1097,15 @@ export default function TeachersAdmin() {
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
                       <option value="">Kafedrani tanlang</option>
-                      {departments
-                        .filter(d => !facultyId || String(d.faculty?.id || d.facultyId) === String(facultyId))
-                        .map(d => (
+                      {(() => {
+                        const filtered = departments.filter(d => !facultyId || String(d.faculty?.id || d.facultyId || d.faculty_id) === String(facultyId));
+                        const listToDisplay = (filtered.length > 0 || !facultyId) ? filtered : departments;
+                        return listToDisplay.map(d => (
                           <option key={d.id} value={d.id}>
                             {d.nameUz || d.name || "Kafedra"}
                           </option>
-                        ))
-                      }
+                        ));
+                      })()}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
