@@ -80,20 +80,34 @@ export function resolvePersonPosition(person, lang = 'uz', fallback = "O'qituvch
 function collectPositionTexts(person) {
     if (!person) return '';
     if (typeof person === 'string') return person;
+    const nested = (person.position && typeof person.position === 'object') ? person.position : {};
+    const posObj = (person.positionObj && typeof person.positionObj === 'object') ? person.positionObj : {};
+    const raw = (person.raw && typeof person.raw === 'object') ? person.raw : {};
+
     return [
-        resolvePersonPosition(person, 'uz', ''),
-        resolvePersonPosition(person, 'ru', ''),
-        resolvePersonPosition(person, 'en', ''),
         typeof person.position === 'string' ? person.position : '',
+        person.positionTitle,
         person.positionTitleUz,
         person.positionTitleRu,
         person.positionTitleEn,
-        person.positionObj?.nameUz,
-        person.positionObj?.titleUz,
-        person.position?.nameUz,
-        person.position?.titleUz,
-        person.raw?.positionTitleUz,
-        person.raw?.positionObj?.nameUz,
+        nested.name,
+        nested.nameUz,
+        nested.nameRu,
+        nested.nameEn,
+        nested.title,
+        nested.titleUz,
+        nested.titleRu,
+        nested.titleEn,
+        posObj.name,
+        posObj.nameUz,
+        posObj.nameRu,
+        posObj.nameEn,
+        posObj.title,
+        posObj.titleUz,
+        raw.positionTitle,
+        raw.positionTitleUz,
+        raw.positionObj?.nameUz,
+        raw.position?.nameUz,
     ].filter(Boolean).join(' ');
 }
 

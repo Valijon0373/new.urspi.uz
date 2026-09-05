@@ -126,44 +126,47 @@ export default function FacultyStaffPage() {
         if (posRes.status === 'fulfilled') {
           positions = Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []);
         }
+
+        // Landing localized staff has no facultyId — keep those already loaded for this faculty
+        let filteredData = apiData;
+        if (activeFacultyId) {
+          filteredData = apiData.filter(item => {
+            if (item.isFacultyStaff) return true;
+            const itemFacId = item.facultyId || item.faculty?.id;
+            if (itemFacId == null || itemFacId === '') return true;
+            return String(itemFacId) === String(activeFacultyId);
+          });
+        }
+
+        if (isMounted) {
+          const formatted = filteredData.map(t => {
+            const posId = t.positionId || t.position?.id;
+            const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
+            const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
+              ? nestedPos
+              : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
+            const person = { ...t, position: posObj || t.position };
+            const rawImg = t.photoLink || t.photo || t.image || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
+            return {
+              id: t.id,
+              fullName: localizedField(t, 'fullName', lang, t.fullNameUz || t.fullName || "Fakultet xodimi"),
+              position: t.positionTitle || resolvePersonPosition(person, lang),
+              phone: t.phoneNumber || t.phone || "",
+              email: t.email || "",
+              degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ""),
+              photo: getFileUrl(rawImg) || menImg,
+              officeHours: t.officeHours || t.receptionTime || "10:00-18:00",
+              raw: person,
+            };
+          });
+          setTeachers(formatted);
+        }
       } catch (err) {
         console.warn('Failed to fetch teachers for faculty from API:', err.message);
-      }
-
-      // Landing localized staff has no facultyId — keep those already loaded for this faculty
-      let filteredData = apiData;
-      if (activeFacultyId) {
-        filteredData = apiData.filter(item => {
-          if (item.isFacultyStaff) return true;
-          const itemFacId = item.facultyId || item.faculty?.id;
-          if (itemFacId == null || itemFacId === '') return true;
-          return String(itemFacId) === String(activeFacultyId);
-        });
-      }
-
-      if (isMounted) {
-        const formatted = filteredData.map(t => {
-          const posId = t.positionId || t.position?.id;
-          const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
-          const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
-            ? nestedPos
-            : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
-          const person = { ...t, position: posObj || t.position };
-          const rawImg = t.photoLink || t.photo || t.image || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
-          return {
-            id: t.id,
-            fullName: localizedField(t, 'fullName', lang, t.fullNameUz || t.fullName || "Fakultet xodimi"),
-            position: t.positionTitle || resolvePersonPosition(person, lang),
-            phone: t.phoneNumber || t.phone || "",
-            email: t.email || "",
-            degree: localizedField(t.academicDegree, 'name', lang, typeof t.academicDegree === 'string' ? t.academicDegree : ""),
-            photo: getFileUrl(rawImg) || menImg,
-            officeHours: t.officeHours || t.receptionTime || "10:00-18:00",
-            raw: person,
-          };
-        });
-        setTeachers(formatted);
-        setLoading(false);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 

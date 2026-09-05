@@ -58,27 +58,29 @@ export default function EmployeeProfilePage() {
           const posObj = positions.find(p => String(p.id) === String(posId));
           if (posObj) data = { ...data, position: posObj };
         }
+        if (data) {
+          const rawImg = data.photoLink || data.photo || data.image || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
+          if (isMounted) {
+            setEmployeeData({
+              id: data.id,
+              name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
+              position: data.positionTitle || resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
+              phone: data.phoneNumber || data.phone || "",
+              email: data.email || "info@urspi.uz",
+              bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
+              officeHours: data.officeHours || data.receptionTime || "Dushanba - Juma: 09:00 - 17:00",
+              img: getFileUrl(rawImg) || menImg,
+              hasScience: !!(data.academicDegree || data.position)
+            });
+          }
+        }
       } catch (err) {
         console.warn('Failed to load profile from API:', err.message);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-
-
-
-      if (isMounted && data) {
-        const rawImg = data.photoLink || data.photo || data.image || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
-        setEmployeeData({
-          id: data.id,
-          name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
-          position: data.positionTitle || resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
-          phone: data.phoneNumber || data.phone || "",
-          email: data.email || "info@urspi.uz",
-          bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
-          officeHours: data.officeHours || data.receptionTime || "Dushanba - Juma: 09:00 - 17:00",
-          img: getFileUrl(rawImg) || menImg,
-          hasScience: !!(data.academicDegree || data.position)
-        });
-      }
-      if (isMounted) setLoading(false);
     };
 
     fetchEmployee();

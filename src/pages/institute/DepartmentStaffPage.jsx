@@ -70,43 +70,51 @@ export default function DepartmentStaffPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const normalizeDeptStr = (str) => {
+      if (!str) return '';
+      const s = typeof str === 'string' ? str : String(str);
+      return s
+        .toLowerCase()
+        .replace(/[\u02BC\u2019\u2018\u02BB`']/g, "'")
+        .replace(/g['`ʼ’]/g, 'g')
+        .replace(/o['`ʼ’]/g, 'o')
+        .replace(/sh/g, 's')
+        .replace(/ch/g, 'c')
+        .replace(/kafedrasi|kafedra|department|кафедра/gi, '')
+        .replace(/[^a-z0-9а-я]/gi, '')
+        .trim();
+    };
+
     const fetchTeachers = async () => {
       setLoading(true);
-      let apiData = [];
-      let positions = [];
       try {
         const deptId = selectedDepartment?.id || selectedDepartment?._id;
         const promises = [
           deptId ? teachersAPI.getLandingByDepartment(deptId, 0, 100, lang) : Promise.resolve(null),
+          deptId ? teachersAPI.getByDepartment(deptId, lang) : Promise.resolve(null),
           teachersAPI.getLanding(0, 100, lang),
           teachersAPI.getAll(lang),
           positionsAPI.getAll()
         ];
-        const [deptRes, landingRes, allRes, posRes] = await Promise.allSettled(promises);
+        const [deptRes, deptRes2, landingRes, allRes, posRes] = await Promise.allSettled(promises);
 
         const listDirect = deptRes.status === 'fulfilled' ? extractArray(deptRes.value) : [];
+        const listDirect2 = deptRes2.status === 'fulfilled' ? extractArray(deptRes2.value) : [];
         const listLanding = landingRes.status === 'fulfilled' ? extractArray(landingRes.value) : [];
         const listAll = allRes.status === 'fulfilled' ? extractArray(allRes.value) : [];
 
         const combinedMap = new Map();
-        [...listDirect, ...listLanding, ...listAll].forEach(item => {
+        [...listDirect, ...listDirect2, ...listLanding, ...listAll].forEach(item => {
           if (item && item.id != null) {
-            const isDirectDeptItem = listDirect.some(d => String(d.id) === String(item.id));
+            const isDirectDeptItem = listDirect.some(d => String(d.id) === String(item.id)) || listDirect2.some(d => String(d.id) === String(item.id));
             combinedMap.set(String(item.id), { ...item, isDirectDeptItem });
           }
         });
-        apiData = Array.from(combinedMap.values());
+        const apiData = Array.from(combinedMap.values());
 
-        if (posRes.status === 'fulfilled') {
-          positions = extractArray(posRes.value);
-        }
-      } catch (err) {
-        console.warn('Failed to fetch department teachers from API:', err.message);
-      }
+        const positions = posRes.status === 'fulfilled' ? extractArray(posRes.value) : [];
 
-      const combinedData = apiData;
-      if (isMounted) {
-        let formatted = combinedData.map(t => {
+        let formatted = apiData.map(t => {
           const posId = t.positionId || t.position?.id;
           const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
           const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
@@ -122,30 +130,25 @@ export default function DepartmentStaffPage() {
             email: t.email || "info@urspi.uz",
             img: getFileUrl(t.photoLink || t.photo || t.image) || menImg,
             departmentId: t.departmentId || t.department?.id,
-            departmentName: t.departmentName || t.department?.nameUz || t.department?.name,
+            departmentName: typeof t.departmentName === 'string' ? t.departmentName : (typeof t.department === 'string' ? t.department : (t.department?.nameUz || t.department?.name)),
             raw: person,
           };
         });
 
         if (selectedDepartment) {
           const deptIdStr = String(selectedDepartment.id || selectedDepartment._id || '');
-          const deptNameStr = (typeof selectedDepartment === 'string' 
+          const rawDeptName = typeof selectedDepartment === 'string' 
             ? selectedDepartment 
-            : (selectedDepartment.name || selectedDepartment.nameUz || selectedDepartment.title || '')
-          ).toLowerCase().trim();
-
-          const cleanDeptName = deptNameStr
-            .replace(/kafedrasi|kafedra|department|кафедра/gi, '')
-            .trim();
+            : (typeof selectedDepartment.name === 'string' ? selectedDepartment.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment.nameUz || selectedDepartment.title || ''));
+          
+          const cleanDeptName = normalizeDeptStr(rawDeptName);
 
           formatted = formatted.filter(t => {
             if (t.raw?.isDirectDeptItem) return true;
 
-            const tDeptId = String(t.departmentId || t.department?.id || '');
-            const tDeptName = String(t.departmentName || t.department?.nameUz || t.department?.name || localizedField(t.department, 'name', lang, '')).toLowerCase().trim();
-            const cleanTDeptName = tDeptName
-              .replace(/kafedrasi|kafedra|department|каfeдра/gi, '')
-              .trim();
+            const tDeptId = String(t.departmentId || t.department?.id || t.raw?.departmentId || t.raw?.department?.id || '');
+            const rawTDeptName = typeof t.departmentName === 'string' ? t.departmentName : (typeof t.department === 'string' ? t.department : localizedField(t.department, 'name', lang, t.department?.nameUz || ''));
+            const cleanTDeptName = normalizeDeptStr(rawTDeptName);
 
             const matchId = Boolean(deptIdStr && tDeptId && deptIdStr === tDeptId);
             const matchName = Boolean(cleanDeptName && cleanTDeptName && (
@@ -157,8 +160,15 @@ export default function DepartmentStaffPage() {
           });
         }
 
-        setTeachers(formatted);
-        setLoading(false);
+        if (isMounted) {
+          setTeachers(formatted);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch department teachers from API:', err.message);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -186,7 +196,10 @@ export default function DepartmentStaffPage() {
   }) || (teachers.length > 0 ? teachers[0] : null);
 
   const otherTeachers = mudir ? teachers.filter(t => String(t.id) !== String(mudir.id)) : teachers;
-  const deptTitle = (typeof selectedDepartment === 'string' ? selectedDepartment : selectedDepartment?.name) || "Kafedra o'qituvchilari";
+  const rawDeptTitle = typeof selectedDepartment === 'string' 
+    ? selectedDepartment 
+    : (typeof selectedDepartment?.name === 'string' ? selectedDepartment?.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment?.nameUz || selectedDepartment?.title || ''));
+  const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : "Kafedra o'qituvchilari";
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
