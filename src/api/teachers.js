@@ -1,5 +1,23 @@
 import { request } from './client';
 
+/** Existing file name/path for updates. Never treat preview URLs as MultipartFile. */
+function extractStoredFileName(value) {
+    if (!value) return '';
+    if (typeof value === 'object') {
+        value = value.link || value.url || value.path || value.fileName || value.photoLink || '';
+    }
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith('blob:') || trimmed.startsWith('data:')) return '';
+    try {
+        const path = trimmed.startsWith('http') ? new URL(trimmed).pathname : trimmed;
+        const name = path.split('/').filter(Boolean).pop() || '';
+        return name.split('?')[0];
+    } catch {
+        return trimmed.split('/').pop()?.split('?')[0] || '';
+    }
+}
+
 /**
  * Builds JSON payload for TeacherDTO
  */
@@ -43,6 +61,9 @@ export function buildTeacherPayload(data = {}) {
     }
     if (positionTitleRu) payload.positionTitleRu = positionTitleRu;
     if (positionTitleEn) payload.positionTitleEn = positionTitleEn;
+
+    const photoLink = extractStoredFileName(data.photo || data.photoLink);
+    if (photoLink) payload.photoLink = photoLink;
 
     return payload;
 }
@@ -99,24 +120,14 @@ export function buildTeacherFormData(data = {}) {
     if (positionTitleRu) fd.append('positionTitleRu', positionTitleRu);
     if (positionTitleEn) fd.append('positionTitleEn', positionTitleEn);
 
-    if (photo) {
-        if (photo instanceof File) {
-            fd.append('photo', photo);
-            fd.append('file', photo);
-            fd.append('image', photo);
-        } else if (typeof photo === 'string' && photo) {
-            fd.append('photo', photo);
-            fd.append('photoLink', photo);
-            fd.append('image', photo);
-        }
+    if (photo instanceof File) {
+        fd.append('photo', photo);
+    } else {
+        const photoLink = extractStoredFileName(photo);
+        if (photoLink) fd.append('photoLink', photoLink);
     }
-    if (cv) {
-        if (cv instanceof File) {
-            fd.append('cv', cv);
-            fd.append('fileCv', cv);
-        } else if (typeof cv === 'string' && cv) {
-            fd.append('cv', cv);
-        }
+    if (cv instanceof File) {
+        fd.append('cv', cv);
     }
 
     if (sortOrder != null && sortOrder !== '') {
@@ -124,6 +135,11 @@ export function buildTeacherFormData(data = {}) {
     }
 
     return fd;
+}
+
+function shouldRetryAsJson(err) {
+    const msg = String(err?.message || '');
+    return /400|415|Content|multipart|photo|convert|request part|not a valid/i.test(msg);
 }
 
 export const teachersAPI = {
@@ -149,7 +165,7 @@ export const teachersAPI = {
         try {
             return await request('/api/teachers', { method: 'POST', body: formData });
         } catch (err) {
-            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+            if (shouldRetryAsJson(err)) {
                 const payload = buildTeacherPayload(data);
                 return await request('/api/teachers', { method: 'POST', body: payload });
             }
@@ -164,7 +180,7 @@ export const teachersAPI = {
         try {
             return await request(`/api/teachers/${id}`, { method: 'PUT', body: formData });
         } catch (err) {
-            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+            if (shouldRetryAsJson(err)) {
                 const payload = buildTeacherPayload(data);
                 return await request(`/api/teachers/${id}`, { method: 'PUT', body: payload });
             }

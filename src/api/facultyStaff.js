@@ -67,24 +67,17 @@ export function buildFacultyStaffFormData(data = {}) {
     if (phoneNumber) fd.append('phoneNumber', phoneNumber);
     if (email) fd.append('email', email);
 
-    if (photo) {
-        if (photo instanceof File) {
-            fd.append('photo', photo);
-            fd.append('file', photo);
-            fd.append('image', photo);
-        } else if (typeof photo === 'string' && photo) {
-            fd.append('photo', photo);
-            fd.append('photoLink', photo);
-            fd.append('image', photo);
+    if (photo instanceof File) {
+        fd.append('photo', photo);
+    } else if (typeof photo === 'string') {
+        const trimmed = photo.trim();
+        if (trimmed && !trimmed.startsWith('blob:') && !trimmed.startsWith('data:')) {
+            const name = trimmed.split('/').filter(Boolean).pop()?.split('?')[0];
+            if (name) fd.append('photoLink', name);
         }
     }
-    if (cv) {
-        if (cv instanceof File) {
-            fd.append('cv', cv);
-            fd.append('fileCv', cv);
-        } else if (typeof cv === 'string' && cv) {
-            fd.append('cv', cv);
-        }
+    if (cv instanceof File) {
+        fd.append('cv', cv);
     }
 
     fd.append('positionTitleUz', mainPos);
@@ -121,7 +114,8 @@ export const facultyStaffAPI = {
         try {
             return await request('/api/faculty-staff', { method: 'POST', body: formData });
         } catch (err) {
-            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+            const msg = String(err?.message || '');
+            if (/400|415|Content|multipart|photo|convert|request part|not a valid/i.test(msg)) {
                 const payload = buildFacultyStaffPayload(data);
                 return await request('/api/faculty-staff', { method: 'POST', body: payload });
             }
@@ -136,7 +130,8 @@ export const facultyStaffAPI = {
         try {
             return await request(`/api/faculty-staff/${id}`, { method: 'PUT', body: formData });
         } catch (err) {
-            if (err.message && (err.message.includes('400') || err.message.includes('415') || err.message.includes('Content'))) {
+            const msg = String(err?.message || '');
+            if (/400|415|Content|multipart|photo|convert|request part|not a valid/i.test(msg)) {
                 const payload = buildFacultyStaffPayload(data);
                 return await request(`/api/faculty-staff/${id}`, { method: 'PUT', body: payload });
             }

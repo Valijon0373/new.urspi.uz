@@ -329,10 +329,6 @@ export default function TeachersAdmin() {
       showNotification("Iltimos, lavozimni tanlang");
       return;
     }
-    if (academicDegrees.length > 0 && !academicDegreeId) {
-      showNotification("Iltimos, ilmiy darajani tanlang");
-      return;
-    }
     const phoneDigits = phoneNumber.replace(/\D/g, '');
     if (phoneDigits.length > 0 && phoneDigits.length < 9) {
       showNotification("Iltimos, to'liq telefon raqamini kiriting");
@@ -378,7 +374,7 @@ export default function TeachersAdmin() {
           positionTitleUz: posNameUz,
           positionTitleRu: posNameRu,
           positionTitleEn: posNameEn,
-          photo: photoFile || imagePreview || '',
+          photo: photoFile || selectedItem?.rawItem?.photoLink || selectedItem?.rawItem?.photo || '',
           cv: cvFile,
           sortOrder: Number(sortOrder) || 0,
         };
@@ -402,6 +398,7 @@ export default function TeachersAdmin() {
       setIsModalOpen(false);
       setPhotoFile(null);
       setCvFile(null);
+      window.dispatchEvent(new Event('urspi_teachers_updated'));
       fetchTeachers();
     } catch (e) {
       console.error(e);
@@ -454,7 +451,7 @@ export default function TeachersAdmin() {
           fullNameEn,
           phoneNumber: normalizedPhone,
           email: email.trim(),
-          photo: photoFile || imagePreview || '',
+          photo: photoFile || selectedItem?.rawItem?.photoLink || selectedItem?.rawItem?.photo || '',
           cv: cvFile,
           positionTitleUz: posNameUz || "Dekan",
           positionTitleRu: posNameRu || "Декан",
@@ -463,8 +460,18 @@ export default function TeachersAdmin() {
           facultyId,
         };
 
-        if (editMode && selectedItem && (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff)) {
-          await facultyStaffAPI.update(selectedItem.id, payloadData);
+        if (editMode && selectedItem) {
+          if (selectedItem.isFacultyStaff || selectedItem.rawItem?.isFacultyStaff) {
+            await facultyStaffAPI.update(selectedItem.id, payloadData);
+          } else {
+            await teachersAPI.update(selectedItem.id, {
+              ...payloadData,
+              facultyId,
+              departmentId: departmentId || selectedItem.rawItem?.departmentId || selectedItem.rawItem?.department?.id,
+              positionId,
+              academicDegreeId,
+            });
+          }
         } else {
           await facultyStaffAPI.create(payloadData);
         }
@@ -478,6 +485,7 @@ export default function TeachersAdmin() {
       setIsDeanModalOpen(false);
       setPhotoFile(null);
       setCvFile(null);
+      window.dispatchEvent(new Event('urspi_teachers_updated'));
       fetchTeachers();
     } catch (e) {
       console.error(e);
@@ -502,35 +510,61 @@ export default function TeachersAdmin() {
     }
   };
 
-  const openEditModal = (item) => {
+  const idOrEmpty = (value) => (value == null || value === '' ? '' : String(value));
+
+  const fillFormFromPerson = (src, displayItem) => {
+    const raw = src || {};
+    setFullName({
+      uz: raw.fullNameUz || displayItem?.fullName || '',
+      ru: raw.fullNameRu || '',
+      en: raw.fullNameEn || ''
+    });
+    setPhoneNumber(raw.phoneNumber || raw.phone || displayItem?.phone || '+998 ');
+    setEmail(raw.email || displayItem?.email || '');
+    setFacultyId(idOrEmpty(raw.faculty?.id ?? raw.facultyId));
+    setDepartmentId(idOrEmpty(raw.department?.id ?? raw.departmentId));
+    const posId = (raw.position && typeof raw.position === 'object')
+      ? raw.position.id
+      : (raw.positionObj?.id ?? raw.positionId);
+    setPositionId(idOrEmpty(posId));
+    setAcademicDegreeId(idOrEmpty(raw.academicDegree?.id ?? raw.academicDegreeId));
+    setOfficeHours(raw.officeHours || raw.receptionTime || '10:00-18:00');
+    setSortOrder(raw.sortOrder ?? 0);
+  };
+
+  const openEditModal = async (item) => {
+    const isStaff = !!(item.isFacultyStaff || item.rawItem?.isFacultyStaff);
     setEditMode(true);
     setSelectedItem(item);
     setImagePreview(item.image || null);
     setPhotoFile(null);
     setCvFile(null);
-
-    setFullName({
-      uz: item.rawItem?.fullNameUz || item.fullName || '',
-      ru: item.rawItem?.fullNameRu || '',
-      en: item.rawItem?.fullNameEn || ''
-    });
-    setPhoneNumber(item.phone || '+998 ');
-    setEmail(item.email || '');
-    setFacultyId(item.rawItem?.faculty?.id || item.rawItem?.facultyId || '');
-    setDepartmentId(item.rawItem?.department?.id || item.rawItem?.departmentId || '');
-    setPositionId(item.rawItem?.position?.id || item.rawItem?.positionObj?.id || item.rawItem?.positionId || '');
-    setAcademicDegreeId(item.rawItem?.academicDegree?.id || item.rawItem?.academicDegreeId || '');
-    setOfficeHours(item.rawItem?.officeHours || item.rawItem?.receptionTime || '10:00-18:00');
-    setSortOrder(item.rawItem?.sortOrder ?? 0);
+    fillFormFromPerson(item.rawItem, item);
 
     setActiveLang('uz');
     setActiveMenuId(null);
-    if (item.isFacultyStaff || item.isDean || item.rawItem?.isFacultyStaff) {
+    if (isStaff) {
       setIsDeanMode(true);
       setIsDeanModalOpen(true);
     } else {
       setIsDeanMode(false);
       setIsModalOpen(true);
+    }
+
+    try {
+      const res = isStaff
+        ? await facultyStaffAPI.getById(item.id)
+        : await teachersAPI.getById(item.id);
+      const full = res?.data || res;
+      if (full && (full.id != null || full.fullNameUz || full.fullName)) {
+        const merged = { ...item.rawItem, ...full };
+        setSelectedItem(prev => prev ? { ...prev, rawItem: merged } : prev);
+        fillFormFromPerson(merged, item);
+        const url = getFileUrl(full.photoLink || full.photo || full.image);
+        if (url) setImagePreview(url);
+      }
+    } catch (e) {
+      console.warn('Failed to load full teacher record for edit:', e.message);
     }
   };
 
@@ -704,7 +738,7 @@ export default function TeachersAdmin() {
             </thead>
             <tbody className="text-sm">
               {filteredTeachers.map((teacher, index) => (
-                <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <tr key={`${teacher.isFacultyStaff ? 'staff' : 'teacher'}_${teacher.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium text-center">{index + 1}</td>
                   <td className="border border-slate-200 dark:border-slate-700 p-0 text-center w-20">
                     <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto overflow-hidden">
