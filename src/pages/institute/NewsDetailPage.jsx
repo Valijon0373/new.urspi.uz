@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import urspiImage from '../../assets/images/urspi_new.png';
-import { newsAPI, getFileUrl, localizedField } from '../../api';
+import { newsAPI, getFileUrl, localizedField, formatNewsDate } from '../../api';
 
 export default function NewsDetailPage() {
     const { id } = useParams();
@@ -57,7 +57,7 @@ export default function NewsDetailPage() {
                     id: data.id,
                     title,
                     content,
-                    date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('uz-UZ') : (data.date || "2026-08-21"),
+                    date: formatNewsDate(data),
                     images: imgList,
                     views: data.views || data.viewCount || 0
                 });

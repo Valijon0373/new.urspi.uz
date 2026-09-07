@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Calendar, X, Image as ImageIcon, Check, Eye, Edit2, Trash2, Power } from 'lucide-react';
-import { announcementsAPI, getFileUrl } from '../../api';
+import { Plus, Search, Calendar, X, Check, Eye, Edit2, Trash2, Power, Upload, Globe, FileText, User, Image as ImageIcon, Sparkles, Megaphone } from 'lucide-react';
+import { announcementsAPI, getFileUrl, newsDateIso, formatNewsDate } from '../../api';
+
+const todayIso = () => newsDateIso(new Date());
+
+const formatDateForBackend = (dateStr) => {
+  const iso = newsDateIso(dateStr);
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+};
 
 export default function AnnouncementsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,10 +26,12 @@ export default function AnnouncementsAdmin() {
   const [dateTo, setDateTo] = useState('');
 
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
     title: { uz: '', ru: '', en: '' },
     content: { uz: '', ru: '', en: '' },
+    publishedAt: todayIso(),
     author: '©️ UrDPI matbuot xizmati'
   });
 
@@ -44,7 +55,8 @@ export default function AnnouncementsAdmin() {
       contentUz: item.contentUz || '',
       contentRu: item.contentRu || '',
       contentEn: item.contentEn || '',
-      date: item.createdAt ? item.createdAt.split('T')[0] : (item.date || "2026-08-21"),
+      publishedAt: newsDateIso(item.publishedAt || item.date || item.createdAt) || todayIso(),
+      date: newsDateIso(item.publishedAt || item.date || item.createdAt) || todayIso(),
       author: item.author || "©️ UrDPI matbuot xizmati",
       status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
       active: item.active !== false,
@@ -76,6 +88,14 @@ export default function AnnouncementsAdmin() {
     }, 5000);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleToggleStatus = async (item) => {
     try {
       await announcementsAPI.toggleStatus(item.id);
@@ -88,15 +108,33 @@ export default function AnnouncementsAdmin() {
   };
 
   const handleSave = async () => {
+    if (!formData.title.uz?.trim()) {
+      showNotification("Sarlavha (O'zbekcha) kiritilishi shart!", 'error');
+      setActiveLang('uz');
+      return;
+    }
+
+    if (!formData.publishedAt) {
+      showNotification("Sana kiritilishi shart!", 'error');
+      return;
+    }
+
     try {
       const fd = new FormData();
-      fd.append('titleUz', formData.title.uz || "E'lon");
-      fd.append('titleRu', formData.title.ru || '');
-      fd.append('titleEn', formData.title.en || '');
-      fd.append('contentUz', formData.content.uz || '');
-      fd.append('contentRu', formData.content.ru || '');
-      fd.append('contentEn', formData.content.en || '');
-      fd.append('author', formData.author || '©️ UrDPI matbuot xizmati');
+      fd.append('titleUz', formData.title.uz.trim());
+      if (formData.title.ru) fd.append('titleRu', formData.title.ru.trim());
+      if (formData.title.en) fd.append('titleEn', formData.title.en.trim());
+      
+      if (formData.content.uz) fd.append('contentUz', formData.content.uz.trim());
+      if (formData.content.ru) fd.append('contentRu', formData.content.ru.trim());
+      if (formData.content.en) fd.append('contentEn', formData.content.en.trim());
+      
+      const formattedDate = formatDateForBackend(formData.publishedAt);
+      fd.append('publishedAt', formattedDate);
+      fd.append('date', formattedDate);
+      if (formData.publishedAt) fd.append('createdAt', formData.publishedAt);
+
+      if (formData.author) fd.append('author', formData.author.trim());
 
       if (imageFile) {
         fd.append('file', imageFile);
@@ -145,9 +183,12 @@ export default function AnnouncementsAdmin() {
         ru: item.contentRu || item.rawItem?.contentRu || '',
         en: item.contentEn || item.rawItem?.contentEn || ''
       },
+      publishedAt: newsDateIso(item.publishedAt || item.date || item.createdAt || item.rawItem?.publishedAt) || todayIso(),
       author: item.author || '©️ UrDPI matbuot xizmati'
     });
     setImageFile(null);
+    setImagePreview(item.image || null);
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
@@ -157,9 +198,12 @@ export default function AnnouncementsAdmin() {
     setFormData({
       title: { uz: '', ru: '', en: '' },
       content: { uz: '', ru: '', en: '' },
+      publishedAt: todayIso(),
       author: '©️ UrDPI matbuot xizmati'
     });
     setImageFile(null);
+    setImagePreview(null);
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
@@ -167,11 +211,11 @@ export default function AnnouncementsAdmin() {
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in relative">
       {/* Notification Toast */}
       {notification.show && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in z-[70]">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center shrink-0">
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-xl border ${notification.type === 'error' ? 'border-red-200 text-red-600' : 'border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100'} rounded-xl px-4 py-3 flex items-center gap-3 animate-fade-in z-[70]`}>
+          <div className={`w-8 h-8 rounded-full ${notification.type === 'error' ? 'bg-red-100 text-red-500' : 'bg-emerald-100 text-emerald-500'} flex items-center justify-center shrink-0`}>
             <Check className="w-5 h-5" />
           </div>
-          <span className="text-slate-800 dark:text-slate-100 font-medium">{notification.message}</span>
+          <span className="font-medium">{notification.message}</span>
         </div>
       )}
 
@@ -254,7 +298,7 @@ export default function AnnouncementsAdmin() {
               </div>
               <div className="p-5 flex-1 flex flex-col">
                 <div className="flex items-center justify-between gap-2 text-xs text-slate-400 mb-2">
-                  <span>{announcement.date}</span>
+                  <span>{formatNewsDate(announcement.date)}</span>
                   <button
                     type="button"
                     onClick={() => handleToggleStatus(announcement)}
@@ -281,15 +325,15 @@ export default function AnnouncementsAdmin() {
                   </button>
                   <button 
                     onClick={() => openEditModal(announcement)}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-sm font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                    className="flex-1 flex justify-center items-center gap-1.5 py-1.5 px-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-400 dark:border-emerald-500/60 hover:bg-emerald-100/80 rounded-xl transition duration-200"
                   >
-                    <Edit2 className="w-4 h-4" /> Tahrirlash
+                    <Edit2 className="w-3.5 h-3.5" /> <span>Tahrirlash</span>
                   </button>
                   <button 
                     onClick={() => { setSelectedItem(announcement); setDeleteModalOpen(true); }}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-sm font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="flex-1 flex justify-center items-center gap-1.5 py-1.5 px-1 text-xs font-semibold text-rose-500 dark:text-rose-400 bg-white dark:bg-slate-800 border border-rose-400 dark:border-rose-500/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition duration-200"
                   >
-                    <Trash2 className="w-4 h-4" /> O'chirish
+                    <Trash2 className="w-3.5 h-3.5" /> <span>O'chirish</span>
                   </button>
                 </div>
               </div>
@@ -300,24 +344,28 @@ export default function AnnouncementsAdmin() {
 
       {/* View Modal */}
       {viewModalOpen && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all">
+          <div className="relative bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
             <button 
               onClick={() => setViewModalOpen(false)} 
-              className="absolute top-4 right-4 p-2 bg-slate-900/20 hover:bg-slate-900/40 text-white rounded-full transition-colors z-10"
+              className="absolute top-4 right-4 p-2 bg-slate-900/40 hover:bg-slate-900/60 backdrop-blur-md text-white rounded-full transition-all z-10 hover:rotate-90"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="h-64 sm:h-80 w-full bg-slate-100 shrink-0">
+            <div className="h-64 sm:h-80 w-full bg-slate-900 shrink-0 relative">
               <img src={selectedItem.image} alt={selectedItem.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
             </div>
-            <div className="p-6 md:p-8 overflow-y-auto">
-              <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-4">
-                <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {selectedItem.date}</span>
-                <span>{selectedItem.author}</span>
+            <div className="p-6 sm:p-8 overflow-y-auto">
+              <div className="flex items-center gap-4 text-xs font-semibold text-[#0eb99c] dark:text-emerald-400 mb-3">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0eb99c]/10 border border-[#0eb99c]/20">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{formatNewsDate(selectedItem.date)}</span>
+                </span>
+                <span className="text-slate-500 dark:text-slate-400">{selectedItem.author}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4">{selectedItem.title}</h2>
-              <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-snug mb-4">{selectedItem.title}</h2>
+              <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
                 <p>{selectedItem.content}</p>
               </div>
             </div>
@@ -327,33 +375,33 @@ export default function AnnouncementsAdmin() {
 
       {/* Delete Modal */}
       {deleteModalOpen && selectedItem && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6 text-center border border-slate-200 dark:border-slate-700">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all">
+          <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 max-w-sm w-full p-6 text-center">
             <button 
               onClick={() => setDeleteModalOpen(false)} 
-              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
+              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
-            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4 mt-2">
-              <Trash2 className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 mx-auto bg-rose-50 dark:bg-rose-950/50 text-rose-500 rounded-2xl flex items-center justify-center mb-4 mt-2 border border-rose-200 dark:border-rose-900/40 shadow-sm">
+              <Trash2 className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-              Siz rostdan ham <span className="text-red-500 font-bold">{selectedItem.title}</span> ni o'chirmoqchimisiz?
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">E'lonni o'chirish</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+              Siz rostdan ham <span className="text-slate-900 dark:text-white font-bold">"{selectedItem.title}"</span> e'lonini o'chirib tashlamoqchimisiz?
             </p>
             <div className="flex items-center justify-center gap-3">
               <button 
                 onClick={() => setDeleteModalOpen(false)} 
-                className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors"
+                className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-xl transition-all"
               >
                 Yo'q
               </button>
               <button 
                 onClick={handleDeleteConfirm} 
-                className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
+                className="flex-1 px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-rose-500/20"
               >
-                Ha
+                Ha, o'chirish
               </button>
             </div>
           </div>
@@ -362,142 +410,311 @@ export default function AnnouncementsAdmin() {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                {editMode ? "E'lonni tahrirlash" : "Yangi e'lon qo'shish"}
-              </h3>
+            <div className="relative px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/90 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-[#0eb99c]/10 text-[#0eb99c] flex items-center justify-center shrink-0 border border-[#0eb99c]/20 shadow-sm">
+                  <Megaphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 m-0">
+                    {editMode ? "E'lonni tahrirlash" : "Yangi e'lon qo'shish"}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 m-0">
+                    Barcha kerakli maydonlarni to'ldiring (<span className="text-red-500 font-bold">*</span> majburiy maydonlar)
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              {/* Language Tabs */}
-              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+            <div className="p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+
+              {/* Language Tabs - Segmented Control */}
+              <div className="bg-slate-100/80 dark:bg-slate-800/60 p-1.5 rounded-2xl flex gap-1.5">
                 {[
-                  { id: 'uz', label: "O'zbekcha" },
-                  { id: 'ru', label: 'Русский' },
-                  { id: 'en', label: 'English' }
-                ].map(lang => (
-                  <button
-                    key={lang.id}
-                    type="button"
-                    onClick={() => setActiveLang(lang.id)}
-                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-                      activeLang === lang.id
-                        ? 'border-[#0eb99c] text-[#0eb99c]'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
+                  { id: 'uz', flag: '🇺🇿', label: "O'zbekcha", req: true },
+                  { id: 'ru', flag: '🇷🇺', label: 'Русский', req: false },
+                  { id: 'en', flag: '🇬🇧', label: 'English', req: false }
+                ].map(lang => {
+                  const isActive = activeLang === lang.id;
+                  return (
+                    <button
+                      key={lang.id}
+                      type="button"
+                      onClick={() => setActiveLang(lang.id)}
+                      className={`flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                        isActive
+                          ? 'bg-white dark:bg-slate-700 text-[#0eb99c] dark:text-emerald-400 shadow-md shadow-slate-200/50 dark:shadow-none ring-1 ring-slate-900/5 dark:ring-white/10'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
+                      }`}
+                    >
+                      <span className="text-base leading-none">{lang.flag}</span>
+                      <span>{lang.label}</span>
+                      {lang.req && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold uppercase ${
+                          isActive
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                            : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                        }`}>
+                          *
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
-              {(() => {
-                const text = {
-                  uz: { titleLabel: "Sarlavha", titlePl: "E'lon sarlavhasini kiriting", contentLabel: "Izoh", contentPl: "E'lon matnini kiriting", authorLabel: "Muallif" },
-                  ru: { titleLabel: "Заголовок", titlePl: "Введите заголовок объявления", contentLabel: "Текст", contentPl: "Введите текст объявления", authorLabel: "Автор" },
-                  en: { titleLabel: "Title", titlePl: "Enter announcement title", contentLabel: "Content", contentPl: "Enter announcement content", authorLabel: "Author" }
-                }[activeLang];
-
-                return (
-                  <>
-                    {/* Sarlavha */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        {text.titleLabel}
-                      </label>
+              {/* Language Text Inputs */}
+              {activeLang === 'uz' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                        <span>Sarlavha (O'zbekcha)</span>
+                      </span>
+                      <span className="text-[11px] text-red-500 font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                        Majburiy
+                      </span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
                       <input
                         type="text"
-                        value={formData.title[activeLang]}
-                        onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
-                        placeholder={text.titlePl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                        value={formData.title.uz}
+                        onChange={e => setFormData({ ...formData, title: { ...formData.title, uz: e.target.value } })}
+                        placeholder="E'lon sarlavhasini kiriting (O'zbekcha)..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
+                        required
                       />
                     </div>
-
-                    {/* Izoh */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        {text.contentLabel}
-                      </label>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Matn (O'zbekcha)</span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
                       <textarea
                         rows="4"
-                        value={formData.content[activeLang]}
-                        onChange={e => setFormData({ ...formData, content: { ...formData.content, [activeLang]: e.target.value } })}
-                        placeholder={text.contentPl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
+                        value={formData.content.uz}
+                        onChange={e => setFormData({ ...formData, content: { ...formData.content, uz: e.target.value } })}
+                        placeholder="E'lon matnini batafsil kiriting (O'zbekcha)..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none resize-none rounded-2xl"
                       />
                     </div>
+                  </div>
+                </div>
+              )}
 
-                    {/* Rasm yuklash */}
-                    {activeLang === 'uz' && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                          Rasm yuklash
-                        </label>
+              {activeLang === 'ru' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Заголовок (Ruscha / На русском)</span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
+                      <input
+                        type="text"
+                        value={formData.title.ru}
+                        onChange={e => setFormData({ ...formData, title: { ...formData.title, ru: e.target.value } })}
+                        placeholder="Введите заголовок объявления на русском..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Текст (Ruscha / На русском)</span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
+                      <textarea
+                        rows="4"
+                        value={formData.content.ru}
+                        onChange={e => setFormData({ ...formData, content: { ...formData.content, ru: e.target.value } })}
+                        placeholder="Введите текст объявления на русском..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none resize-none rounded-2xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                        <div className="flex-1 w-full flex justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative">
-                          <div className="text-center">
-                            <ImageIcon className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-500" aria-hidden="true" />
-                            <div className="mt-2 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
-                              <label
-                                className="relative cursor-pointer rounded-md font-semibold text-[#0eb99c] hover:text-[#0ca389] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#0eb99c]"
-                              >
-                                <span>{imageFile ? imageFile.name : "Rasm yuklash"}</span>
-                                <input
-                                  type="file"
-                                  className="sr-only"
-                                  accept="image/*"
-                                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                                />
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+              {activeLang === 'en' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Title (Inglizcha / English)</span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
+                      <input
+                        type="text"
+                        value={formData.title.en}
+                        onChange={e => setFormData({ ...formData, title: { ...formData.title, en: e.target.value } })}
+                        placeholder="Enter announcement title in English..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Content (Inglizcha / English)</span>
+                    </label>
+                    <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-4 focus-within:ring-[#0eb99c]/10 transition-all duration-200">
+                      <textarea
+                        rows="4"
+                        value={formData.content.en}
+                        onChange={e => setFormData({ ...formData, content: { ...formData.content, en: e.target.value } })}
+                        placeholder="Enter announcement content in English..."
+                        className="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none resize-none rounded-2xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                    {/* Xizmat matni */}
-                    {activeLang === 'uz' && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                          {text.authorLabel}
-                        </label>
+              {/* General Metadata Fields: publishedAt & author */}
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#0eb99c]" />
+                        <span>Sana</span>
+                      </span>
+                      <span className="text-[11px] text-red-500 font-semibold">Majburiy</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-2 focus-within:ring-[#0eb99c]/10 transition-all">
                         <input
-                          type="text"
-                          value={formData.author}
-                          onChange={e => setFormData({ ...formData, author: e.target.value })}
-                          className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                          type="date"
+                          value={formData.publishedAt}
+                          onChange={e => setFormData({ ...formData, publishedAt: e.target.value })}
+                          className="w-full px-3 py-2.5 bg-transparent text-slate-900 dark:text-slate-100 text-sm focus:outline-none rounded-xl"
+                          required
                         />
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, publishedAt: todayIso() })}
+                        className="px-3.5 py-2.5 bg-emerald-50 hover:bg-[#0eb99c] text-[#0eb99c] hover:text-white dark:bg-emerald-950/40 dark:hover:bg-[#0eb99c] text-xs font-bold rounded-xl transition-all border border-[#0eb99c]/30 shrink-0 flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Bugun</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#0eb99c]" />
+                      <span>Muallif</span>
+                    </label>
+                    <div className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-within:border-[#0eb99c] focus-within:ring-2 focus-within:ring-[#0eb99c]/10 transition-all">
+                      <input
+                        type="text"
+                        value={formData.author}
+                        onChange={e => setFormData({ ...formData, author: e.target.value })}
+                        placeholder="Muallif yoki matbuot xizmati..."
+                        className="w-full px-4 py-2.5 bg-transparent text-slate-900 dark:text-slate-100 text-sm focus:outline-none rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cover Image Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#0eb99c]" />
+                    <span>E'lon Rasmi</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-normal">PNG, JPG, WEBP</span>
+                </label>
+
+                {imagePreview ? (
+                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 group h-48 w-full shadow-sm">
+                    <img src={imagePreview} alt="Announcement Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <label className="cursor-pointer px-4 py-2 bg-white/90 hover:bg-white text-slate-900 font-semibold text-xs rounded-xl shadow-lg transition-transform hover:scale-105 flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5 text-[#0eb99c]" />
+                        <span>Almashtirish</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => { setImageFile(null); setImagePreview(null); }}
+                        className="px-4 py-2 bg-red-500/90 hover:bg-red-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-transform hover:scale-105 flex items-center gap-1.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>O'chirish</span>
+                      </button>
+                    </div>
+                    {imageFile && (
+                      <div className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10">
+                        {imageFile.name}
+                      </div>
                     )}
-                  </>
-                );
-              })()}
+                  </div>
+                ) : (
+                  <label className="group relative cursor-pointer flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-700/80 hover:border-[#0eb99c] dark:hover:border-[#0eb99c] rounded-2xl bg-slate-50/50 dark:bg-slate-800/20 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/10 transition-all duration-200">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100/60 dark:bg-emerald-950/50 text-[#0eb99c] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      E'lon rasmini tanlang yoki shu yerga tashlang
+                    </span>
+                    <span className="text-xs text-slate-400 mt-1">
+                      PNG, JPG, WEBP formatlari qo'llab-quvvatlanadi
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                )}
+              </div>
+
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end gap-3 bg-slate-50/70 dark:bg-slate-900/90">
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-medium transition-colors"
+                className="px-5 py-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl font-semibold text-sm transition-all"
               >
                 Bekor qilish
               </button>
               <button
+                type="button"
                 onClick={handleSave}
-                className="px-4 py-2 bg-[#0eb99c] hover:bg-[#0ca389] text-white rounded-xl font-medium transition-colors shadow-sm"
+                className="px-6 py-2.5 bg-[#0eb99c] hover:bg-[#0ca389] active:scale-[0.98] text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-[#0eb99c]/25 flex items-center gap-2"
               >
-                Saqlash
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>Saqlash</span>
               </button>
             </div>
           </div>

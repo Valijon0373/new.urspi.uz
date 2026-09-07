@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-import { newsAPI, getFileUrl, localizedField } from '../../../api'
+import { newsAPI, getFileUrl, localizedField, formatNewsDate } from '../../../api'
 
 export default function News() {
     const { t, i18n } = useTranslation()
@@ -38,12 +38,7 @@ export default function News() {
             if (isMounted) {
                 const formatted = rawData.map((item, index) => {
                     const title = localizedField(item, 'title', lang, "Yangilik");
-                    let dateStr = "2026-08-21";
-                    if (item.createdAt) {
-                        dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');
-                    } else if (item.date) {
-                        dateStr = item.date;
-                    }
+                    const dateStr = formatNewsDate(item);
                     return {
                         id: item.id || index + 1,
                         title,

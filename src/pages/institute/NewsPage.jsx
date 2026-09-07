@@ -5,7 +5,7 @@ import { ChevronRight, Eye } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import { Commet } from 'react-loading-indicators';
 import urspiImage from '../../assets/images/urspi_new.png';
-import { newsAPI, getFileUrl, localizedField } from '../../api';
+import { newsAPI, getFileUrl, localizedField, formatNewsDate } from '../../api';
 
 export default function NewsPage() {
     const { t, i18n } = useTranslation();
@@ -37,12 +37,7 @@ export default function NewsPage() {
                 const formatted = rawData.map((item, index) => {
                     const title = localizedField(item, 'title', lang, "Yangilik");
                     const content = localizedField(item, 'content', lang, "");
-                    let dateStr = "2026-08-21";
-                    if (item.createdAt) {
-                        dateStr = new Date(item.createdAt).toLocaleDateString('uz-UZ');
-                    } else if (item.date) {
-                        dateStr = item.date;
-                    }
+                    const dateStr = formatNewsDate(item);
                     return {
                         id: item.id || index + 1,
                         title,
