@@ -127,31 +127,52 @@ export default function EmployeesAdmin() {
   };
 
   const handleSave = async () => {
-    if (!formData.fullName.uz && !formData.fullName.ru && !formData.fullName.en) {
-      showNotification("Iltimos, ism-sharifni kiriting");
-      return;
+    const missingFields = [];
+
+    // 1. Photo validation
+    if (!photoFile && !imagePreview) {
+      missingFields.push("Rasm");
     }
-    if (!formData.email?.trim()) {
-      showNotification("Iltimos, email manzilini kiriting");
-      return;
+
+    // 2. Full Name validation
+    const fullNameUz = formData.fullName.uz?.trim() || formData.fullName.ru?.trim() || formData.fullName.en?.trim();
+    if (!fullNameUz) {
+      missingFields.push("F.I.O");
     }
-    if (!centerId) {
-      showNotification("Iltimos, bo'lim yoki markazni tanlang");
-      return;
+    const fullNameRu = formData.fullName.ru?.trim() || fullNameUz || '';
+    const fullNameEn = formData.fullName.en?.trim() || fullNameUz || '';
+
+    // 3. Position validation
+    const posUz = formData.position.uz?.trim() || formData.position.ru?.trim() || formData.position.en?.trim();
+    if (!posUz) {
+      missingFields.push("Lavozimi");
     }
+    const posRu = formData.position.ru?.trim() || posUz || '';
+    const posEn = formData.position.en?.trim() || posUz || '';
+
+    // 4. Phone validation
     const phoneDigits = formData.phone.replace(/\D/g, '');
     if (phoneDigits.length < 12) {
-      showNotification("Iltimos, to'liq telefon raqamini kiriting");
-      return;
+      missingFields.push("Telefon raqami");
     }
 
-    const fullNameUz = formData.fullName.uz || formData.fullName.ru || formData.fullName.en;
-    const fullNameRu = formData.fullName.ru || fullNameUz;
-    const fullNameEn = formData.fullName.en || fullNameUz;
+    // 5. Email validation
+    if (!formData.email?.trim() || !formData.email.includes('@')) {
+      missingFields.push("E-pochtasi");
+    }
 
-    const posUz = formData.position.uz || formData.position.ru || formData.position.en || "Xodim";
-    const posRu = formData.position.ru || posUz;
-    const posEn = formData.position.en || posUz;
+    // 6. Center ID validation
+    if (!centerId) {
+      missingFields.push("Bo'limi / Markazi");
+    }
+
+    // Show alert and notification if any mandatory fields are missing
+    if (missingFields.length > 0) {
+      const msg = `Ushbu maydonlar majburiy, iltimos to'ldiring: ${missingFields.join(', ')}`;
+      alert(msg);
+      showNotification(msg);
+      return;
+    }
 
     try {
       const fd = new FormData();
@@ -311,7 +332,7 @@ export default function EmployeesAdmin() {
         </div>
       </div>
 
-      {/* Cards Grid */}
+      {/* Table section */}
       {loading ? (
         <div className="py-20 text-center text-slate-500 font-medium">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -322,62 +343,67 @@ export default function EmployeesAdmin() {
           Xodimlar topilmadi
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4">
-          {filteredEmployees.map((employee) => (
-            <div key={employee.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-              {/* Top Color Banner */}
-              <div className={`h-24 bg-gradient-to-r ${employee.color}`}></div>
-              
-              {/* Card Body */}
-              <div className="relative pt-12 pb-6 px-6 text-center flex-1 flex flex-col">
-                {/* Avatar */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                  <div className="w-20 h-20 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden shadow-sm">
-                    {employee.image ? (
-                      <img src={employee.image} alt={employee.fullName} className="w-full h-full object-cover object-top" />
-                    ) : (
-                      <span className="text-2xl font-bold text-slate-400">
-                        {employee.fullName.charAt(0)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Info */}
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight min-h-[44px] flex items-center justify-center">
-                  {employee.fullName}
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 flex-1">
-                  {employee.position}
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-5 mt-auto">
-                  <button 
-                    onClick={() => { setSelectedItem(employee); setViewModalOpen(true); }}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Ko'rish
-                  </button>
-                  <button 
-                    onClick={() => openEditModal(employee)}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-emerald-500 border border-emerald-500 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Tahrirlash
-                  </button>
-                  <button 
-                    onClick={() => { setSelectedItem(employee); setDeleteModalOpen(true); }}
-                    className="flex-1 flex justify-center items-center gap-1.5 py-2 px-1 text-[13px] font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  >
-                    <Trash2 className="row-4 h-4" />
-                    O'chirish
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[900px]">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-800 dark:text-slate-200">
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold w-16 text-center">№</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-20">Rasm</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Bo'lim / Markaz</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Lavozim</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">F.I.O</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-36">Amallar</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {filteredEmployees.map((employee, index) => (
+                  <tr key={employee.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium text-center">{index + 1}</td>
+                    <td className="border border-slate-200 dark:border-slate-700 p-0 text-center w-20">
+                      <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto overflow-hidden">
+                        {employee.image ? (
+                          <img src={employee.image} alt={employee.fullName} className="w-full h-full object-cover object-top" />
+                        ) : (
+                          <span className="text-sm font-semibold text-slate-400">
+                            {employee.fullName.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium">{employee.department}</td>
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium">{employee.position}</td>
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-800 dark:text-slate-200 font-bold">{employee.fullName}</td>
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => { setSelectedItem(employee); setViewModalOpen(true); }}
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          title="Ko'rish"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => openEditModal(employee)}
+                          className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                          title="Tahrirlash"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => { setSelectedItem(employee); setDeleteModalOpen(true); }}
+                          className="p-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
+                          title="O'chirish"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -526,7 +552,7 @@ export default function EmployeesAdmin() {
                   ) : (
                     <>
                       <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
-                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash</span>
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
                     </>
                   )}
                 </label>
@@ -558,7 +584,7 @@ export default function EmployeesAdmin() {
               <div className="space-y-4 pt-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    F.I.O ({activeLang.toUpperCase()})
+                    F.I.O ({activeLang.toUpperCase()}) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -574,7 +600,7 @@ export default function EmployeesAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Lavozimi ({activeLang.toUpperCase()})
+                    Lavozimi ({activeLang.toUpperCase()}) <span className="text-red-500">*</span>
                   </label>
                   <input 
                     type="text" 
@@ -586,7 +612,9 @@ export default function EmployeesAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Telefon raqami</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Telefon raqami <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
@@ -599,7 +627,9 @@ export default function EmployeesAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">E-pochtasi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    E-pochtasi <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
@@ -612,7 +642,9 @@ export default function EmployeesAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV yuklash (PDF)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    CV yuklash (PDF) <span className="text-xs text-slate-400 font-normal">(ixtiyoriy)</span>
+                  </label>
                   <div className="relative">
                     <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
@@ -628,7 +660,9 @@ export default function EmployeesAdmin() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bo'limi / Markazi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Bo'limi / Markazi <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <select 
                       value={centerId}

@@ -1,15 +1,11 @@
-import React from 'react';
-import {
-  BookOpen, GraduationCap, Library, Users, Award, Heart, Sparkles, Star, Scale,
-  Globe, Shield, Monitor, Calculator, FileText, Landmark, ShieldCheck,
-  TrendingUp, UserCheck, Briefcase, Cpu, Building, Stethoscope, Microscope,
-  FolderCheck, Trophy, Camera, Megaphone, Zap, Compass, Flame, Target,
-  Coins, Database, Printer, Radio, Lock, Wrench, Truck, PieChart, Layers, Building2
-} from 'lucide-react';
+/**
+ * Seed script to push 20 centers and departments to backend API
+ * Usage: node seed-centers.js <username> <password>
+ */
 
-export const initialCenters = [];
+const BASE_URL = 'https://new.urspi.uz';
 
-export const DEFAULT_CENTERS_SEED_DATA = [
+const DEFAULT_CENTERS_SEED_DATA = [
   {
     nameUz: "Ta'lim sifatini nazorat qilish bo'limi",
     nameRu: "Отдел контроля качества образования",
@@ -192,91 +188,102 @@ export const DEFAULT_CENTERS_SEED_DATA = [
   }
 ];
 
-export const renderCenterIcon = (iconName, className = "w-10 h-10 text-blue-500") => {
-  switch (iconName) {
-    case 'BookOpen': return <BookOpen className={className} />;
-    case 'GraduationCap': return <GraduationCap className={className} />;
-    case 'Library': return <Library className={className} />;
-    case 'Users': return <Users className={className} />;
-    case 'Award': return <Award className={className} />;
-    case 'Heart': return <Heart className={className} />;
-    case 'Sparkles': return <Sparkles className={className} />;
-    case 'Star': return <Star className={className} />;
-    case 'Scale': return <Scale className={className} />;
-    case 'Globe': return <Globe className={className} />;
-    case 'Shield': return <Shield className={className} />;
-    case 'Monitor': return <Monitor className={className} />;
-    case 'Calculator': return <Calculator className={className} />;
-    case 'FileText': return <FileText className={className} />;
-    case 'Landmark': return <Landmark className={className} />;
-    case 'ShieldCheck': return <ShieldCheck className={className} />;
-    case 'TrendingUp': return <TrendingUp className={className} />;
-    case 'UserCheck': return <UserCheck className={className} />;
-    case 'Briefcase': return <Briefcase className={className} />;
-    case 'Cpu': return <Cpu className={className} />;
-    case 'Stethoscope': return <Stethoscope className={className} />;
-    case 'Microscope': return <Microscope className={className} />;
-    case 'FolderCheck': return <FolderCheck className={className} />;
-    case 'Trophy': return <Trophy className={className} />;
-    case 'Camera': return <Camera className={className} />;
-    case 'Megaphone': return <Megaphone className={className} />;
-    case 'Zap': return <Zap className={className} />;
-    case 'Compass': return <Compass className={className} />;
-    case 'Flame': return <Flame className={className} />;
-    case 'Target': return <Target className={className} />;
-    case 'Coins': return <Coins className={className} />;
-    case 'Database': return <Database className={className} />;
-    case 'Printer': return <Printer className={className} />;
-    case 'Radio': return <Radio className={className} />;
-    case 'Lock': return <Lock className={className} />;
-    case 'Wrench': return <Wrench className={className} />;
-    case 'Truck': return <Truck className={className} />;
-    case 'PieChart': return <PieChart className={className} />;
-    case 'Layers': return <Layers className={className} />;
-    case 'Building2': return <Building2 className={className} />;
-    default: return <Building className={className} />;
+async function seedCenters() {
+  const args = process.argv.slice(2);
+  const username = args[0];
+  const password = args[1];
+
+  if (!username || !password) {
+    console.log('\n❌ Foydalanish: node seed-centers.js <username> <password>');
+    console.log('Misol: node seed-centers.js admin supersecret123\n');
+    process.exit(1);
   }
-};
 
-export const getAutoIcon = (title = '') => {
-  const t = String(title).toLowerCase();
+  console.log(`\n🔑 Backend API'ga kirilmoqda (${BASE_URL}/api/auth/login)...`);
+  
+  let token = '';
+  try {
+    const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
 
-  if (t.includes('komplayens') || t.includes('korrupsiya')) return 'ShieldCheck';
-  if (t.includes('sifatini') || t.includes('sifat')) return 'PieChart';
-  if (t.includes('murojaat')) return 'Users';
-  if (t.includes('kasaba')) return 'Shield';
-  if (t.includes('raqamli') || t.includes('it markaz')) return 'Monitor';
-  if (t.includes('texnik vosita') || t.includes('texnik vositalari')) return 'Cpu';
-  if (t.includes('axborot resurs') || t.includes('arm')) return 'FileText';
-  if (t.includes('uslubiy')) return 'Library';
-  if (t.includes('xalqaro')) return 'Globe';
-  if (t.includes('yoshlar') || t.includes('ma\'naviyat') || t.includes('ma`naviyat')) return 'Sparkles';
-  if (t.includes('magistratura')) return 'Award';
-  if (t.includes('iqtidorli')) return 'Star';
-  if (t.includes('huquq') || t.includes('yurist')) return 'Scale';
-  if (t.includes('marketing') || t.includes('karyera')) return 'TrendingUp';
-  if (t.includes('buxgalter') || t.includes('moliya')) return 'Calculator';
-  if (t.includes('xotin') || t.includes('qizlar')) return 'Heart';
-  if (t.includes('xodimlar') || t.includes('kadr')) return 'UserCheck';
-  if (t.includes('registrator')) return 'Briefcase';
-  if (t.includes('kengash')) return 'Landmark';
-  if (t.includes('ilmiy') || t.includes('tadqiqot') || t.includes('pedagog')) return 'GraduationCap';
-  if (t.includes('o\'quv') || t.includes('ta\'lim')) return 'BookOpen';
-  if (t.includes('tibbiyot') || t.includes('shifokor')) return 'Stethoscope';
-  if (t.includes('laboratoriya')) return 'Microscope';
-  if (t.includes('sport')) return 'Trophy';
+    if (!loginRes.ok) {
+      const errText = await loginRes.text();
+      throw new Error(`Login xatosi (${loginRes.status}): ${errText}`);
+    }
 
-  return 'Building';
-};
+    const loginData = await loginRes.json();
+    token = loginData.accessToken || loginData.token || loginData.jwt || loginData.data?.accessToken;
+    if (!token) {
+      throw new Error('Token olinmadi: ' + JSON.stringify(loginData));
+    }
+    console.log('✅ Avtorizatsiyadan muvaffaqiyatli o\'tildi!\n');
+  } catch (err) {
+    console.error('❌ Login amalga oshmadi:', err.message);
+    process.exit(1);
+  }
 
-export const getStoredCenters = () => {
-  return initialCenters;
-};
+  console.log('🔍 Mavjud markazlar ro\'yxati olinmoqda...');
+  let existingNames = new Set();
+  try {
+    const res = await fetch(`${BASE_URL}/api/landing/centers?page=0&size=100&lang=uz`);
+    if (res.ok) {
+      const json = await res.json();
+      const content = json?.data?.content || json?.content || json?.data || [];
+      existingNames = new Set(content.map(c => (c.name || '').toLowerCase().trim()));
+    }
+  } catch (e) {
+    console.warn('⚠️ Mavjud markazlarni olishda ogohlantirish:', e.message);
+  }
 
-export const saveStoredCenters = (centers) => {
-  // No-op to eliminate localStorage domain persistence
-};
+  console.log(`📦 Barchasi ${DEFAULT_CENTERS_SEED_DATA.length} ta markaz va bo'limlar yuklanmoqda...\n`);
 
+  let added = 0;
+  let skipped = 0;
 
+  for (const item of DEFAULT_CENTERS_SEED_DATA) {
+    if (existingNames.has(item.nameUz.toLowerCase().trim())) {
+      console.log(`⏭️  Mavjud (o'tkazib yuborildi): ${item.nameUz}`);
+      skipped++;
+      continue;
+    }
 
+    const dto = {
+      nameUz: item.nameUz,
+      nameRu: item.nameRu,
+      nameEn: item.nameEn,
+      descriptionUz: item.descriptionUz,
+      descriptionRu: item.descriptionRu,
+      descriptionEn: item.descriptionEn,
+      icon: item.iconName,
+      iconName: item.iconName
+    };
 
+    try {
+      const createRes = await fetch(`${BASE_URL}/api/centers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dto)
+      });
+
+      if (createRes.ok) {
+        console.log(`✅ Qo'shildi: ${item.nameUz}`);
+        added++;
+      } else {
+        const err = await createRes.text();
+        console.error(`❌ Xatolik (${item.nameUz}): ${createRes.status} - ${err}`);
+      }
+    } catch (e) {
+      console.error(`❌ Ulanish xatosi (${item.nameUz}): ${e.message}`);
+    }
+  }
+
+  console.log(`\n🎉 Bajarildi! Qo'shildi: ${added} ta, O'tkazib yuborildi: ${skipped} ta.`);
+}
+
+seedCenters();

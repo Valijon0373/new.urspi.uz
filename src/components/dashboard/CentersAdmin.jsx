@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Edit2, Trash2, Search, X, Check, Phone, Mail, Clock, User, Building } from 'lucide-react';
-import { getStoredCenters, saveStoredCenters, renderCenterIcon, getAutoIcon } from '../../data/centersData';
+import { Plus, Eye, Edit2, Trash2, Search, X, Check, Phone, Mail, Clock, User, Building, Sparkles, Loader2 } from 'lucide-react';
+import { getStoredCenters, saveStoredCenters, renderCenterIcon, getAutoIcon, DEFAULT_CENTERS_SEED_DATA } from '../../data/centersData';
 import { centersAPI } from '../../api';
 
 const AVAILABLE_ICONS = [
@@ -11,19 +11,40 @@ const AVAILABLE_ICONS = [
   { name: 'Library', label: "Kutubxona (O'quv-uslubiy)" },
   { name: 'Users', label: "Odamlar (Murojaatlar)" },
   { name: 'Award', label: "Mukofot (Magistratura)" },
-  { name: 'Heart', label: "Yurak (Xotin-qizlar)" },
-  { name: 'Sparkles', label: "Yulduzchalar (Yoshlar/Ma'naviyat)" },
+  { name: 'Heart', label: "Yurak (Xotin-qizlar / Salomatlik)" },
+  { name: 'Sparkles', label: "Yulduzchalar (Yoshlar / Ma'naviyat)" },
   { name: 'Star', label: "Yulduz (Iqtidorli talabalar)" },
-  { name: 'Scale', label: "Tarozi (Yurist/Huquq)" },
+  { name: 'Scale', label: "Tarozi (Yurist / Huquq)" },
   { name: 'Globe', label: "Globus (Xalqaro aloqalar)" },
   { name: 'Shield', label: "Qalqon (Kasaba uyushmasi)" },
-  { name: 'Calculator', label: "Kalkulyator (Buxgalteriya/Moliya)" },
+  { name: 'Calculator', label: "Kalkulyator (Buxgalteriya / Moliya)" },
   { name: 'FileText', label: "Hujjat (Axborot resurs)" },
-  { name: 'Landmark', label: "Bino (Kengash)" },
+  { name: 'Landmark', label: "Bino / Ustunlar (Kengash / Rahbariyat)" },
   { name: 'ShieldCheck', label: "Himoya qalqoni (Komplayens-nazorat)" },
-  { name: 'TrendingUp', label: "O'sish grafikasi (Marketing)" },
+  { name: 'TrendingUp', label: "O'sish grafikasi (Marketing / Karyera)" },
   { name: 'UserCheck', label: "Foydalanuvchi (Xodimlarga xizmat)" },
-  { name: 'Briefcase', label: "Portfel (Registrator ofisi)" }
+  { name: 'Briefcase', label: "Portfel (Registrator ofisi / Boshqaruv)" },
+  { name: 'Stethoscope', label: "Stetoskop (Tibbiyot va salomatlik markazi)" },
+  { name: 'Microscope', label: "Mikroskop (Ilmiy-tadqiqot laboratoriyasi)" },
+  { name: 'FolderCheck', label: "Jild (Devonxona / Arxiv bo'limi)" },
+  { name: 'Trophy', label: "Kubok (Sport va madaniyat)" },
+  { name: 'Camera', label: "Kamera (Foto va video studiya)" },
+  { name: 'Megaphone', label: "Karnay (Matbuot / PR va OAV)" },
+  { name: 'Zap', label: "Chaqmoq (Innovatsiyalar / Startap)" },
+  { name: 'Compass', label: "Kompas (Kasbiy yo'nalish / Orientatsiya)" },
+  { name: 'Flame', label: "Olov (Yoshlar va ma'naviyat)" },
+  { name: 'Target', label: "Nishon (Strategik rejalashtirish)" },
+  { name: 'Coins', label: "Tangalar (Moliya-reja / Hisob-kitob)" },
+  { name: 'Database', label: "Ma'lumotlar bazasi (Raqamli tizimlar / Server)" },
+  { name: 'Printer', label: "Bosmaxona (Nashriyot / Matbaa bo'limi)" },
+  { name: 'Radio', label: "Radio / Efir (Media markaz)" },
+  { name: 'Lock', label: "Qulf (Xavfsizlik bo'limi / Qo'riqlash)" },
+  { name: 'Wrench', label: "Sozlash kaliti (Xo'jalik va ta'mirlash)" },
+  { name: 'Truck', label: "Avtomobil / Transport (Logistika va xo'jalik)" },
+  { name: 'PieChart', label: "Diagramma (Statistika va monitoring)" },
+  { name: 'Layers', label: "Qatlamlar (Tuzilma va koordinatsiya)" },
+  { name: 'Building2', label: "Universitet binosi (Boshqarma va ma'muriyat)" },
+  { name: 'Building', label: "Boshqa / Umumiy bino" }
 ];
 
 export default function CentersAdmin() {
@@ -36,6 +57,7 @@ export default function CentersAdmin() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '' });
+  const [isSeeding, setIsSeeding] = useState(false);
 
   const [activeLang, setActiveLang] = useState('uz');
   const [formData, setFormData] = useState({
@@ -85,6 +107,45 @@ export default function CentersAdmin() {
     setTimeout(() => {
       setNotification({ show: false, message: '' });
     }, 4000);
+  };
+
+  const handleSeedAllCenters = async () => {
+    if (!window.confirm("Barcha 20 ta markaz va bo'limlarni API orqali bazaga qo'shishni tasdiqlaysizmi?")) return;
+    setIsSeeding(true);
+    let addedCount = 0;
+    let skippedCount = 0;
+
+    try {
+      const existing = await centersAPI.getAll();
+      const existingList = Array.isArray(existing) ? existing : (existing?.data || []);
+      const existingNames = new Set(existingList.map(c => (c.nameUz || c.name || '').toLowerCase().trim()));
+
+      for (const item of DEFAULT_CENTERS_SEED_DATA) {
+        if (existingNames.has(item.nameUz.toLowerCase().trim())) {
+          skippedCount++;
+          continue;
+        }
+        const dto = {
+          nameUz: item.nameUz,
+          nameRu: item.nameRu,
+          nameEn: item.nameEn,
+          descriptionUz: item.descriptionUz,
+          descriptionRu: item.descriptionRu,
+          descriptionEn: item.descriptionEn,
+          icon: item.iconName,
+          iconName: item.iconName
+        };
+        await centersAPI.create(dto);
+        addedCount++;
+      }
+
+      showNotification(`${addedCount} ta yangi bo'lim qo'shildi (${skippedCount} ta allaqachon mavjud)`);
+      await loadCenters();
+    } catch (err) {
+      showNotification(err.message || "Bo'limlarni qo'shishda xatolik yuz berdi");
+    } finally {
+      setIsSeeding(false);
+    }
   };
 
   const handleSave = async () => {
@@ -218,7 +279,7 @@ export default function CentersAdmin() {
         
         <button 
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow"
+          className="flex items-center gap-2 bg-[#0eb99c] hover:bg-[#0ba087] text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow text-sm"
         >
           <Plus className="w-5 h-5" />
           Yangi bo'lim qo'shish
