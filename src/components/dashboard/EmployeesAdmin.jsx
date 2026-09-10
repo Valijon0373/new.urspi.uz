@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Eye, Edit2, Trash2, Download, ChevronDown, X, Upload, Check } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Eye, Edit2, Trash2, Download, ChevronDown, X, Upload, Check } from 'lucide-react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
@@ -64,6 +64,9 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
 }
 
 export default function EmployeesAdmin() {
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const menuRef = useRef(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -197,6 +200,20 @@ export default function EmployeesAdmin() {
     window.addEventListener('urspi_positions_updated', handlePositionsUpdate);
     return () => window.removeEventListener('urspi_positions_updated', handlePositionsUpdate);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleMenu = (id) => {
+    setActiveMenuId(activeMenuId === id ? null : id);
+  };
 
   const showNotification = (msg) => {
     setNotification({ show: true, message: msg });
@@ -447,7 +464,7 @@ export default function EmployeesAdmin() {
                   <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Bo'lim / Markaz</th>
                   <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">Lavozim</th>
                   <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold">F.I.O</th>
-                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-36">Amallar</th>
+                  <th className="border border-slate-200 dark:border-slate-700 py-4 px-6 font-semibold text-center w-24">Amallar</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -468,30 +485,47 @@ export default function EmployeesAdmin() {
                     <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium">{employee.department}</td>
                     <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-600 dark:text-slate-400 font-medium">{employee.position}</td>
                     <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-slate-800 dark:text-slate-200 font-bold">{employee.fullName}</td>
-                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button 
-                          onClick={() => { setSelectedItem(employee); setViewModalOpen(true); }}
-                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="Ko'rish"
+                    <td className="border border-slate-200 dark:border-slate-700 py-4 px-6 text-center relative">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMenu(employee.id);
+                        }}
+                        className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <SlidersHorizontal className="w-4 h-4" />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {activeMenuId === employee.id && (
+                        <div 
+                          ref={menuRef}
+                          className="absolute right-[80%] top-1/2 -translate-y-1/2 mt-1 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-2 z-50 animate-fade-in"
+                          style={{ animationDuration: '0.2s' }}
                         >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => openEditModal(employee)}
-                          className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
-                          title="Tahrirlash"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => { setSelectedItem(employee); setDeleteModalOpen(true); }}
-                          className="p-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
-                          title="O'chirish"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                          <button 
+                            onClick={() => { setSelectedItem(employee); setActiveMenuId(null); setViewModalOpen(true); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ko'rish
+                          </button>
+                          <button 
+                            onClick={() => { openEditModal(employee); setActiveMenuId(null); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Tahrirlash
+                          </button>
+                          <button 
+                            onClick={() => { setSelectedItem(employee); setActiveMenuId(null); setDeleteModalOpen(true); }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            O'chirish
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

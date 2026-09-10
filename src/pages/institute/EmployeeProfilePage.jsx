@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
 import { teachersAPI, employeesAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
 
 export default function EmployeeProfilePage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams();
+  const targetType = searchParams.get('type');
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'uz';
   const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
@@ -37,17 +39,40 @@ export default function EmployeeProfilePage() {
         const landingStaffObj = getObj(landingStaffRes);
         const staffObj = getObj(staffRes);
 
-        // Prioritize teacher data over faculty staff (dean) data
-        if (teacherObj && (teacherObj.fullName || teacherObj.fullNameUz || teacherObj.id)) {
-          data = teacherObj;
-        } else if (landingTeacherObj && (landingTeacherObj.fullName || landingTeacherObj.fullNameUz || landingTeacherObj.id)) {
-          data = landingTeacherObj;
-        } else if (empObj && (empObj.fullName || empObj.fullNameUz || empObj.id)) {
-          data = empObj;
-        } else if (landingStaffObj && (landingStaffObj.fullName || landingStaffObj.fullNameUz || landingStaffObj.id)) {
-          data = landingStaffObj;
-        } else if (staffObj && (staffObj.fullName || staffObj.fullNameUz || staffObj.id)) {
-          data = staffObj;
+        const hasData = (obj) => !!(obj && (obj.fullName || obj.fullNameUz || obj.id));
+
+        if (targetType === 'employee' || targetType === 'staff' || targetType === 'center') {
+          if (hasData(empObj)) data = empObj;
+          else if (hasData(staffObj)) data = staffObj;
+          else if (hasData(landingStaffObj)) data = landingStaffObj;
+          else if (hasData(teacherObj)) data = teacherObj;
+          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
+        } else if (targetType === 'faculty-staff') {
+          if (hasData(landingStaffObj)) data = landingStaffObj;
+          else if (hasData(staffObj)) data = staffObj;
+          else if (hasData(empObj)) data = empObj;
+          else if (hasData(teacherObj)) data = teacherObj;
+          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
+        } else if (targetType === 'teacher') {
+          if (hasData(teacherObj)) data = teacherObj;
+          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
+          else if (hasData(empObj)) data = empObj;
+          else if (hasData(staffObj)) data = staffObj;
+        } else {
+          // Default fallback
+          if (hasData(empObj) && (empObj.centerId || empObj.center || empObj.positionTitleUz || empObj.positionTitle)) {
+            data = empObj;
+          } else if (hasData(teacherObj)) {
+            data = teacherObj;
+          } else if (hasData(landingTeacherObj)) {
+            data = landingTeacherObj;
+          } else if (hasData(empObj)) {
+            data = empObj;
+          } else if (hasData(landingStaffObj)) {
+            data = landingStaffObj;
+          } else if (hasData(staffObj)) {
+            data = staffObj;
+          }
         }
 
         const positions = posRes.status === 'fulfilled'
