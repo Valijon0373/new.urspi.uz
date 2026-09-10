@@ -104,6 +104,7 @@ export default function PositionsAdmin() {
       showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
       setIsModalOpen(false);
       fetchPositions();
+      window.dispatchEvent(new CustomEvent('urspi_positions_updated'));
     } catch (e) {
       showNotification("Xatolik yuz berdi");
     }
@@ -115,6 +116,7 @@ export default function PositionsAdmin() {
         await positionsAPI.delete(selectedItem.id);
         showNotification("Muvaffaqiyatli o'chirildi");
         fetchPositions();
+        window.dispatchEvent(new CustomEvent('urspi_positions_updated'));
       } catch (e) {
         showNotification("O'chirishda xatolik yuz berdi");
       }

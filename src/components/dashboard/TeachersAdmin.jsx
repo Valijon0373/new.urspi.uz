@@ -16,6 +16,63 @@ const fileToBase64 = (file) => {
   });
 };
 
+function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedPos = positions.find(p => String(p.id) === String(value));
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-left text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors flex items-center justify-between cursor-pointer"
+      >
+        <span className={selectedPos ? "text-slate-800 dark:text-slate-100 font-medium" : "text-slate-400"}>
+          {selectedLabel}
+        </span>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 max-h-52 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[150] py-1 divide-y divide-slate-100 dark:divide-slate-700/50 animate-fade-in">
+          <div
+            onClick={() => { onChange(''); setIsOpen(false); }}
+            className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
+          >
+            {placeholder}
+          </div>
+          {positions.map(p => {
+            const isSelected = String(p.id) === String(value);
+            return (
+              <div
+                key={p.id}
+                onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
+              >
+                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TeachersAdmin() {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -1015,19 +1072,12 @@ export default function TeachersAdmin() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     Lavozim <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      value={positionId}
-                      onChange={(e) => setPositionId(e.target.value)}
-                      className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
-                    >
-                      <option value="">Lavozimni tanlang</option>
-                      {positions.map(p => (
-                        <option key={p.id} value={p.id}>{getPositionName(p, activeLang, 'Lavozim')}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  </div>
+                  <CustomPositionDropdown 
+                    positions={positions}
+                    value={positionId}
+                    onChange={(val) => setPositionId(val)}
+                    activeLang={activeLang}
+                  />
                 </div>
 
                 <div>

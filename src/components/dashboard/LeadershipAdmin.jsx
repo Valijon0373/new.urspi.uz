@@ -1,7 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, Phone, Check, Loader2, ChevronDown } from 'lucide-react';
 import rektorImg from '../../assets/men.jpg';
-import { leadersAPI, filesAPI, getFileUrl } from '../../api';
+import { leadersAPI, filesAPI, positionsAPI, getPositionName, getFileUrl } from '../../api';
+
+function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedPos = positions.find(p => String(p.id) === String(value));
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors flex items-center justify-between cursor-pointer text-left"
+      >
+        <span className={selectedPos ? "text-slate-800 dark:text-slate-100 font-medium" : "text-slate-400"}>
+          {selectedLabel}
+        </span>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 max-h-52 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[150] py-1 divide-y divide-slate-100 dark:divide-slate-700/50 animate-fade-in">
+          <div
+            onClick={() => { onChange(''); setIsOpen(false); }}
+            className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
+          >
+            {placeholder}
+          </div>
+          {positions.map(p => {
+            const isSelected = String(p.id) === String(value);
+            return (
+              <div
+                key={p.id}
+                onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
+              >
+                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function LeadershipAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,6 +68,8 @@ export default function LeadershipAdmin() {
   const [editMode, setEditMode] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', isError: false });
   const [leadersList, setLeadersList] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [selectedPositionId, setSelectedPositionId] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -26,6 +85,16 @@ export default function LeadershipAdmin() {
     phone: '',
     photoLink: ''
   });
+
+  const fetchPositions = async () => {
+    try {
+      const res = await positionsAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      setPositions(rawData);
+    } catch (e) {
+      console.warn("Failed to fetch positions:", e.message);
+    }
+  };
 
   const fetchLeaders = async () => {
     setLoading(true);
@@ -67,6 +136,11 @@ export default function LeadershipAdmin() {
 
   useEffect(() => {
     fetchLeaders();
+    fetchPositions();
+
+    const handlePositionsUpdate = () => fetchPositions();
+    window.addEventListener('urspi_positions_updated', handlePositionsUpdate);
+    return () => window.removeEventListener('urspi_positions_updated', handlePositionsUpdate);
   }, []);
 
   const showNotification = (msg, isError = false) => {
@@ -112,6 +186,7 @@ export default function LeadershipAdmin() {
         positionTitleRu: formData.position.ru || '',
         positionTitleEn: formData.position.en || '',
         positionTitle: formData.position.uz || '',
+        positionId: selectedPositionId ? Number(selectedPositionId) : undefined,
 
         addressUz: formData.address.uz || '',
         addressRu: formData.address.ru || '',
@@ -173,6 +248,13 @@ export default function LeadershipAdmin() {
       phone: person.phone || '',
       photoLink: person.photoLink || ''
     });
+
+    const posId = person.rawItem?.positionId || person.rawItem?.position?.id;
+    const posTitleUz = person.positionUz || person.position || '';
+    const matched = positions.find(p => String(p.id) === String(posId)) ||
+                    positions.find(p => (p.nameUz || p.titleUz || p.name || p.title || '').toLowerCase() === posTitleUz.toLowerCase());
+    setSelectedPositionId(matched ? String(matched.id) : '');
+
     setIsModalOpen(true);
   };
 
@@ -180,6 +262,7 @@ export default function LeadershipAdmin() {
     setSelectedPerson(null);
     setEditMode(false);
     setSelectedFile(null);
+    setSelectedPositionId('');
     setPreviewUrl('');
     setFormData({
       fullName: { uz: '', ru: '', en: '' },
@@ -436,14 +519,35 @@ export default function LeadershipAdmin() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      Lavozim ({activeLang.toUpperCase()})
+                      Lavozim
                     </label>
+                    <div className="mb-2">
+                      <CustomPositionDropdown
+                        positions={positions}
+                        value={selectedPositionId}
+                        activeLang={activeLang}
+                        onChange={(val) => {
+                          setSelectedPositionId(val);
+                          const posObj = positions.find(p => String(p.id) === String(val));
+                          if (posObj) {
+                            setFormData(prev => ({
+                              ...prev,
+                              position: {
+                                uz: posObj.nameUz || posObj.titleUz || posObj.name || posObj.title || '',
+                                ru: posObj.nameRu || posObj.titleRu || posObj.name || posObj.title || '',
+                                en: posObj.nameEn || posObj.titleEn || posObj.name || posObj.title || ''
+                              }
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
                     <input
                       type="text"
-                      value={formData.position[activeLang]}
+                      value={formData.position[activeLang] || ''}
                       onChange={e => setFormData({ ...formData, position: { ...formData.position, [activeLang]: e.target.value } })}
-                      placeholder="Masalan: Rektor v.b"
-                      className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
+                      placeholder={`Lavozim nomi (${activeLang.toUpperCase()})`}
+                      className="block w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                     />
                   </div>
                 </div>

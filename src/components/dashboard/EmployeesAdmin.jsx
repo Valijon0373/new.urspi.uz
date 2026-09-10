@@ -1,10 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Eye, Edit2, Trash2, Download, ChevronDown, X, Upload, Check } from 'lucide-react';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { employeesAPI, centersAPI, getFileUrl } from '../../api';
+import { employeesAPI, centersAPI, positionsAPI, getPositionName, getFileUrl } from '../../api';
+
+function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedPos = positions.find(p => String(p.id) === String(value));
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-left text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors flex items-center justify-between cursor-pointer"
+      >
+        <span className={selectedPos ? "text-slate-800 dark:text-slate-100 font-medium" : "text-slate-400"}>
+          {selectedLabel}
+        </span>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 max-h-52 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-[150] py-1 divide-y divide-slate-100 dark:divide-slate-700/50 animate-fade-in">
+          <div
+            onClick={() => { onChange(''); setIsOpen(false); }}
+            className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
+          >
+            {placeholder}
+          </div>
+          {positions.map(p => {
+            const isSelected = String(p.id) === String(value);
+            return (
+              <div
+                key={p.id}
+                onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
+              >
+                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EmployeesAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,6 +73,8 @@ export default function EmployeesAdmin() {
 
   const [activeLang, setActiveLang] = useState('uz');
   const [centers, setCenters] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [selectedPositionId, setSelectedPositionId] = useState('');
   const [centerId, setCenterId] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
@@ -51,6 +110,19 @@ export default function EmployeesAdmin() {
 
   const [employeesList, setEmployeesList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchPositions = async () => {
+    try {
+      const res = await positionsAPI.getAll();
+      const rawData = Array.isArray(res) ? res : (res?.data || []);
+      setPositions(rawData);
+      return rawData;
+    } catch (e) {
+      console.warn('Failed to fetch positions:', e.message);
+      setPositions([]);
+      return [];
+    }
+  };
 
   const fetchCenters = async () => {
     let rawData = [];
@@ -114,9 +186,16 @@ export default function EmployeesAdmin() {
   useEffect(() => {
     const init = async () => {
       const loadedCenters = await fetchCenters();
+      await fetchPositions();
       fetchEmployees(loadedCenters);
     };
     init();
+
+    const handlePositionsUpdate = async () => {
+      await fetchPositions();
+    };
+    window.addEventListener('urspi_positions_updated', handlePositionsUpdate);
+    return () => window.removeEventListener('urspi_positions_updated', handlePositionsUpdate);
   }, []);
 
   const showNotification = (msg) => {
@@ -185,6 +264,9 @@ export default function EmployeesAdmin() {
       fd.append('positionTitleUz', posUz);
       fd.append('positionTitleRu', posRu);
       fd.append('positionTitleEn', posEn);
+      if (selectedPositionId) {
+        fd.append('positionId', String(selectedPositionId));
+      }
       fd.append('centerId', centerId);
       if (photoFile) fd.append('photo', photoFile);
       if (cvFile) fd.append('cv', cvFile);
@@ -240,6 +322,17 @@ export default function EmployeesAdmin() {
       email: item.email || '',
       department: item.department || '',
     });
+
+    const posId = item.rawItem?.positionId || item.rawItem?.position?.id;
+    const currentTitleUz = item.rawItem?.positionTitleUz || item.position || '';
+    const matchedPos = positions.find(p => String(p.id) === String(posId)) || 
+                       positions.find(p => (p.nameUz || p.titleUz || p.name || p.title || '').toLowerCase() === currentTitleUz.toLowerCase());
+    if (matchedPos) {
+      setSelectedPositionId(String(matchedPos.id));
+    } else {
+      setSelectedPositionId('');
+    }
+
     setCenterId(item.centerId || item.rawItem?.centerId || item.rawItem?.center?.id || '');
     setImagePreview(item.image || null);
     setPhotoFile(null);
@@ -251,6 +344,7 @@ export default function EmployeesAdmin() {
   const openAddModal = () => {
     setEditMode(false);
     setSelectedItem(null);
+    setSelectedPositionId('');
     setFormData({
       fullName: { uz: '', ru: '', en: '' },
       position: { uz: '', ru: '', en: '' },
@@ -600,14 +694,35 @@ export default function EmployeesAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Lavozimi ({activeLang.toUpperCase()}) <span className="text-red-500">*</span>
+                    Lavozimi <span className="text-red-500">*</span>
                   </label>
+                  <div className="mb-2">
+                    <CustomPositionDropdown 
+                      positions={positions}
+                      value={selectedPositionId}
+                      activeLang={activeLang}
+                      onChange={(val) => {
+                        setSelectedPositionId(val);
+                        const posObj = positions.find(p => String(p.id) === String(val));
+                        if (posObj) {
+                          setFormData(prev => ({
+                            ...prev,
+                            position: {
+                              uz: posObj.nameUz || posObj.titleUz || posObj.name || posObj.title || '',
+                              ru: posObj.nameRu || posObj.titleRu || posObj.name || posObj.title || '',
+                              en: posObj.nameEn || posObj.titleEn || posObj.name || posObj.title || ''
+                            }
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
                   <input 
                     type="text" 
-                    value={formData.position[activeLang]}
+                    value={formData.position[activeLang] || ''}
                     onChange={e => setFormData({ ...formData, position: { ...formData.position, [activeLang]: e.target.value } })}
-                    placeholder="Masalan: Dasturchi" 
-                    className="w-full h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
+                    placeholder={`Lavozim nomi (${activeLang.toUpperCase()})`} 
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors text-sm" 
                   />
                 </div>
 
