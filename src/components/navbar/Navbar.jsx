@@ -156,6 +156,18 @@ function Navbar() {
     <>
       {/* ── 1. TOP BAR & 2. LOGO ── */}
       <header className="relative w-full">
+        {/* ── 0. TEST MODE TICKER BANNER ── */}
+        <div className="w-full bg-red-600 text-white py-1.5 overflow-hidden relative z-50 border-b border-red-700/60 select-none">
+          <div className="flex whitespace-nowrap animate-marquee">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex items-center gap-6 px-6 font-medium text-xs sm:text-sm tracking-wide shrink-0">
+                <span>Ushbu Sayt Urganch davlat pedagogika instituti yangi sayti va TEST rejimida ishlamoqda...</span>
+                <span className="text-white/60 text-xs">✦</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* ── 1. TOP BAR ── */}
         <div className={`px-4 py-3 lg:px-8 transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0c1f4a]'}`}>
           <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
