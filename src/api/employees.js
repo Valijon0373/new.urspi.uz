@@ -37,6 +37,8 @@ export function buildEmployeeFormData({
 export const employeesAPI = {
     getAll: (lang) => lang ? request(`/api/employees/lang/${lang}`) : request('/api/employees'),
     getLanding: (page = 0, size = 50) => request(`/api/landing/employees?page=${page}&size=${size}`),
+    getLandingByCenter: (centerId, page = 0, size = 100, lang = 'uz') =>
+        request(`/api/landing/centers/${centerId}/employees?page=${page}&size=${size}&lang=${lang}`),
     getByCenter: (centerId, lang) => request(`/api/employees/center/${centerId}/lang/${lang}`),
     getById: (id) => request(`/api/employees/${id}`),
     create: (formData) => request('/api/employees', { method: 'POST', body: formData }),

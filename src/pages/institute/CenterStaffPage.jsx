@@ -95,23 +95,46 @@ export default function CenterStaffPage() {
 
       try {
         const promises = [
+          centersAPI.getLandingById(id, lang),
           centersAPI.getById(id),
           centersAPI.getLanding(0, 100, lang),
           centersAPI.getAll(lang),
+          employeesAPI.getLandingByCenter(id, 0, 100, lang),
           employeesAPI.getByCenter(id, lang),
           employeesAPI.getLanding(0, 100),
           employeesAPI.getAll(lang),
           positionsAPI.getAll()
         ];
 
-        const [centerByIdRes, centerLandingRes, centerAllRes, empByCenterRes, empLandingRes, empAllRes, posRes] = await Promise.allSettled(promises);
+        const [
+          centerLandingByIdRes,
+          centerByIdRes,
+          centerLandingRes,
+          centerAllRes,
+          empLandingByCenterRes,
+          empByCenterRes,
+          empLandingRes,
+          empAllRes,
+          posRes
+        ] = await Promise.allSettled(promises);
 
         // Resolve Center Data
         let foundCenter = null;
-        if (centerByIdRes.status === 'fulfilled' && centerByIdRes.value) {
-          foundCenter = centerByIdRes.value.data || centerByIdRes.value;
+        const unwrapCenter = (payload) => {
+          if (!payload) return null;
+          if (payload.data && !Array.isArray(payload.data) && (payload.data.id || payload.data.name || payload.data.nameUz)) {
+            return payload.data;
+          }
+          return payload.id ? payload : null;
+        };
+        const hasCenterName = (c) => Boolean(c?.nameUz || c?.name || c?.title);
+        if (centerLandingByIdRes.status === 'fulfilled') {
+          foundCenter = unwrapCenter(centerLandingByIdRes.value);
         }
-        if (!foundCenter || !foundCenter.nameUz) {
+        if ((!foundCenter || !hasCenterName(foundCenter)) && centerByIdRes.status === 'fulfilled' && centerByIdRes.value) {
+          foundCenter = unwrapCenter(centerByIdRes.value) || foundCenter;
+        }
+        if (!foundCenter || !hasCenterName(foundCenter)) {
           const landingCenters = centerLandingRes.status === 'fulfilled' ? extractArray(centerLandingRes.value) : [];
           const allCenters = centerAllRes.status === 'fulfilled' ? extractArray(centerAllRes.value) : [];
           foundCenter = [...landingCenters, ...allCenters].find(c => String(c.id) === String(id)) || foundCenter;
@@ -133,15 +156,18 @@ export default function CenterStaffPage() {
         }
 
         // Resolve Employees
+        const listLandingByCenter = empLandingByCenterRes.status === 'fulfilled' ? extractArray(empLandingByCenterRes.value) : [];
         const listByCenter = empByCenterRes.status === 'fulfilled' ? extractArray(empByCenterRes.value) : [];
         const listLanding = empLandingRes.status === 'fulfilled' ? extractArray(empLandingRes.value) : [];
         const listAll = empAllRes.status === 'fulfilled' ? extractArray(empAllRes.value) : [];
         const positions = posRes.status === 'fulfilled' ? extractArray(posRes.value) : [];
 
         const combinedMap = new Map();
-        [...listByCenter, ...listLanding, ...listAll].forEach(item => {
+        [...listLandingByCenter, ...listByCenter, ...listLanding, ...listAll].forEach(item => {
           if (item && item.id != null) {
-            const isDirectCenterItem = listByCenter.some(c => String(c.id) === String(item.id));
+            const isDirectCenterItem =
+              listLandingByCenter.some(c => String(c.id) === String(item.id)) ||
+              listByCenter.some(c => String(c.id) === String(item.id));
             combinedMap.set(String(item.id), { ...item, isDirectCenterItem });
           }
         });
