@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import './SeasonEffects.css';
 
 export default function SeasonEffects() {
+  const location = useLocation();
   const [activeSeason, setActiveSeason] = useState(() => {
     return localStorage.getItem('app-season');
   });
@@ -20,6 +22,11 @@ export default function SeasonEffects() {
       window.removeEventListener('storage', handleSeasonChange);
     };
   }, []);
+
+  // Dashboard hamda admin sahifalarida fasl effektini ko'rsatmaslik
+  if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   if (!activeSeason || activeSeason === 'yoz') return null;
 

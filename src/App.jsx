@@ -24,6 +24,7 @@ import DormitoryPage from './pages/students/DormitoryPage'
 import AntiCorruptionPage from './pages/institute/AntiCorruptionPage'
 import AiAgent from './components/home/ai-agent/AiAgent'
 import ScrollToTop from './components/seasonEffect/ScrollToTop'
+import SeasonEffects from './components/seasonEffect/SeasonEffects'
 import GlobalLoader from './components/common/GlobalLoader'
 import BachelorPage from './pages/admission/BachelorPage'
 import MasterPage from './pages/admission/MasterPage'
@@ -33,6 +34,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <SeasonEffects />
       <GlobalLoader />
       <Routes>
         {/* Asosiy sahifa */}
