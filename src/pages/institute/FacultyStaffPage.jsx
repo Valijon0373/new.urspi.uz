@@ -96,7 +96,7 @@ export default function FacultyStaffPage() {
           try {
             const fallback = await facultyStaffAPI.getByFacultyLang(activeFacultyId, lang);
             staffArr = unwrapList(fallback);
-          } catch (e) {}
+          } catch (e) { }
         }
         staffArr.forEach(st => apiData.push({ ...st, isFacultyStaff: true }));
 
@@ -112,7 +112,7 @@ export default function FacultyStaffPage() {
             teacherArr = activeFacultyId
               ? allTeachers.filter(t => String(t.facultyId || t.faculty?.id) === String(activeFacultyId))
               : allTeachers;
-          } catch (e) {}
+          } catch (e) { }
         }
 
         teacherArr.forEach(t => {
@@ -175,8 +175,8 @@ export default function FacultyStaffPage() {
     const handleUpdate = () => fetchTeachers();
     window.addEventListener('urspi_teachers_updated', handleUpdate);
 
-    return () => { 
-      isMounted = false; 
+    return () => {
+      isMounted = false;
       window.removeEventListener('urspi_teachers_updated', handleUpdate);
     };
   }, [lang, activeFacultyId]);
@@ -235,7 +235,7 @@ export default function FacultyStaffPage() {
               </h2>
             </div>
           )}
-          
+
           {loading ? (
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
           ) : !dekan && viceDeans.length === 0 ? (
@@ -303,7 +303,7 @@ export default function FacultyStaffPage() {
                       </div>
 
                       <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
-                        <Link to={`/employee/${dekan.id}?type=faculty-staff`} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-sm transition-colors duration-300 w-full sm:w-auto">
+                        <Link to={`/employee/${dekan.id}?type=faculty-staff`} state={{ staff: dekan.raw || dekan, person: dekan.raw || dekan }} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-sm transition-colors duration-300 w-full sm:w-auto">
                           {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
                         </Link>
 
@@ -358,7 +358,7 @@ export default function FacultyStaffPage() {
                           )}
 
                           <div className="mt-auto">
-                            <Link to={`/employee/${person.id}?type=faculty-staff`} className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors duration-300">
+                            <Link to={`/employee/${person.id}?type=faculty-staff`} state={{ staff: person.raw || person, person: person.raw || person }} className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors duration-300">
                               {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={14} />
                             </Link>
                           </div>

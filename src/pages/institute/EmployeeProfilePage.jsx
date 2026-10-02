@@ -1,116 +1,180 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
 import { teachersAPI, employeesAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
 
 export default function EmployeeProfilePage() {
   const { id } = useParams()
-  const [searchParams] = useSearchParams();
-  const targetType = searchParams.get('type');
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language || 'uz';
+  const [searchParams] = useSearchParams()
+  const location = useLocation()
+  const targetType = searchParams.get('type')
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language || 'uz'
   const [showIlmiyFaoliyat, setShowIlmiyFaoliyat] = useState(false)
-  const [employeeData, setEmployeeData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [employeeData, setEmployeeData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
+
+    const extractArray = (payload) => {
+      if (!payload) return []
+      if (Array.isArray(payload)) return payload
+      if (Array.isArray(payload.content)) return payload.content
+      if (Array.isArray(payload.data?.content)) return payload.data.content
+      if (Array.isArray(payload.data)) return payload.data
+      if (Array.isArray(payload.items)) return payload.items
+      if (Array.isArray(payload.result)) return payload.result
+      return []
+    }
+
     const fetchEmployee = async () => {
-      if (!id) return;
-      setLoading(true);
-      let data = null;
+      if (!id) return
+      setLoading(true)
+
+      let data = null
+      const stateObj = location.state?.employee || location.state?.person || location.state?.teacher || location.state?.staff
+
       try {
-        const [teacherRes, landingTeacherRes, empRes, landingStaffRes, staffRes, posRes] = await Promise.allSettled([
+        const [
+          empRes,
+          empLandingRes,
+          empAllRes,
+          teacherRes,
+          landingTeacherRes,
+          teacherAllRes,
+          landingStaffRes,
+          staffRes,
+          staffAllRes,
+          posRes
+        ] = await Promise.allSettled([
+          employeesAPI.getById(id),
+          employeesAPI.getLandingById ? employeesAPI.getLandingById(id, lang) : Promise.resolve(null),
+          employeesAPI.getAll(lang),
           teachersAPI.getById(id),
           teachersAPI.getLandingById(id, lang),
-          employeesAPI.getById(id),
+          teachersAPI.getAll(lang),
           facultyStaffAPI.getLandingById(id, lang),
           facultyStaffAPI.getById(id),
+          facultyStaffAPI.getAll(lang),
           positionsAPI.getAll()
-        ]);
+        ])
 
-        const getObj = (res) => (res.status === 'fulfilled' && res.value) ? (res.value.data || res.value) : null;
+        const getObj = (res) => (res.status === 'fulfilled' && res.value) ? (res.value.data || res.value) : null
+        const getList = (res) => res.status === 'fulfilled' ? extractArray(res.value) : []
 
-        const teacherObj = getObj(teacherRes);
-        const landingTeacherObj = getObj(landingTeacherRes);
-        const empObj = getObj(empRes);
-        const landingStaffObj = getObj(landingStaffRes);
-        const staffObj = getObj(staffRes);
+        const empObj = getObj(empRes)
+        const empLandingObj = getObj(empLandingRes)
+        const empList = getList(empAllRes)
 
-        const hasData = (obj) => !!(obj && (obj.fullName || obj.fullNameUz || obj.id));
+        const teacherObj = getObj(teacherRes)
+        const landingTeacherObj = getObj(landingTeacherRes)
+        const teacherList = getList(teacherAllRes)
+
+        const staffObj = getObj(staffRes)
+        const landingStaffObj = getObj(landingStaffRes)
+        const staffList = getList(staffAllRes)
+
+        const positions = getList(posRes)
+
+        const hasData = (obj) => !!(obj && (obj.fullName || obj.fullNameUz || obj.name || obj.nameUz || obj.id))
+        const findInList = (list, targetId) => list.find(item => String(item.id) === String(targetId))
 
         if (targetType === 'employee' || targetType === 'staff' || targetType === 'center') {
-          if (hasData(empObj)) data = empObj;
-          else if (hasData(staffObj)) data = staffObj;
-          else if (hasData(landingStaffObj)) data = landingStaffObj;
-          else if (hasData(teacherObj)) data = teacherObj;
-          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
+          if (hasData(empObj)) data = empObj
+          else if (hasData(empLandingObj)) data = empLandingObj
+          else {
+            const foundInAll = findInList(empList, id)
+            if (hasData(foundInAll)) data = foundInAll
+            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
+            else if (hasData(staffObj)) data = staffObj
+            else if (hasData(landingStaffObj)) data = landingStaffObj
+            else {
+              const foundInStaff = findInList(staffList, id)
+              if (hasData(foundInStaff)) data = foundInStaff
+            }
+          }
         } else if (targetType === 'faculty-staff') {
-          if (hasData(landingStaffObj)) data = landingStaffObj;
-          else if (hasData(staffObj)) data = staffObj;
-          else if (hasData(empObj)) data = empObj;
-          else if (hasData(teacherObj)) data = teacherObj;
-          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
+          if (hasData(landingStaffObj)) data = landingStaffObj
+          else if (hasData(staffObj)) data = staffObj
+          else {
+            const foundInStaff = findInList(staffList, id)
+            if (hasData(foundInStaff)) data = foundInStaff
+            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
+            else if (hasData(empObj)) data = empObj
+            else if (hasData(empLandingObj)) data = empLandingObj
+          }
         } else if (targetType === 'teacher') {
-          if (hasData(teacherObj)) data = teacherObj;
-          else if (hasData(landingTeacherObj)) data = landingTeacherObj;
-          else if (hasData(empObj)) data = empObj;
-          else if (hasData(staffObj)) data = staffObj;
+          if (hasData(teacherObj)) data = teacherObj
+          else if (hasData(landingTeacherObj)) data = landingTeacherObj
+          else {
+            const foundInTeachers = findInList(teacherList, id)
+            if (hasData(foundInTeachers)) data = foundInTeachers
+            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
+          }
         } else {
-          // Default fallback
-          if (hasData(empObj) && (empObj.centerId || empObj.center || empObj.positionTitleUz || empObj.positionTitle)) {
-            data = empObj;
+          if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) {
+            data = stateObj
+          } else if (hasData(empObj) && (empObj.centerId || empObj.center || empObj.positionTitleUz || empObj.positionTitle)) {
+            data = empObj
           } else if (hasData(teacherObj)) {
-            data = teacherObj;
+            data = teacherObj
           } else if (hasData(landingTeacherObj)) {
-            data = landingTeacherObj;
+            data = landingTeacherObj
           } else if (hasData(empObj)) {
-            data = empObj;
+            data = empObj
           } else if (hasData(landingStaffObj)) {
-            data = landingStaffObj;
+            data = landingStaffObj
           } else if (hasData(staffObj)) {
-            data = staffObj;
+            data = staffObj
           }
         }
 
-        const positions = posRes.status === 'fulfilled'
-          ? (Array.isArray(posRes.value) ? posRes.value : (posRes.value?.data || []))
-          : [];
-        if (data && (!data.position || typeof data.position !== 'object')) {
-          const posId = data.positionId || data.position?.id;
-          const posObj = positions.find(p => String(p.id) === String(posId));
-          if (posObj) data = { ...data, position: posObj };
+        if (!data && stateObj) {
+          data = stateObj
         }
+
+        if (data && (!data.position || typeof data.position !== 'object')) {
+          const posId = data.positionId || data.position?.id
+          const posObj = positions.find(p => String(p.id) === String(posId))
+          if (posObj) data = { ...data, position: posObj }
+        }
+
         if (data) {
-          const rawImg = data.photoLink || data.photo || data.image || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url : '');
+          const rawImg = data.photoLink || data.photo || data.image || data.img || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url || data.photo?.path : '')
+          const rawPos = data.positionTitle || data.positionTitleUz || data.positionName || data.position
+          const resolvedPos = (typeof rawPos === 'string' && rawPos.trim()) ? rawPos : resolvePersonPosition(data, lang, "Xodim")
+          const degreeVal = data.academicDegree ? (typeof data.academicDegree === 'string' ? data.academicDegree : localizedField(data.academicDegree, 'name', lang, data.academicDegree?.nameUz || '')) : ''
+
           if (isMounted) {
             setEmployeeData({
-              id: data.id,
-              name: localizedField(data, 'fullName', lang, data.fullName || "Xodim"),
-              position: data.positionTitle || resolvePersonPosition(data, lang, data.positionTitleUz || "Fakultet xodimi"),
+              id: data.id || id,
+              name: localizedField(data, 'fullName', lang, data.fullName || data.fullNameUz || data.name || "Xodim"),
+              position: resolvedPos,
+              degree: degreeVal,
               phone: data.phoneNumber || data.phone || "",
               email: data.email || "info@urspi.uz",
-              bio: data.bio || "Urganch davlat pedagogika instituti xodimi.",
-              officeHours: data.officeHours || data.receptionTime || "Dushanba - Juma: 09:00 - 17:00",
-              img: getFileUrl(rawImg) || menImg,
-              hasScience: !!(data.academicDegree || data.position)
-            });
+              bio: data.bio || data.description || "Urganch davlat pedagogika instituti xodimi.",
+              officeHours: data.officeHours || data.receptionTime || data.receptionHours || "Dushanba - Juma: 09:00 - 17:00",
+              img: getFileUrl(rawImg) || (typeof data.img === 'string' && data.img.length > 0 ? data.img : menImg),
+              hasScience: !!(degreeVal || data.academicDegree || data.position || data.isTeacher || targetType === 'teacher')
+            })
           }
         }
       } catch (err) {
-        console.warn('Failed to load profile from API:', err.message);
+        console.warn('Failed to load profile from API:', err.message)
       } finally {
         if (isMounted) {
-          setLoading(false);
+          setLoading(false)
         }
       }
-    };
+    }
 
-    fetchEmployee();
-    return () => { isMounted = false; };
-  }, [id, lang]);
+    fetchEmployee()
+    return () => { isMounted = false }
+  }, [id, lang, targetType, location.state])
 
   if (loading) {
     return <main className="flex-1 bg-slate-50 py-16 text-center text-slate-500 font-medium">Yuklanmoqda...</main>;

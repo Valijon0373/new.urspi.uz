@@ -24,7 +24,7 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   </svg>
 )
 
-const StaffCard = ({ id, name, degree, position, img }) => (
+const StaffCard = ({ id, name, degree, position, img, raw }) => (
   <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
     <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
       <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} />
@@ -39,9 +39,9 @@ const StaffCard = ({ id, name, degree, position, img }) => (
       <p className="text-slate-600 text-[13px] mb-6">
         {position}
       </p>
-      
+
       <div className="mt-auto">
-        <Link to={`/employee/${id}?type=teacher`} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
+        <Link to={`/employee/${id}?type=teacher`} state={{ teacher: raw, person: raw }} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
           Batafsil <ArrowRight size={14} />
         </Link>
       </div>
@@ -137,10 +137,10 @@ export default function DepartmentStaffPage() {
 
         if (selectedDepartment) {
           const deptIdStr = String(selectedDepartment.id || selectedDepartment._id || '');
-          const rawDeptName = typeof selectedDepartment === 'string' 
-            ? selectedDepartment 
+          const rawDeptName = typeof selectedDepartment === 'string'
+            ? selectedDepartment
             : (typeof selectedDepartment.name === 'string' ? selectedDepartment.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment.nameUz || selectedDepartment.title || ''));
-          
+
           const cleanDeptName = normalizeDeptStr(rawDeptName);
 
           formatted = formatted.filter(t => {
@@ -152,7 +152,7 @@ export default function DepartmentStaffPage() {
 
             const matchId = Boolean(deptIdStr && tDeptId && deptIdStr === tDeptId);
             const matchName = Boolean(cleanDeptName && cleanTDeptName && (
-              cleanTDeptName.includes(cleanDeptName) || 
+              cleanTDeptName.includes(cleanDeptName) ||
               cleanDeptName.includes(cleanTDeptName)
             ));
 
@@ -177,8 +177,8 @@ export default function DepartmentStaffPage() {
     const handleUpdate = () => fetchTeachers();
     window.addEventListener('urspi_teachers_updated', handleUpdate);
 
-    return () => { 
-      isMounted = false; 
+    return () => {
+      isMounted = false;
       window.removeEventListener('urspi_teachers_updated', handleUpdate);
     };
   }, [selectedDepartment, lang]);
@@ -196,8 +196,8 @@ export default function DepartmentStaffPage() {
   }) || (teachers.length > 0 ? teachers[0] : null);
 
   const otherTeachers = mudir ? teachers.filter(t => String(t.id) !== String(mudir.id)) : teachers;
-  const rawDeptTitle = typeof selectedDepartment === 'string' 
-    ? selectedDepartment 
+  const rawDeptTitle = typeof selectedDepartment === 'string'
+    ? selectedDepartment
     : (typeof selectedDepartment?.name === 'string' ? selectedDepartment?.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment?.nameUz || selectedDepartment?.title || ''));
   const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : "Kafedra o'qituvchilari";
 
@@ -234,7 +234,7 @@ export default function DepartmentStaffPage() {
 
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {loading ? (
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
           ) : teachers.length === 0 ? (
@@ -286,7 +286,7 @@ export default function DepartmentStaffPage() {
                       </div>
 
                       <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                        <Link to={`/employee/${mudir.id}?type=teacher`} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
+                        <Link to={`/employee/${mudir.id}?type=teacher`} state={{ teacher: mudir.raw || mudir, person: mudir.raw || mudir }} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
                           {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
                         </Link>
                       </div>
@@ -311,6 +311,7 @@ export default function DepartmentStaffPage() {
                         degree={teacher.degree}
                         position={teacher.position}
                         img={teacher.img}
+                        raw={teacher.raw || teacher}
                       />
                     ))}
                   </div>

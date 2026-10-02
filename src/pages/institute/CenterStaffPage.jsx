@@ -22,14 +22,14 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   </svg>
 )
 
-const StaffCard = ({ id, name, position, phone, img, lang = 'uz' }) => (
+const StaffCard = ({ id, name, position, phone, img, lang = 'uz', raw }) => (
   <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
     <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
-      <img 
-        src={img || menImg} 
-        alt={name} 
-        className="w-full h-full object-cover object-top rounded-t-lg" 
-        onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} 
+      <img
+        src={img || menImg}
+        alt={name}
+        className="w-full h-full object-cover object-top rounded-t-lg"
+        onError={(e) => { e.target.onerror = null; e.target.src = menImg; }}
       />
     </div>
     <div className="p-5 flex flex-col flex-grow">
@@ -39,10 +39,11 @@ const StaffCard = ({ id, name, position, phone, img, lang = 'uz' }) => (
       <p className="text-slate-600 text-[13px] mb-6 font-medium leading-snug">
         {position}
       </p>
-      
+
       <div className="mt-auto">
-        <Link 
-          to={`/employee/${id}?type=employee`} 
+        <Link
+          to={`/employee/${id}?type=employee`}
+          state={{ employee: raw, person: raw }}
           className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300"
         >
           {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={14} />
@@ -74,7 +75,7 @@ export default function CenterStaffPage() {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const normalizeStr = (str) => {
       if (!str) return '';
       return String(str)
@@ -181,7 +182,7 @@ export default function CenterStaffPage() {
           const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn))
             ? nestedPos
             : (positions.find(p => String(p.id) === String(posId)) || nestedPos);
-          
+
           const person = { ...e, position: posObj || e.position };
           const posTitle = resolvePersonPosition(person, lang, localizedField(e, 'positionTitle', lang, e.positionTitleUz || e.positionTitle || "Xodim"));
 
@@ -301,7 +302,7 @@ export default function CenterStaffPage() {
 
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* Bo'lim nomi */}
           <div className="mb-8 text-center">
             <h1 className="text-2xl md:text-3xl font-bold text-[#0c1f4a] uppercase">
@@ -321,7 +322,7 @@ export default function CenterStaffPage() {
                   </div>
 
                   <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative mb-12">
-                    
+
                     {/* Top Right Badge (Qabul vaqtlari) */}
                     {(headMember.receptionHours || centerData?.receptionHours) && (
                       <div className="absolute top-5 right-6 hidden md:block bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-right border border-blue-100">
@@ -380,8 +381,9 @@ export default function CenterStaffPage() {
                       {/* Bottom Buttons */}
                       {headMember.id && headMember.id !== 'head' && (
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                          <Link 
-                            to={`/employee/${headMember.id}?type=employee`} 
+                          <Link
+                            to={`/employee/${headMember.id}?type=employee`}
+                            state={{ employee: headMember.raw || headMember, person: headMember.raw || headMember }}
                             className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto"
                           >
                             {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
@@ -402,7 +404,7 @@ export default function CenterStaffPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {otherStaffList.map((member) => (
-                      <StaffCard 
+                      <StaffCard
                         key={member.id}
                         id={member.id}
                         name={member.name}
@@ -410,6 +412,7 @@ export default function CenterStaffPage() {
                         phone={member.phone}
                         img={member.img}
                         lang={lang}
+                        raw={member.raw || member}
                       />
                     ))}
                   </div>
