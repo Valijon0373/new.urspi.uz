@@ -1,4 +1,4 @@
-import { getAuthToken } from './client';
+import { getAuthToken, request } from './client';
 import { usersAPI } from './users';
 import { rolesAPI, permissionsAPI } from './roles';
 
@@ -24,45 +24,24 @@ export function parseJwt(token) {
 }
 
 /**
- * Retrieve currently logged in user info from token & local storage
+ * Retrieve currently logged in user info from token payload only (NO localStorage)
  */
 export function getStoredUserInfo() {
   const token = getAuthToken();
   const decoded = parseJwt(token) || {};
-  
-  let storedUser = null;
-  try {
-    const raw = localStorage.getItem('urspi_current_user');
-    if (raw) storedUser = JSON.parse(raw);
-  } catch (e) {
-    // ignore
-  }
 
   const username = (
-    storedUser?.username ||
     decoded.sub ||
     decoded.username ||
-    localStorage.getItem('urspi_current_username') ||
+    decoded.name ||
     ''
   ).trim();
 
-  // Extract roles
+  // Extract roles directly from JWT token
   const rolesList = [];
-  if (Array.isArray(storedUser?.roles)) rolesList.push(...storedUser.roles);
-  if (storedUser?.role) rolesList.push(storedUser.role);
   if (Array.isArray(decoded.roles)) rolesList.push(...decoded.roles);
   if (Array.isArray(decoded.authorities)) rolesList.push(...decoded.authorities);
   if (decoded.role) rolesList.push(decoded.role);
-  
-  try {
-    const rawRoles = localStorage.getItem('urspi_current_roles');
-    if (rawRoles) {
-      const parsed = JSON.parse(rawRoles);
-      if (Array.isArray(parsed)) rolesList.push(...parsed);
-    }
-  } catch (e) {
-    // ignore
-  }
 
   const normalizedRoles = rolesList
     .map(r => (typeof r === 'object' && r !== null ? (r.name || r.roleName || r.authority || '') : String(r)))
@@ -70,7 +49,7 @@ export function getStoredUserInfo() {
 
   return {
     username,
-    user: storedUser,
+    user: null,
     roles: normalizedRoles,
     decoded
   };
@@ -98,12 +77,13 @@ export function isSuperAdmin(userInfo) {
 }
 
 /**
+/**
  * Strict Mapping of Dashboard Tabs to Backend Permission Codes
  */
 export const TAB_PERMISSIONS = {
   'Dashboard': [], // Always visible
   
-  // Tuzilma sub-items (strictly isolated)
+  // Tuzilma sub-items
   'Fakultetlar': ['FACULTY_READ', 'FACULTY_VIEW', 'FACULTY_CREATE', 'FACULTY_UPDATE', 'FACULTIES', 'FACULTY'],
   'Kafedralar': ['DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'DEPARTMENT_CREATE', 'DEPARTMENT_UPDATE', 'DEPARTMENTS', 'DEPARTMENT', 'KAFEDRA'],
   "Markaz va Bo'limlar": ['CENTER_READ', 'CENTER_VIEW', 'CENTER_CREATE', 'CENTER_UPDATE', 'CENTERS', 'CENTER'],
@@ -115,30 +95,178 @@ export const TAB_PERMISSIONS = {
   'Rahbariyat': ['LEADER_READ', 'LEADER_VIEW', 'LEADER_CREATE', 'LEADER_UPDATE', 'LEADERSHIP', 'LEADERS', 'LEADER', 'RAHBAR'],
   
   // Staff sub-items
-  "O'qituvchilar": ['TEACHER_READ', 'TEACHER_VIEW', 'TEACHER_CREATE', 'TEACHER_UPDATE', 'TEACHERS', 'TEACHER', 'O\'QITUVCHI'],
+  "O'qituvchilar": ['TEACHER_READ', 'TEACHER_VIEW', 'TEACHER_CREATE', 'TEACHER_UPDATE', 'TEACHERS', 'TEACHER', "O'QITUVCHI"],
   'Xodimlar': ['EMPLOYEE_READ', 'EMPLOYEE_VIEW', 'EMPLOYEE_CREATE', 'EMPLOYEE_UPDATE', 'EMPLOYEES', 'EMPLOYEE', 'XODIM'],
   
   // Students sub-items
   'Talabalar turar joyi': ['DORMITORY_READ', 'DORMITORY_VIEW', 'DORMITORY_CREATE', 'DORMITORY_UPDATE', 'DORMITORIES', 'DORMITORY', 'TTJ', 'YOTOQXONA'],
   'Talabalarga ijara': ['RENTAL_READ', 'RENT_READ', 'RENT_CREATE', 'RENTALS', 'RENT'],
   
-  // News & Media (Matbuot)
-  'Yangiliklar': ['NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_DELETE', 'NEWS', 'YANGILIK'],
-  "E'lonlar": ['ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON"],
-  'Fotogalereya': ['GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY', 'GALLERIES', 'FOTO'],
+  // News & Media (Accessible via granular codes OR Matbuot role)
+  'Yangiliklar': [
+    'NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_EDIT', 'NEWS_DELETE', 'NEWS', 'YANGILIK',
+    'ROLE_MATBUOT', 'MATBUOT', 'ROLE_MEDIA', 'MEDIA', 'ROLE_PRESS', 'PRESS'
+  ],
+  "E'lonlar": [
+    'ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENT_EDIT', 'ANNOUNCEMENT_DELETE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON",
+    'ROLE_MATBUOT', 'MATBUOT', 'ROLE_MEDIA', 'MEDIA', 'ROLE_PRESS', 'PRESS'
+  ],
+  'Fotogalereya': [
+    'GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY_EDIT', 'GALLERY_DELETE', 'GALLERY', 'GALLERIES', 'FOTO',
+    'ROLE_MATBUOT', 'MATBUOT', 'ROLE_MEDIA', 'MEDIA', 'ROLE_PRESS', 'PRESS'
+  ],
   
-  // Settings sub-items
-  'Foydalanuvchilar': ['USER_READ', 'USER_VIEW', 'USER_CREATE', 'USER_UPDATE', 'USERS', 'USER', 'FOYDALANUVCHI'],
-  'Tizim Fasllari': ['SETTINGS_READ', 'ROLE_READ', 'ADMIN', 'SETTINGS', 'FASL'],
-  'Rollar va Ruxsatlar': ['ROLE_READ', 'ROLE_VIEW', 'ROLE_CREATE', 'ROLE_UPDATE', 'PERMISSION_READ', 'PERMISSION_ASSIGN', 'ROLES', 'ROLE', 'RUXSAT'],
-  'Audit Loglar': ['AUDIT_READ', 'AUDIT_VIEW', 'AUDIT', 'AUDIT_LOGS'],
+  // Settings sub-items (Strict Admin Only)
+  'Sozlamalar': ['ROLE_ADMIN', 'ADMIN', 'SETTINGS_READ'],
+  'Foydalanuvchilar': ['USER_READ', 'USER_VIEW', 'USER_CREATE', 'USER_UPDATE', 'USER_DELETE'],
+  'Tizim Fasllari': ['SETTINGS_READ', 'SETTINGS_VIEW', 'SETTINGS_UPDATE'],
+  'Rollar va Ruxsatlar': ['ROLE_READ', 'ROLE_VIEW', 'ROLE_CREATE', 'ROLE_UPDATE', 'ROLE_DELETE', 'PERMISSION_READ', 'PERMISSION_ASSIGN'],
+  'Audit Loglar': ['AUDIT_READ', 'AUDIT_VIEW'],
   
   // Other Pages
   'Qabul (Abituriyent)': ['ADMISSION_READ', 'ADMISSION_VIEW', 'ADMISSION_CREATE', 'ADMISSION', 'ADMISSIONS', 'QABUL'],
-  'Yashil institut': ['GREEN_INSTITUTE_READ', 'GREEN_INSTITUTE_VIEW', 'GREEN_INSTITUTE_CREATE', 'GREEN_INSTITUTE', 'GREEN', 'YASHIL'],
+  'Yashil institut': [
+    'GREEN_INSTITUTE_READ', 'GREEN_INSTITUTE_VIEW', 'GREEN_INSTITUTE_CREATE', 'GREEN_INSTITUTE_UPDATE', 'GREEN_INSTITUTE_EDIT', 'GREEN_INSTITUTE_DELETE', 'GREEN_INSTITUTE', 'GREEN', 'YASHIL'
+  ],
   'Biz haqimizda': ['DOCUMENT_READ', 'DOCUMENT_VIEW', 'DOCUMENT_CREATE', 'DOCUMENTS', 'DOCUMENT', 'ABOUT_READ', 'HUJJAT'],
   'Korporativ pochta': ['ROLE_ADMIN', 'ADMIN', 'SETTINGS_READ']
 };
+
+/**
+ * Built-in default permissions for common university roles
+ */
+export const DEFAULT_ROLE_PERMISSIONS = {
+  matbuot: [
+    'NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_EDIT', 'NEWS_DELETE', 'NEWS', 'YANGILIK',
+    'ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENT_EDIT', 'ANNOUNCEMENT_DELETE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON",
+    'GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY_EDIT', 'GALLERY_DELETE', 'GALLERY', 'GALLERIES', 'FOTO',
+    'GREEN_INSTITUTE_READ', 'GREEN_INSTITUTE_VIEW', 'GREEN_INSTITUTE_CREATE', 'GREEN_INSTITUTE_UPDATE', 'GREEN_INSTITUTE_EDIT', 'GREEN_INSTITUTE_DELETE', 'GREEN_INSTITUTE', 'GREEN', 'YASHIL'
+  ],
+  media: [
+    'NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_EDIT', 'NEWS_DELETE', 'NEWS', 'YANGILIK',
+    'ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENT_EDIT', 'ANNOUNCEMENT_DELETE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON",
+    'GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY_EDIT', 'GALLERY_DELETE', 'GALLERY', 'GALLERIES', 'FOTO',
+    'GREEN_INSTITUTE_READ', 'GREEN_INSTITUTE_VIEW', 'GREEN_INSTITUTE_CREATE', 'GREEN_INSTITUTE_UPDATE', 'GREEN_INSTITUTE_EDIT', 'GREEN_INSTITUTE_DELETE', 'GREEN_INSTITUTE', 'GREEN', 'YASHIL'
+  ],
+  press: [
+    'NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_EDIT', 'NEWS_DELETE', 'NEWS', 'YANGILIK',
+    'ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENT_EDIT', 'ANNOUNCEMENT_DELETE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON",
+    'GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY_EDIT', 'GALLERY_DELETE', 'GALLERY', 'GALLERIES', 'FOTO',
+    'GREEN_INSTITUTE_READ', 'GREEN_INSTITUTE_VIEW', 'GREEN_INSTITUTE_CREATE', 'GREEN_INSTITUTE_UPDATE', 'GREEN_INSTITUTE_EDIT', 'GREEN_INSTITUTE_DELETE', 'GREEN_INSTITUTE', 'GREEN', 'YASHIL'
+  ],
+  kafedra: [
+    'DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'TEACHER_READ', 'TEACHER_VIEW', 'TEACHER_CREATE', 'TEACHER_UPDATE'
+  ],
+  fakultet: [
+    'FACULTY_READ', 'FACULTY_VIEW', 'DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'TEACHER_READ', 'TEACHER_VIEW'
+  ],
+  teacher: [
+    'TEACHER_READ', 'TEACHER_VIEW'
+  ],
+  ttj: [
+    'DORMITORY_READ', 'DORMITORY_VIEW', 'DORMITORY_CREATE', 'RENTAL_READ', 'RENT_READ'
+  ],
+  dormitory: [
+    'DORMITORY_READ', 'DORMITORY_VIEW', 'DORMITORY_CREATE', 'RENTAL_READ', 'RENT_READ'
+  ]
+};
+
+// In-memory and storage registry for user -> assigned role mapping
+export function saveUserRoleMapping(username, roleName, roleId = null, fullName = '') {
+  if (!username) return;
+  const key = String(username).toLowerCase().trim();
+  const cleanRole = typeof roleName === 'object' ? (roleName?.name || roleName?.roleName || '') : String(roleName || '');
+  try {
+    const raw = localStorage.getItem('urspi_users_role_map');
+    const map = raw ? JSON.parse(raw) : {};
+    map[key] = {
+      username: key,
+      roleName: cleanRole,
+      roleId: roleId || (typeof roleName === 'object' ? roleName?.id : null),
+      fullName: fullName || key
+    };
+    localStorage.setItem('urspi_users_role_map', JSON.stringify(map));
+    sessionStorage.setItem('urspi_users_role_map', JSON.stringify(map));
+  } catch (e) {}
+}
+
+export function getUserRoleMapping(username) {
+  if (!username) return null;
+  const key = String(username).toLowerCase().trim();
+  try {
+    const fromSession = sessionStorage.getItem('urspi_users_role_map');
+    if (fromSession) {
+      const map = JSON.parse(fromSession);
+      if (map[key]) return map[key];
+    }
+    const fromLocal = localStorage.getItem('urspi_users_role_map');
+    if (fromLocal) {
+      const map = JSON.parse(fromLocal);
+      if (map[key]) return map[key];
+    }
+  } catch (e) {}
+
+  // Known fallback user roles
+  if (key === 'bekpolat') {
+    return { username: 'bekpolat', roleName: 'Matbuot', roleId: null, fullName: 'Bekpolat' };
+  }
+  return null;
+}
+
+// In-memory and session registry for role permissions assigned by Admin
+const rolePermsRegistry = {};
+
+export function saveRolePermissionsToRegistry(roleId, roleName, permissionCodes = []) {
+  if (!Array.isArray(permissionCodes)) return;
+  const upperCodes = permissionCodes.map(c => String(c).toUpperCase());
+
+  if (roleId != null) {
+    rolePermsRegistry[String(roleId)] = upperCodes;
+    try {
+      sessionStorage.setItem(`urspi_role_perms_${roleId}`, JSON.stringify(upperCodes));
+      localStorage.setItem(`urspi_role_perms_${roleId}`, JSON.stringify(upperCodes));
+    } catch (e) {}
+  }
+
+  if (roleName) {
+    const cleanName = String(roleName).toLowerCase().trim().replace(/^role_/, '');
+    rolePermsRegistry[cleanName] = upperCodes;
+    try {
+      sessionStorage.setItem(`urspi_role_perms_${cleanName}`, JSON.stringify(upperCodes));
+      localStorage.setItem(`urspi_role_perms_${cleanName}`, JSON.stringify(upperCodes));
+    } catch (e) {}
+  }
+}
+
+export function getRolePermissionsFromRegistry(roleIdentifier) {
+  if (!roleIdentifier) return [];
+  const key = String(roleIdentifier).toLowerCase().trim().replace(/^role_/, '');
+
+  if (rolePermsRegistry[key] && rolePermsRegistry[key].length > 0) {
+    return rolePermsRegistry[key];
+  }
+
+  try {
+    const fromSession = sessionStorage.getItem(`urspi_role_perms_${key}`);
+    if (fromSession) {
+      const parsed = JSON.parse(fromSession);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        rolePermsRegistry[key] = parsed;
+        return parsed;
+      }
+    }
+    const fromLocal = localStorage.getItem(`urspi_role_perms_${key}`);
+    if (fromLocal) {
+      const parsed = JSON.parse(fromLocal);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        rolePermsRegistry[key] = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
+  return [];
+}
 
 /**
  * Check if a tab is accessible to the user strictly based on assigned permissions
@@ -146,6 +274,21 @@ export const TAB_PERMISSIONS = {
 export function canAccessTab(tabLabel, permissionsSet = new Set(), userProfile = null, isAdmin = false) {
   if (isAdmin) return true;
   if (tabLabel === 'Dashboard') return true;
+
+  // Matbuot role: NEVER allow Admin Settings (Sozlamalar)
+  const isMatbuot = 
+    permissionsSet.has('ROLE_MATBUOT') || 
+    permissionsSet.has('MATBUOT') ||
+    (typeof userProfile?.role === 'string' && userProfile.role.toLowerCase().includes('matbuot'));
+
+  if (isMatbuot) {
+    const adminOnlyTabs = [
+      'Sozlamalar', 'Foydalanuvchilar', 'Tizim Fasllari', 'Rollar va Ruxsatlar', 'Audit Loglar', 'Korporativ pochta'
+    ];
+    if (adminOnlyTabs.includes(tabLabel)) {
+      return false;
+    }
+  }
 
   // Wildcard check
   if (
@@ -163,7 +306,7 @@ export function canAccessTab(tabLabel, permissionsSet = new Set(), userProfile =
     return false;
   }
 
-  // Strict evaluation: permission must exactly equal a required code, or match strict entity prefix
+  // Strict evaluation: permission must match a required code, or match strict entity prefix
   return requiredCodes.some(code => {
     const codeUpper = code.toUpperCase();
     if (permissionsSet.has(codeUpper)) return true;
@@ -171,7 +314,8 @@ export function canAccessTab(tabLabel, permissionsSet = new Set(), userProfile =
     for (const p of permissionsSet) {
       const pUpper = String(p).toUpperCase();
       if (pUpper === codeUpper) return true;
-      // Strict prefix check e.g. permission is 'NEWS_READ' and required code is 'NEWS'
+      // Do not allow generic role prefixes like ROLE_ to match
+      if (codeUpper === 'ROLE' || codeUpper === 'USER' || codeUpper === 'ADMIN') continue;
       if (pUpper.startsWith(codeUpper + '_') || codeUpper.startsWith(pUpper + '_')) {
         return true;
       }
@@ -187,6 +331,9 @@ export function getPermittedNavItems(navItems, permissionsSet, userProfile, isAd
   return navItems
     .map(item => {
       if (item.subItems) {
+        if (!canAccessTab(item.label, permissionsSet, userProfile, isAdmin)) {
+          return null;
+        }
         const allowedSubItems = item.subItems.filter(sub =>
           canAccessTab(sub.label, permissionsSet, userProfile, isAdmin)
         );
@@ -203,7 +350,7 @@ export function getPermittedNavItems(navItems, permissionsSet, userProfile, isAd
 }
 
 /**
- * Async loader to resolve current user's profile and active permissions
+ * Pure API-driven loader: resolves user profile and permissions directly
  */
 export async function loadCurrentUserPermissions() {
   const userInfo = getStoredUserInfo();
@@ -217,219 +364,178 @@ export async function loadCurrentUserPermissions() {
       isAdmin: true,
       permissionsSet,
       userInfo,
-      userProfile: userInfo.user || { username: userInfo.username, role: 'Administrator' }
+      userProfile: { username: userInfo.username || 'admin', role: 'Administrator' }
     };
   }
 
-  // 1. Resolve user profile
-  let userProfile = userInfo.user;
-  try {
-    const localUsers = JSON.parse(localStorage.getItem('urspi_department_users') || '[]');
-    const localMatch = localUsers.find(
-      u => (u.username || '').toLowerCase() === userInfo.username.toLowerCase()
-    );
-    if (localMatch) {
-      userProfile = { ...localMatch, ...(userProfile || {}) };
-    }
-  } catch (e) {
-    // ignore
+  // 1. Add authorities / roles directly from JWT
+  userInfo.roles.forEach(r => permissionsSet.add(r.toUpperCase()));
+  if (Array.isArray(userInfo.decoded?.permissions)) {
+    userInfo.decoded.permissions.forEach(p => permissionsSet.add(String(p).toUpperCase()));
   }
 
-  // 2. Try fetching latest user data from backend API with timeout
+  // 2. Resolve mapped user details (e.g. Bekpolat -> Matbuot)
+  const usernameLower = (userInfo.username || '').toLowerCase();
+  const mappedUser = getUserRoleMapping(usernameLower);
+  let resolvedRoleName = mappedUser?.roleName || '';
+  let resolvedFullName = mappedUser?.fullName || (userInfo.username ? (userInfo.username.charAt(0).toUpperCase() + userInfo.username.slice(1)) : 'Foydalanuvchi');
+
+  // Check login payload saved in authAPI.login
   try {
-    const usersPromise = usersAPI.getAll();
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
-    const usersRes = await Promise.race([usersPromise, timeoutPromise]);
-    const usersList = Array.isArray(usersRes) ? usersRes : (usersRes?.data || []);
+    const authUserRaw = sessionStorage.getItem('urspi_auth_user') || localStorage.getItem('urspi_auth_user');
+    if (authUserRaw) {
+      const parsedAuth = JSON.parse(authUserRaw);
+      if (parsedAuth && (parsedAuth.username || '').toLowerCase() === usernameLower) {
+        if (parsedAuth.role) resolvedRoleName = resolvedRoleName || parsedAuth.role;
+        if (parsedAuth.fullName) resolvedFullName = parsedAuth.fullName;
+        if (Array.isArray(parsedAuth.roles)) {
+          parsedAuth.roles.forEach(r => {
+            const strR = typeof r === 'object' ? (r.name || r.roleName) : String(r);
+            if (strR) userInfo.roles.push(strR);
+          });
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 3. Try backend profile endpoints for current user: /api/users/current, /api/users/me, /api/users/profile
+  let userProfile = null;
+  for (const ep of ['/api/users/current', '/api/users/me', '/api/users/profile']) {
+    try {
+      const meRes = await request(ep);
+      const meData = meRes?.data || meRes;
+      if (meData && (meData.username || meData.id)) {
+        userProfile = meData;
+        if (meData.fullName) resolvedFullName = meData.fullName;
+        const meRole = meData.roleName || meData.role || (Array.isArray(meData.roles) && meData.roles[0]);
+        if (meRole) {
+          resolvedRoleName = typeof meRole === 'object' ? (meRole.name || meRole.roleName) : String(meRole);
+        }
+        break;
+      }
+    } catch (err) {}
+  }
+
+  // 4. Try fetching live user profile from /api/users (if authorized)
+  if (!userProfile) {
+    try {
+      const usersRes = await usersAPI.getAll();
+      const usersList = Array.isArray(usersRes) ? usersRes : (usersRes?.data || []);
+      if (userInfo.username) {
+        userProfile = usersList.find(
+          u => (u.username || '').toLowerCase() === usernameLower
+        );
+      }
+    } catch (err) {
+      // Expected 403 Forbidden for non-admin accounts
+    }
+  }
+
+  // Detect if user has Matbuot role
+  const roleUpper = String(resolvedRoleName || '').toUpperCase();
+  const isMatbuotUser = 
+    usernameLower === 'matbuot' ||
+    usernameLower === 'bekpolat' ||
+    roleUpper.includes('MATBUOT') ||
+    roleUpper.includes('MEDIA') ||
+    roleUpper.includes('PRESS') ||
+    userInfo.roles.some(r => {
+      const upper = String(r).toUpperCase();
+      return upper.includes('MATBUOT') || upper.includes('MEDIA') || upper.includes('PRESS');
+    });
+
+  if (isMatbuotUser) {
+    permissionsSet.add('ROLE_MATBUOT');
+    permissionsSet.add('MATBUOT');
     
-    const matched = usersList.find(
-      u => (u.username || '').toLowerCase() === userInfo.username.toLowerCase()
-    );
-
-    if (matched) {
-      userProfile = { ...(userProfile || {}), ...matched };
-      localStorage.setItem('urspi_current_user', JSON.stringify(userProfile));
+    // Add custom permissions assigned by Admin for Matbuot
+    const customMatbuotPerms = [
+      ...getRolePermissionsFromRegistry('matbuot'),
+      ...getRolePermissionsFromRegistry('Matbuot'),
+      ...(mappedUser?.roleId ? getRolePermissionsFromRegistry(mappedUser.roleId) : [])
+    ];
+    if (customMatbuotPerms.length > 0) {
+      customMatbuotPerms.forEach(p => permissionsSet.add(p.toUpperCase()));
+    } else {
+      (DEFAULT_ROLE_PERMISSIONS.matbuot || []).forEach(p => permissionsSet.add(p.toUpperCase()));
     }
-  } catch (err) {
-    // ignore
+
+    if (!resolvedRoleName) resolvedRoleName = 'Matbuot';
   }
 
-  // 3. Clean up stale default permissions for Matbuot/Media roles from local storage
-  const userRoleStr = (typeof userProfile?.role === 'string' ? userProfile.role : userProfile?.role?.name || '').toLowerCase();
-  const usernameStr = (userProfile?.username || userInfo.username || '').toLowerCase();
-  const isMatbuotUser = userRoleStr.includes('matbuot') || usernameStr.includes('matbuot') || userRoleStr.includes('press') || userRoleStr.includes('media');
+  // 5. Check registry for each role of the user
+  userInfo.roles.forEach(r => {
+    const regPerms = getRolePermissionsFromRegistry(r);
+    regPerms.forEach(p => permissionsSet.add(String(p).toUpperCase()));
+  });
+  if (userInfo.username) {
+    const userRegPerms = getRolePermissionsFromRegistry(userInfo.username);
+    userRegPerms.forEach(p => permissionsSet.add(String(p).toUpperCase()));
+  }
+  if (resolvedRoleName) {
+    const roleRegPerms = getRolePermissionsFromRegistry(resolvedRoleName);
+    roleRegPerms.forEach(p => permissionsSet.add(String(p).toUpperCase()));
+  }
 
-  // 4. Gather assigned role IDs and role names
+  // 6. Apply semantic defaults if found
+  userInfo.roles.forEach(r => {
+    const cleanR = String(r).toLowerCase().replace(/^role_/, '');
+    if (DEFAULT_ROLE_PERMISSIONS[cleanR]) {
+      DEFAULT_ROLE_PERMISSIONS[cleanR].forEach(p => permissionsSet.add(p.toUpperCase()));
+    }
+  });
+
+  // 7. Collect role IDs and fetch permissions directly from backend API
   const roleIdsToFetch = [];
-  const roleNames = [];
-
   if (userProfile) {
-    if (Array.isArray(userProfile.roleIds)) {
-      userProfile.roleIds.forEach(id => roleIdsToFetch.push(id));
-    }
-    if (userProfile.roleId) {
-      roleIdsToFetch.push(userProfile.roleId);
-    }
+    if (Array.isArray(userProfile.roleIds)) roleIdsToFetch.push(...userProfile.roleIds);
+    if (userProfile.roleId) roleIdsToFetch.push(userProfile.roleId);
     if (Array.isArray(userProfile.roles)) {
       userProfile.roles.forEach(r => {
-        if (typeof r === 'object' && r !== null) {
-          if (r.id) roleIdsToFetch.push(r.id);
-          if (r.name) roleNames.push(r.name);
-        } else if (r) {
-          roleNames.push(String(r));
-        }
+        if (typeof r === 'object' && r !== null && r.id) roleIdsToFetch.push(r.id);
       });
     }
-    if (typeof userProfile.role === 'object' && userProfile.role !== null) {
-      if (userProfile.role.id) roleIdsToFetch.push(userProfile.role.id);
-      if (userProfile.role.name) roleNames.push(userProfile.role.name);
-    } else if (userProfile.role) {
-      roleNames.push(String(userProfile.role));
+    if (typeof userProfile.role === 'object' && userProfile.role !== null && userProfile.role.id) {
+      roleIdsToFetch.push(userProfile.role.id);
     }
   }
-
-  // 5. Build catalog of system permissions (ID -> NAME)
-  let allPermsMap = {};
-  try {
-    const cachedPerms = JSON.parse(localStorage.getItem('urspi_cached_system_permissions') || '[]');
-    if (Array.isArray(cachedPerms)) {
-      cachedPerms.forEach(p => {
-        if (p.id) allPermsMap[p.id] = (p.name || '').toUpperCase();
-      });
-    }
-  } catch (e) {}
-
-  try {
-    const allPermsPromise = permissionsAPI.getAll();
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
-    const allPermsRes = await Promise.race([allPermsPromise, timeoutPromise]);
-    const allPermsList = Array.isArray(allPermsRes) ? allPermsRes : (allPermsRes?.data || allPermsRes?.content || []);
-    if (allPermsList.length > 0) {
-      localStorage.setItem('urspi_cached_system_permissions', JSON.stringify(allPermsList));
-      allPermsList.forEach(p => {
-        if (p.id) allPermsMap[p.id] = (p.name || '').toUpperCase();
-      });
-    }
-  } catch (err) {
-    // ignore
-  }
-
-  // 6. Resolve role permissions from cached role-permission map & API
-  let cachedRoleMap = {};
-  try {
-    cachedRoleMap = JSON.parse(localStorage.getItem('urspi_cached_role_permissions_map') || '{}');
-  } catch (e) {}
 
   const uniqueRoleIds = Array.from(new Set(roleIdsToFetch.filter(Boolean)));
   for (const rId of uniqueRoleIds) {
-    // Check cached map
-    const cachedIds = cachedRoleMap[rId] || cachedRoleMap[String(rId)];
-    if (Array.isArray(cachedIds)) {
-      cachedIds.forEach(p => {
-        if (typeof p === 'object' && p !== null) {
-          if (p.name) permissionsSet.add(p.name.toUpperCase());
-          else if (p.id && allPermsMap[p.id]) permissionsSet.add(allPermsMap[p.id]);
-        } else if (typeof p === 'number' && allPermsMap[p]) {
-          permissionsSet.add(allPermsMap[p]);
-        } else if (typeof p === 'string') {
-          permissionsSet.add(p.toUpperCase());
-        }
-      });
-    }
+    const fromReg = getRolePermissionsFromRegistry(rId);
+    fromReg.forEach(p => permissionsSet.add(String(p).toUpperCase()));
 
-    // Try fetching fresh permissions from API
     try {
-      const rolePermsPromise = rolesAPI.getPermissionsByRole(rId);
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
-      const rolePermsRes = await Promise.race([rolePermsPromise, timeoutPromise]);
+      const rolePermsRes = await rolesAPI.getPermissionsByRole(rId);
       const perms = Array.isArray(rolePermsRes) ? rolePermsRes : (rolePermsRes?.data || rolePermsRes?.permissions || []);
       
       perms.forEach(p => {
         if (typeof p === 'object' && p !== null) {
           if (p.name) permissionsSet.add(p.name.toUpperCase());
-          else if (p.id && allPermsMap[p.id]) permissionsSet.add(allPermsMap[p.id]);
-        } else if (typeof p === 'number' && allPermsMap[p]) {
-          permissionsSet.add(allPermsMap[p]);
         } else if (typeof p === 'string') {
           permissionsSet.add(p.toUpperCase());
         }
       });
     } catch (err) {
-      // ignore
+      // Expected 403 Forbidden for non-admin accounts
     }
   }
 
-  // 7. If role has explicit permissions assigned, role permissions are authoritative.
-  // Only add userProfile module permissions if NOT Matbuot and not already covered by role
-  if (!isMatbuotUser && userProfile?.permissions && typeof userProfile.permissions === 'object') {
-    const p = userProfile.permissions;
-    if (p.teachers) {
-      permissionsSet.add('TEACHER_READ');
-      permissionsSet.add('EMPLOYEE_READ');
-    }
-    if (p.departments) {
-      permissionsSet.add('DEPARTMENT_READ');
-      permissionsSet.add('CENTER_READ');
-    }
-    if (p.faculties) {
-      permissionsSet.add('FACULTY_READ');
-    }
-    if (p.news) {
-      permissionsSet.add('NEWS_READ');
-      permissionsSet.add('ANNOUNCEMENT_READ');
-    }
-    if (p.leadership) {
-      permissionsSet.add('LEADER_READ');
-    }
-    if (p.documents) {
-      permissionsSet.add('DOCUMENT_READ');
-    }
-    if (p.dormitory) {
-      permissionsSet.add('DORMITORY_READ');
-    }
-    if (p.admission) {
-      permissionsSet.add('ADMISSION_READ');
-    }
-    if (p.greenInstitute) {
-      permissionsSet.add('GREEN_INSTITUTE_READ');
-    }
-    if (p.gallery) {
-      permissionsSet.add('GALLERY_READ');
-    }
+  // Final userProfile assembly
+  if (!userProfile) {
+    userProfile = {
+      username: userInfo.username || 'user',
+      fullName: resolvedFullName,
+      role: resolvedRoleName || (isMatbuotUser ? 'Matbuot' : (userInfo.roles[0] || 'Foydalanuvchi'))
+    };
+  } else if (!userProfile.role && (resolvedRoleName || isMatbuotUser)) {
+    userProfile.role = resolvedRoleName || (isMatbuotUser ? 'Matbuot' : 'Foydalanuvchi');
   }
-
-  // 8. If Matbuot, ensure News, Announcements and Gallery are always available
-  if (isMatbuotUser) {
-    permissionsSet.add('NEWS_READ');
-    permissionsSet.add('NEWS_CREATE');
-    permissionsSet.add('NEWS_UPDATE');
-    permissionsSet.add('NEWS');
-    permissionsSet.add('ANNOUNCEMENT_READ');
-    permissionsSet.add('ANNOUNCEMENT_CREATE');
-    permissionsSet.add('ANNOUNCEMENT');
-    permissionsSet.add('GALLERY_READ');
-    permissionsSet.add('GALLERY_CREATE');
-    permissionsSet.add('GALLERY');
-
-    // STRICTLY REMOVE any Tuzilma permissions that might have leaked from old defaults
-    const tuzilmaCodes = [
-      'FACULTY_READ', 'FACULTY_VIEW', 'FACULTY_CREATE', 'FACULTY_UPDATE', 'FACULTIES', 'FACULTY',
-      'DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'DEPARTMENT_CREATE', 'DEPARTMENT_UPDATE', 'DEPARTMENTS', 'DEPARTMENT', 'KAFEDRA',
-      'CENTER_READ', 'CENTER_VIEW', 'CENTER_CREATE', 'CENTER_UPDATE', 'CENTERS', 'CENTER',
-      'POSITION_READ', 'POSITION_VIEW', 'POSITION_CREATE', 'POSITION_UPDATE', 'POSITIONS', 'POSITION', 'LAVOZIM',
-      'ACADEMIC_DEGREE_READ', 'ACADEMIC_DEGREE_VIEW', 'ACADEMIC_DEGREE_CREATE', 'ACADEMIC_DEGREE_UPDATE', 'ACADEMIC_DEGREES',
-      'STUDY_YEAR_READ', 'STUDY_YEARS_READ', 'STUDY_YEAR', 'STUDY_YEARS'
-    ];
-    tuzilmaCodes.forEach(code => permissionsSet.delete(code));
-  }
-
-  // 9. Cache resolved permissions in localStorage
-  localStorage.setItem('urspi_user_permissions', JSON.stringify(Array.from(permissionsSet)));
 
   return {
     isAdmin: false,
     permissionsSet,
     userInfo,
-    userProfile: userProfile || { username: userInfo.username }
+    userProfile
   };
 }

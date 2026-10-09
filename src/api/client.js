@@ -48,7 +48,39 @@ export const setTokens = (accessToken, refreshToken) => {
 export const clearTokens = () => {
     localStorage.removeItem('urspi_access_token');
     localStorage.removeItem('urspi_refresh_token');
+    try {
+        [
+            'urspi_department_users',
+            'urspi_user_custom_permissions',
+            'urspi_cached_role_permissions_map',
+            'urspi_user_permissions',
+            'urspi_cached_system_permissions',
+            'urspi_cached_roles',
+            'urspi_current_user',
+            'urspi_current_username',
+            'urspi_current_roles',
+            'dashboard-active-tab',
+            'dashboard-dark'
+        ].forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
 };
+
+// Immediate cleanup of any mock/custom localStorage data on module load
+try {
+    [
+        'urspi_department_users',
+        'urspi_user_custom_permissions',
+        'urspi_cached_role_permissions_map',
+        'urspi_user_permissions',
+        'urspi_cached_system_permissions',
+        'urspi_cached_roles',
+        'urspi_current_user',
+        'urspi_current_username',
+        'urspi_current_roles',
+        'dashboard-active-tab',
+        'dashboard-dark'
+    ].forEach(k => localStorage.removeItem(k));
+} catch (e) {}
 
 /**
  * Resolves full image/file URL from backend file paths or filenames

@@ -96,15 +96,11 @@ export default function Dashboard() {
   const getInitialTab = () => {
     const tabFromUrl = searchParams.get('tab');
     if (tabFromUrl) return tabFromUrl;
-    const tabFromStorage = localStorage.getItem('dashboard-active-tab');
-    if (tabFromStorage) return tabFromStorage;
     return 'Dashboard';
   };
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('dashboard-dark') === 'true'
-  );
+  const [darkMode, setDarkMode] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [activeTab, setActiveTab] = useState(getInitialTab);
@@ -151,14 +147,12 @@ export default function Dashboard() {
         fallbackTab = firstItem.subItems ? firstItem.subItems[0].label : firstItem.label;
       }
       setActiveTab(fallbackTab);
-      localStorage.setItem('dashboard-active-tab', fallbackTab);
       setSearchParams({ tab: fallbackTab }, { replace: true });
     }
   }, [activeTab, permittedNavItems, permLoading, userPermissions, currentUser, isAdmin]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
-    localStorage.setItem('dashboard-active-tab', tabName);
     setSearchParams({ tab: tabName }, { replace: true });
   };
 
@@ -170,7 +164,6 @@ export default function Dashboard() {
     const tabFromUrl = searchParams.get('tab');
     if (tabFromUrl && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
-      localStorage.setItem('dashboard-active-tab', tabFromUrl);
     } else if (!tabFromUrl && activeTab) {
       setSearchParams({ tab: activeTab }, { replace: true });
     }
@@ -190,9 +183,7 @@ export default function Dashboard() {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    localStorage.setItem('dashboard-dark', String(darkMode));
-  }, [darkMode]);
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {

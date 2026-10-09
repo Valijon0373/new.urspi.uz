@@ -5,7 +5,7 @@ import {
   SlidersHorizontal, ChevronDown, Plus, UserCheck, Calendar, Lock, ToggleLeft, ToggleRight,
   Shield, CheckSquare, Square, Phone, Upload, Image as ImageIcon, Camera, User
 } from 'lucide-react';
-import { usersAPI, departmentsAPI, centersAPI, facultiesAPI, rolesAPI, getFileUrl } from '../../api';
+import { usersAPI, departmentsAPI, centersAPI, facultiesAPI, rolesAPI, getFileUrl, saveUserRoleMapping } from '../../api';
 
 // Helper utilities to guarantee safe string rendering in React DOM
 const getDepartmentName = (user) => {
@@ -246,23 +246,18 @@ export default function UsersAdmin() {
       const raw = Array.isArray(res) ? res : (res?.data || []);
       if (raw && raw.length > 0) {
         loadedUsers = raw;
+        raw.forEach(u => {
+          const uName = getUsername(u);
+          const rName = getRoleName(u);
+          const fName = getFullName(u);
+          const rId = u.roleId || (typeof u.role === 'object' ? u.role?.id : null) || (Array.isArray(u.roles) && u.roles[0]?.id) || null;
+          if (uName && rName && rName !== "Foydalanuvchi") {
+            saveUserRoleMapping(uName, rName, rId, fName);
+          }
+        });
       }
     } catch (e) {
-      console.warn('API fetchUsers error, falling back to local storage:', e.message);
-    }
-
-    if (loadedUsers.length === 0) {
-      const saved = localStorage.getItem('urspi_department_users');
-      if (saved) {
-        try {
-          loadedUsers = JSON.parse(saved);
-        } catch (e) {
-          loadedUsers = INITIAL_DEMO_USERS;
-        }
-      } else {
-        loadedUsers = INITIAL_DEMO_USERS;
-        localStorage.setItem('urspi_department_users', JSON.stringify(INITIAL_DEMO_USERS));
-      }
+      console.warn('API fetchUsers error:', e.message);
     }
 
     setUsersList(loadedUsers);
@@ -320,7 +315,6 @@ export default function UsersAdmin() {
 
   const saveUsersToStorage = (updated) => {
     setUsersList(updated);
-    localStorage.setItem('urspi_department_users', JSON.stringify(updated));
   };
 
   const showToast = (msg, type = 'success') => {
@@ -449,6 +443,7 @@ export default function UsersAdmin() {
 
   const handleSavePermissions = async () => {
     if (!selectedUser) return;
+
     const updatedUser = {
       ...selectedUser,
       permissions: userPermissions
@@ -461,7 +456,8 @@ export default function UsersAdmin() {
     }
 
     const newList = usersList.map(u => u.id === selectedUser.id ? updatedUser : u);
-    saveUsersToStorage(newList);
+    setUsersList(newList);
+
     showToast("Foydalanuvchi huquqlari muvaffaqiyatli saqlandi!");
     setPermissionsModalOpen(false);
   };

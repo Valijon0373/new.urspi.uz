@@ -11,27 +11,23 @@ export const authAPI = {
         if (token) {
             setTokens(token, refreshToken);
         }
-        if (username) {
-            localStorage.setItem('urspi_current_username', username);
-            try {
-                const localUsers = JSON.parse(localStorage.getItem('urspi_department_users') || '[]');
-                const matched = localUsers.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
-                const serverUser = res?.user || res?.data?.user || {};
-                const merged = matched ? { ...matched, ...serverUser } : (res?.user || res?.data?.user);
-                if (merged) {
-                    localStorage.setItem('urspi_current_user', JSON.stringify(merged));
-                    if (merged.roles) {
-                        localStorage.setItem('urspi_current_roles', JSON.stringify(merged.roles));
-                    } else if (merged.role) {
-                        localStorage.setItem('urspi_current_roles', JSON.stringify([merged.role]));
-                    }
-                }
-            } catch (e) {
-                if (res?.user || res?.data?.user) {
-                    localStorage.setItem('urspi_current_user', JSON.stringify(res.user || res.data.user));
-                }
+
+        try {
+            const rawUser = res?.user || res?.data?.user || res?.userData || null;
+            const rolesList = res?.roles || res?.data?.roles || res?.authorities || rawUser?.roles || [];
+            const roleName = res?.role || res?.data?.role || rawUser?.role || (Array.isArray(rolesList) && rolesList[0]);
+            if (rawUser || roleName || username) {
+                const userPayload = {
+                    username,
+                    fullName: rawUser?.fullName || rawUser?.name || username,
+                    role: typeof roleName === 'object' ? (roleName?.name || roleName?.roleName) : roleName,
+                    roles: Array.isArray(rolesList) ? rolesList : (roleName ? [roleName] : [])
+                };
+                sessionStorage.setItem('urspi_auth_user', JSON.stringify(userPayload));
+                localStorage.setItem('urspi_auth_user', JSON.stringify(userPayload));
             }
-        }
+        } catch (e) {}
+
         return res;
     },
     refreshToken: async () => {

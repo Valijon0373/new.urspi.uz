@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Key, Plus, Trash2, Check, X, Loader2, ShieldCheck, Search, SlidersHorizontal, CheckSquare, Square } from 'lucide-react';
-import { rolesAPI, permissionsAPI } from '../../api';
+import { rolesAPI, permissionsAPI, saveRolePermissionsToRegistry } from '../../api';
 
 // Helper: Translate permission code and entity into friendly Uzbek
 export const getPermissionUzbekInfo = (permission) => {
@@ -263,19 +263,13 @@ export default function RolesAdmin() {
       setRolesList(rawRoles);
       setPermissionsList(rawPerms);
 
-      // Cache for instant RBAC access
-      if (rawRoles.length > 0) {
-        localStorage.setItem('urspi_cached_roles', JSON.stringify(rawRoles));
-      }
-      if (rawPerms.length > 0) {
-        localStorage.setItem('urspi_cached_system_permissions', JSON.stringify(rawPerms));
-      }
-
       // Auto-select first role if available and not selected yet
       if (rawRoles.length > 0) {
         const firstRole = rawRoles[0];
         setSelectedRoleForPerms(prev => prev || firstRole);
-        fetchPermissionsForRole(firstRole.id);
+        rawRoles.forEach(r => {
+          if (r && r.id) fetchPermissionsForRole(r.id);
+        });
       }
     } catch (e) {
       console.warn('API error in RolesAdmin:', e.message);
@@ -286,20 +280,27 @@ export default function RolesAdmin() {
     }
   };
 
+  const syncRolePermissions = (roleId, roleName, permIds, perms = permissionsList) => {
+    if (!roleId || !roleName || !Array.isArray(permIds)) return;
+    const codes = permIds.map(id => {
+      const found = perms.find(p => p.id === id);
+      return found ? found.name : (typeof id === 'string' ? id : null);
+    }).filter(Boolean);
+    saveRolePermissionsToRegistry(roleId, roleName, codes);
+  };
+
   const fetchPermissionsForRole = async (roleId) => {
     setLoadingRolePerms(true);
     try {
       const res = await rolesAPI.getPermissionsByRole(roleId);
       const perms = Array.isArray(res) ? res : (res?.data || res?.permissions || []);
       const ids = perms.map(p => (typeof p === 'object' && p !== null ? p.id : p));
-      setRolePermissionsMap(prev => {
-        const next = { ...prev, [roleId]: ids };
-        try {
-          const stored = JSON.parse(localStorage.getItem('urspi_cached_role_permissions_map') || '{}');
-          localStorage.setItem('urspi_cached_role_permissions_map', JSON.stringify({ ...stored, ...next }));
-        } catch (e) {}
-        return next;
-      });
+      setRolePermissionsMap(prev => ({ ...prev, [roleId]: ids }));
+      
+      const roleObj = rolesList.find(r => r.id === roleId) || selectedRoleForPerms;
+      if (roleObj) {
+        syncRolePermissions(roleId, roleObj.name, ids, permissionsList);
+      }
       return ids;
     } catch (err) {
       console.warn(`Failed to fetch permissions for role ${roleId}:`, err.message);
@@ -386,31 +387,21 @@ export default function RolesAdmin() {
     try {
       if (isAssigned) {
         await rolesAPI.removePermission(selectedRoleForPerms.id, permId);
-        setRolePermissionsMap(prev => {
-          const next = {
-            ...prev,
-            [selectedRoleForPerms.id]: (prev[selectedRoleForPerms.id] || []).filter(id => id !== permId)
-          };
-          try {
-            const stored = JSON.parse(localStorage.getItem('urspi_cached_role_permissions_map') || '{}');
-            localStorage.setItem('urspi_cached_role_permissions_map', JSON.stringify({ ...stored, ...next }));
-          } catch (e) {}
-          return next;
-        });
+        const nextIds = (rolePermissionsMap[selectedRoleForPerms.id] || []).filter(id => id !== permId);
+        setRolePermissionsMap(prev => ({
+          ...prev,
+          [selectedRoleForPerms.id]: nextIds
+        }));
+        syncRolePermissions(selectedRoleForPerms.id, selectedRoleForPerms.name, nextIds);
         showNotification("Ruxsatnoma roldan olib tashlandi", 'success');
       } else {
         await rolesAPI.assignPermission(selectedRoleForPerms.id, permId);
-        setRolePermissionsMap(prev => {
-          const next = {
-            ...prev,
-            [selectedRoleForPerms.id]: [...(prev[selectedRoleForPerms.id] || []), permId]
-          };
-          try {
-            const stored = JSON.parse(localStorage.getItem('urspi_cached_role_permissions_map') || '{}');
-            localStorage.setItem('urspi_cached_role_permissions_map', JSON.stringify({ ...stored, ...next }));
-          } catch (e) {}
-          return next;
-        });
+        const nextIds = [...(rolePermissionsMap[selectedRoleForPerms.id] || []), permId];
+        setRolePermissionsMap(prev => ({
+          ...prev,
+          [selectedRoleForPerms.id]: nextIds
+        }));
+        syncRolePermissions(selectedRoleForPerms.id, selectedRoleForPerms.name, nextIds);
         showNotification("Ruxsatnoma rolga biriktirildi", 'success');
       }
     } catch (err) {
@@ -459,6 +450,7 @@ export default function RolesAdmin() {
 
       const updatedIds = await fetchPermissionsForRole(selectedRoleForPerms.id);
       setModalSelectedPermIds(updatedIds);
+      syncRolePermissions(selectedRoleForPerms.id, selectedRoleForPerms.name, updatedIds);
 
       if (failed.length > 0) {
         showNotification(`${promises.length - failed.length} ta o'zgarish saqlandi, ${failed.length} tasida xatolik yuz berdi`, 'error');
