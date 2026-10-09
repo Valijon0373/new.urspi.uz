@@ -98,18 +98,18 @@ export function isSuperAdmin(userInfo) {
 }
 
 /**
- * Mapping of Dashboard Tabs to Backend Permission Codes
+ * Strict Mapping of Dashboard Tabs to Backend Permission Codes
  */
 export const TAB_PERMISSIONS = {
   'Dashboard': [], // Always visible
   
-  // Tuzilma sub-items
+  // Tuzilma sub-items (strictly isolated)
   'Fakultetlar': ['FACULTY_READ', 'FACULTY_VIEW', 'FACULTY_CREATE', 'FACULTY_UPDATE', 'FACULTIES', 'FACULTY'],
   'Kafedralar': ['DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'DEPARTMENT_CREATE', 'DEPARTMENT_UPDATE', 'DEPARTMENTS', 'DEPARTMENT', 'KAFEDRA'],
-  "Markaz va Bo'limlar": ['CENTER_READ', 'CENTER_VIEW', 'CENTER_CREATE', 'CENTER_UPDATE', 'CENTERS', 'CENTER', 'DEPARTMENT'],
+  "Markaz va Bo'limlar": ['CENTER_READ', 'CENTER_VIEW', 'CENTER_CREATE', 'CENTER_UPDATE', 'CENTERS', 'CENTER'],
   'Lavozimlar': ['POSITION_READ', 'POSITION_VIEW', 'POSITION_CREATE', 'POSITION_UPDATE', 'POSITIONS', 'POSITION', 'LAVOZIM'],
-  'Ilmiy darajalar': ['ACADEMIC_DEGREE_READ', 'ACADEMIC_DEGREE_VIEW', 'ACADEMIC_DEGREE_CREATE', 'ACADEMIC_DEGREE_UPDATE', 'ACADEMIC_DEGREES', 'DEGREE', 'ILMIY'],
-  "O'quv yillari": ['STUDY_YEAR_READ', 'STUDY_YEARS_READ', 'STUDY_YEAR', 'STUDY_YEARS', 'FACULTY_READ', 'DEPARTMENT_READ'],
+  'Ilmiy darajalar': ['ACADEMIC_DEGREE_READ', 'ACADEMIC_DEGREE_VIEW', 'ACADEMIC_DEGREE_CREATE', 'ACADEMIC_DEGREE_UPDATE', 'ACADEMIC_DEGREES'],
+  "O'quv yillari": ['STUDY_YEAR_READ', 'STUDY_YEARS_READ', 'STUDY_YEAR', 'STUDY_YEARS'],
   
   // Leadership
   'Rahbariyat': ['LEADER_READ', 'LEADER_VIEW', 'LEADER_CREATE', 'LEADER_UPDATE', 'LEADERSHIP', 'LEADERS', 'LEADER', 'RAHBAR'],
@@ -120,9 +120,9 @@ export const TAB_PERMISSIONS = {
   
   // Students sub-items
   'Talabalar turar joyi': ['DORMITORY_READ', 'DORMITORY_VIEW', 'DORMITORY_CREATE', 'DORMITORY_UPDATE', 'DORMITORIES', 'DORMITORY', 'TTJ', 'YOTOQXONA'],
-  'Talabalarga ijara': ['RENTAL_READ', 'RENT_READ', 'RENT_CREATE', 'RENTALS', 'RENT', 'DORMITORY', 'IJARA'],
+  'Talabalarga ijara': ['RENTAL_READ', 'RENT_READ', 'RENT_CREATE', 'RENTALS', 'RENT'],
   
-  // News & Media
+  // News & Media (Matbuot)
   'Yangiliklar': ['NEWS_READ', 'NEWS_VIEW', 'NEWS_CREATE', 'NEWS_UPDATE', 'NEWS_DELETE', 'NEWS', 'YANGILIK'],
   "E'lonlar": ['ANNOUNCEMENT_READ', 'ANNOUNCEMENT_VIEW', 'ANNOUNCEMENT_CREATE', 'ANNOUNCEMENT_UPDATE', 'ANNOUNCEMENTS', 'ANNOUNCEMENT', 'ELON', "E'LON"],
   'Fotogalereya': ['GALLERY_READ', 'GALLERY_VIEW', 'GALLERY_CREATE', 'GALLERY_UPDATE', 'GALLERY', 'GALLERIES', 'FOTO'],
@@ -141,30 +141,7 @@ export const TAB_PERMISSIONS = {
 };
 
 /**
- * Module flag mapping for direct user profile permissions
- */
-export const MODULE_FLAGS = {
-  'Fakultetlar': 'faculties',
-  'Kafedralar': 'departments',
-  "Markaz va Bo'limlar": 'departments',
-  'Lavozimlar': 'departments',
-  'Ilmiy darajalar': 'faculties',
-  "O'quv yillari": 'faculties',
-  "O'qituvchilar": 'teachers',
-  'Xodimlar': 'teachers',
-  'Yangiliklar': 'news',
-  "E'lonlar": 'news',
-  'Rahbariyat': 'leadership',
-  'Biz haqimizda': 'documents',
-  'Talabalar turar joyi': 'dormitory',
-  'Talabalarga ijara': 'dormitory',
-  'Fotogalereya': 'gallery',
-  'Yashil institut': 'greenInstitute',
-  'Qabul (Abituriyent)': 'admission'
-};
-
-/**
- * Check if a tab is accessible to the user
+ * Check if a tab is accessible to the user strictly based on assigned permissions
  */
 export function canAccessTab(tabLabel, permissionsSet = new Set(), userProfile = null, isAdmin = false) {
   if (isAdmin) return true;
@@ -180,25 +157,24 @@ export function canAccessTab(tabLabel, permissionsSet = new Set(), userProfile =
     return true;
   }
 
-  // Check direct module boolean flag on user profile
-  const flagKey = MODULE_FLAGS[tabLabel];
-  if (flagKey && userProfile?.permissions && userProfile.permissions[flagKey] === true) {
-    return true;
-  }
-
   // Check required codes
   const requiredCodes = TAB_PERMISSIONS[tabLabel];
   if (!requiredCodes || requiredCodes.length === 0) {
-    return true;
+    return false;
   }
 
+  // Strict evaluation: permission must exactly equal a required code, or match strict entity prefix
   return requiredCodes.some(code => {
-    const upper = code.toUpperCase();
-    if (permissionsSet.has(upper)) return true;
+    const codeUpper = code.toUpperCase();
+    if (permissionsSet.has(codeUpper)) return true;
+
     for (const p of permissionsSet) {
       const pUpper = String(p).toUpperCase();
-      if (pUpper === upper) return true;
-      if (pUpper.includes(upper) || upper.includes(pUpper)) return true;
+      if (pUpper === codeUpper) return true;
+      // Strict prefix check e.g. permission is 'NEWS_READ' and required code is 'NEWS'
+      if (pUpper.startsWith(codeUpper + '_') || codeUpper.startsWith(pUpper + '_')) {
+        return true;
+      }
     }
     return false;
   });
@@ -245,26 +221,7 @@ export async function loadCurrentUserPermissions() {
     };
   }
 
-  // 1. Check cached permissions in localStorage
-  try {
-    const cached = localStorage.getItem('urspi_user_permissions');
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed)) {
-        parsed.forEach(p => permissionsSet.add(String(p).toUpperCase()));
-      }
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  // 2. Add JWT authorities / roles
-  userInfo.roles.forEach(r => permissionsSet.add(r.toUpperCase()));
-  if (Array.isArray(userInfo.decoded?.permissions)) {
-    userInfo.decoded.permissions.forEach(p => permissionsSet.add(String(p).toUpperCase()));
-  }
-
-  // 3. Resolve userProfile from local storage and fallback cache first
+  // 1. Resolve user profile
   let userProfile = userInfo.user;
   try {
     const localUsers = JSON.parse(localStorage.getItem('urspi_department_users') || '[]');
@@ -278,7 +235,7 @@ export async function loadCurrentUserPermissions() {
     // ignore
   }
 
-  // 4. Try fetching latest user data from backend API with timeout
+  // 2. Try fetching latest user data from backend API with timeout
   try {
     const usersPromise = usersAPI.getAll();
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
@@ -294,10 +251,15 @@ export async function loadCurrentUserPermissions() {
       localStorage.setItem('urspi_current_user', JSON.stringify(userProfile));
     }
   } catch (err) {
-    // ignore network/auth errors, proceed with cached userProfile
+    // ignore
   }
 
-  // 5. Gather all assigned role IDs and role names
+  // 3. Clean up stale default permissions for Matbuot/Media roles from local storage
+  const userRoleStr = (typeof userProfile?.role === 'string' ? userProfile.role : userProfile?.role?.name || '').toLowerCase();
+  const usernameStr = (userProfile?.username || userInfo.username || '').toLowerCase();
+  const isMatbuotUser = userRoleStr.includes('matbuot') || usernameStr.includes('matbuot') || userRoleStr.includes('press') || userRoleStr.includes('media');
+
+  // 4. Gather assigned role IDs and role names
   const roleIdsToFetch = [];
   const roleNames = [];
 
@@ -326,7 +288,7 @@ export async function loadCurrentUserPermissions() {
     }
   }
 
-  // 6. Build catalog of system permissions (ID -> NAME)
+  // 5. Build catalog of system permissions (ID -> NAME)
   let allPermsMap = {};
   try {
     const cachedPerms = JSON.parse(localStorage.getItem('urspi_cached_system_permissions') || '[]');
@@ -352,7 +314,7 @@ export async function loadCurrentUserPermissions() {
     // ignore
   }
 
-  // 7. Resolve role permissions from cached role-permission map & API
+  // 6. Resolve role permissions from cached role-permission map & API
   let cachedRoleMap = {};
   try {
     cachedRoleMap = JSON.parse(localStorage.getItem('urspi_cached_role_permissions_map') || '{}');
@@ -360,7 +322,7 @@ export async function loadCurrentUserPermissions() {
 
   const uniqueRoleIds = Array.from(new Set(roleIdsToFetch.filter(Boolean)));
   for (const rId of uniqueRoleIds) {
-    // Check cached map first
+    // Check cached map
     const cachedIds = cachedRoleMap[rId] || cachedRoleMap[String(rId)];
     if (Array.isArray(cachedIds)) {
       cachedIds.forEach(p => {
@@ -397,123 +359,71 @@ export async function loadCurrentUserPermissions() {
     }
   }
 
-  // 8. Add user direct module permissions (from UsersAdmin)
-  if (userProfile?.permissions && typeof userProfile.permissions === 'object') {
+  // 7. If role has explicit permissions assigned, role permissions are authoritative.
+  // Only add userProfile module permissions if NOT Matbuot and not already covered by role
+  if (!isMatbuotUser && userProfile?.permissions && typeof userProfile.permissions === 'object') {
     const p = userProfile.permissions;
     if (p.teachers) {
       permissionsSet.add('TEACHER_READ');
-      permissionsSet.add('TEACHER_CREATE');
-      permissionsSet.add('TEACHER_UPDATE');
-      permissionsSet.add('TEACHER');
       permissionsSet.add('EMPLOYEE_READ');
-      permissionsSet.add('EMPLOYEE');
     }
     if (p.departments) {
       permissionsSet.add('DEPARTMENT_READ');
-      permissionsSet.add('DEPARTMENT_CREATE');
-      permissionsSet.add('DEPARTMENT');
       permissionsSet.add('CENTER_READ');
-      permissionsSet.add('CENTER');
-      permissionsSet.add('POSITION_READ');
     }
     if (p.faculties) {
       permissionsSet.add('FACULTY_READ');
-      permissionsSet.add('FACULTY_CREATE');
-      permissionsSet.add('FACULTY');
-      permissionsSet.add('STUDY_YEAR_READ');
-      permissionsSet.add('ACADEMIC_DEGREE_READ');
     }
     if (p.news) {
       permissionsSet.add('NEWS_READ');
-      permissionsSet.add('NEWS_CREATE');
-      permissionsSet.add('NEWS');
       permissionsSet.add('ANNOUNCEMENT_READ');
-      permissionsSet.add('ANNOUNCEMENT_CREATE');
-      permissionsSet.add('ANNOUNCEMENT');
     }
     if (p.leadership) {
       permissionsSet.add('LEADER_READ');
-      permissionsSet.add('LEADER_CREATE');
-      permissionsSet.add('LEADER');
-      permissionsSet.add('LEADERSHIP');
     }
     if (p.documents) {
       permissionsSet.add('DOCUMENT_READ');
-      permissionsSet.add('DOCUMENT_CREATE');
-      permissionsSet.add('DOCUMENT');
     }
     if (p.dormitory) {
       permissionsSet.add('DORMITORY_READ');
-      permissionsSet.add('DORMITORY_CREATE');
-      permissionsSet.add('DORMITORY');
-      permissionsSet.add('RENTAL_READ');
     }
     if (p.admission) {
       permissionsSet.add('ADMISSION_READ');
-      permissionsSet.add('ADMISSION_CREATE');
-      permissionsSet.add('ADMISSION');
     }
     if (p.greenInstitute) {
       permissionsSet.add('GREEN_INSTITUTE_READ');
-      permissionsSet.add('GREEN_INSTITUTE_CREATE');
-      permissionsSet.add('GREEN_INSTITUTE');
     }
     if (p.gallery) {
       permissionsSet.add('GALLERY_READ');
-      permissionsSet.add('GALLERY_CREATE');
-      permissionsSet.add('GALLERY');
     }
   }
 
-  // 9. Infer permissions from descriptive role names (e.g., "Kafedra mudiri", "Dekan", "Yangiliklar")
-  roleNames.forEach(rn => {
-    const lower = rn.toLowerCase();
-    if (lower.includes('yangilik') || lower.includes('matbuot') || lower.includes('media') || lower.includes('press')) {
-      permissionsSet.add('NEWS_READ');
-      permissionsSet.add('NEWS');
-      permissionsSet.add('ANNOUNCEMENT_READ');
-    }
-    if (lower.includes("o'qituvchi") || lower.includes('teacher') || lower.includes('dekan')) {
-      permissionsSet.add('TEACHER_READ');
-      permissionsSet.add('TEACHER');
-      permissionsSet.add('FACULTY_READ');
-    }
-    if (lower.includes('kafedra') || lower.includes('department')) {
-      permissionsSet.add('DEPARTMENT_READ');
-      permissionsSet.add('DEPARTMENT');
-    }
-    if (lower.includes('fakultet') || lower.includes('faculty')) {
-      permissionsSet.add('FACULTY_READ');
-      permissionsSet.add('FACULTY');
-    }
-    if (lower.includes('ttj') || lower.includes('talaba') || lower.includes('yotoqxona')) {
-      permissionsSet.add('DORMITORY_READ');
-      permissionsSet.add('DORMITORY');
-      permissionsSet.add('RENTAL_READ');
-    }
-    if (lower.includes('xodim') || lower.includes('hr') || lower.includes('kadr')) {
-      permissionsSet.add('EMPLOYEE_READ');
-      permissionsSet.add('EMPLOYEE');
-    }
-    if (lower.includes('rahbar') || lower.includes('rektor')) {
-      permissionsSet.add('LEADER_READ');
-      permissionsSet.add('LEADER');
-    }
-    if (lower.includes('qabul')) {
-      permissionsSet.add('ADMISSION_READ');
-      permissionsSet.add('ADMISSION');
-    }
-    if (lower.includes('yashil')) {
-      permissionsSet.add('GREEN_INSTITUTE_READ');
-      permissionsSet.add('GREEN_INSTITUTE');
-    }
-    if (lower.includes('galereya') || lower.includes('foto')) {
-      permissionsSet.add('GALLERY_READ');
-      permissionsSet.add('GALLERY');
-    }
-  });
+  // 8. If Matbuot, ensure News, Announcements and Gallery are always available
+  if (isMatbuotUser) {
+    permissionsSet.add('NEWS_READ');
+    permissionsSet.add('NEWS_CREATE');
+    permissionsSet.add('NEWS_UPDATE');
+    permissionsSet.add('NEWS');
+    permissionsSet.add('ANNOUNCEMENT_READ');
+    permissionsSet.add('ANNOUNCEMENT_CREATE');
+    permissionsSet.add('ANNOUNCEMENT');
+    permissionsSet.add('GALLERY_READ');
+    permissionsSet.add('GALLERY_CREATE');
+    permissionsSet.add('GALLERY');
 
-  // 10. Cache resolved permissions in localStorage
+    // STRICTLY REMOVE any Tuzilma permissions that might have leaked from old defaults
+    const tuzilmaCodes = [
+      'FACULTY_READ', 'FACULTY_VIEW', 'FACULTY_CREATE', 'FACULTY_UPDATE', 'FACULTIES', 'FACULTY',
+      'DEPARTMENT_READ', 'DEPARTMENT_VIEW', 'DEPARTMENT_CREATE', 'DEPARTMENT_UPDATE', 'DEPARTMENTS', 'DEPARTMENT', 'KAFEDRA',
+      'CENTER_READ', 'CENTER_VIEW', 'CENTER_CREATE', 'CENTER_UPDATE', 'CENTERS', 'CENTER',
+      'POSITION_READ', 'POSITION_VIEW', 'POSITION_CREATE', 'POSITION_UPDATE', 'POSITIONS', 'POSITION', 'LAVOZIM',
+      'ACADEMIC_DEGREE_READ', 'ACADEMIC_DEGREE_VIEW', 'ACADEMIC_DEGREE_CREATE', 'ACADEMIC_DEGREE_UPDATE', 'ACADEMIC_DEGREES',
+      'STUDY_YEAR_READ', 'STUDY_YEARS_READ', 'STUDY_YEAR', 'STUDY_YEARS'
+    ];
+    tuzilmaCodes.forEach(code => permissionsSet.delete(code));
+  }
+
+  // 9. Cache resolved permissions in localStorage
   localStorage.setItem('urspi_user_permissions', JSON.stringify(Array.from(permissionsSet)));
 
   return {

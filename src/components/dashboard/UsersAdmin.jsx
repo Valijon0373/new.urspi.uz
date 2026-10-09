@@ -87,10 +87,10 @@ const PERMISSION_ITEMS = [
 ];
 
 const DEFAULT_PERMISSIONS = {
-  teachers: true,
-  departments: true,
-  news: true,
-  faculties: true,
+  teachers: false,
+  departments: false,
+  news: false,
+  faculties: false,
   leadership: false,
   documents: false,
   dormitory: false,
