@@ -23,6 +23,8 @@ export * from './greenInstitutes';
 export * from './rentals';
 export * from './dormitories';
 export * from './facultyStaff';
+export * from './users';
+export * from './rbac';
 
 
 

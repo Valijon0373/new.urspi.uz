@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, FileText,
   User, Users, CheckSquare, Info, Moon, Sun, ChevronDown,
-  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf, Shield, Calendar, Award, Activity
+  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf, Shield, Calendar, Award, Activity, AlertCircle
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
 import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
@@ -33,7 +33,10 @@ import AcademicDegreesAdmin from './AcademicDegreesAdmin';
 import StudyYearsAdmin from './StudyYearsAdmin';
 import RolesAdmin from './RolesAdmin';
 import AuditAdmin from './AuditAdmin';
-import { facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI, getAuthToken } from '../../api';
+import { 
+  facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI, getAuthToken,
+  loadCurrentUserPermissions, canAccessTab, getPermittedNavItems, getFileUrl
+} from '../../api';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard' },
@@ -73,6 +76,7 @@ const NAV_ITEMS = [
     icon: IoSettingsOutline,
     label: 'Sozlamalar',
     subItems: [
+      { label: 'Foydalanuvchilar', icon: Users },
       { label: 'Tizim Fasllari', icon: IoSettingsOutline },
       { label: 'Rollar va Ruxsatlar', icon: Shield },
       { label: 'Audit Loglar', icon: Activity }
@@ -105,6 +109,53 @@ export default function Dashboard() {
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [activeTab, setActiveTab] = useState(getInitialTab);
 
+  // RBAC Permission state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userPermissions, setUserPermissions] = useState(new Set());
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [permLoading, setPermLoading] = useState(true);
+
+  // Load RBAC permissions
+  useEffect(() => {
+    let mounted = true;
+    const initRbac = async () => {
+      try {
+        const { isAdmin: adminFlag, permissionsSet, userProfile } = await loadCurrentUserPermissions();
+        if (mounted) {
+          setIsAdmin(adminFlag);
+          setUserPermissions(permissionsSet);
+          setCurrentUser(userProfile);
+          setPermLoading(false);
+        }
+      } catch (err) {
+        if (mounted) setPermLoading(false);
+      }
+    };
+    initRbac();
+    return () => { mounted = false; };
+  }, []);
+
+  // Filter navigation items strictly to permitted ones
+  const permittedNavItems = useMemo(() => {
+    return getPermittedNavItems(NAV_ITEMS, userPermissions, currentUser, isAdmin);
+  }, [userPermissions, currentUser, isAdmin]);
+
+  // Redirect to first permitted tab if activeTab is not allowed
+  useEffect(() => {
+    if (permLoading) return;
+    const isAllowed = canAccessTab(activeTab, userPermissions, currentUser, isAdmin);
+    if (!isAllowed) {
+      const firstItem = permittedNavItems[0];
+      let fallbackTab = 'Dashboard';
+      if (firstItem) {
+        fallbackTab = firstItem.subItems ? firstItem.subItems[0].label : firstItem.label;
+      }
+      setActiveTab(fallbackTab);
+      localStorage.setItem('dashboard-active-tab', fallbackTab);
+      setSearchParams({ tab: fallbackTab }, { replace: true });
+    }
+  }, [activeTab, permittedNavItems, permLoading, userPermissions, currentUser, isAdmin]);
+
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     localStorage.setItem('dashboard-active-tab', tabName);
@@ -126,12 +177,12 @@ export default function Dashboard() {
   }, [searchParams]);
 
   useEffect(() => {
-    NAV_ITEMS.forEach((item) => {
+    permittedNavItems.forEach((item) => {
       if (item.subItems && item.subItems.some((s) => s.label === activeTab)) {
         setOpenDropdowns((prev) => ({ ...prev, [item.label]: true }));
       }
     });
-  }, [activeTab]);
+  }, [activeTab, permittedNavItems]);
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -202,7 +253,7 @@ export default function Dashboard() {
 
           {/* Navigation */}
           <nav className={`py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
-            {NAV_ITEMS.map(({ icon: Icon, label, subItems, href }) => {
+            {permittedNavItems.map(({ icon: Icon, label, subItems, href }) => {
               const isSubActive = subItems && subItems.some(s => s.label === activeTab);
               const isActive = activeTab === label || isSubActive;
               return (
@@ -336,28 +387,52 @@ export default function Dashboard() {
               )}
             </button>
 
-            {/* Admin dropdown */}
+            {/* User Profile dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setAdminOpen((prev) => !prev)}
-                className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white font-semibold text-[11px]">
-                  AD
+                {currentUser?.photoLink || currentUser?.photo ? (
+                  <img
+                    src={getFileUrl(currentUser.photoLink || currentUser.photo)}
+                    alt={currentUser?.fullName || currentUser?.username}
+                    className="w-8 h-8 rounded-full object-cover border border-[#0eb99c] shadow-xs"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-tr from-[#0eb99c] to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                    {(currentUser?.fullName || currentUser?.username || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="hidden sm:block text-left">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                    {currentUser?.fullName || currentUser?.username || 'Admin'}
+                  </div>
+                  <div className="text-[10px] text-[#0eb99c] font-semibold leading-tight">
+                    {typeof currentUser?.role === 'object' ? currentUser?.role?.name : (currentUser?.role || (isAdmin ? 'Administrator' : 'Foydalanuvchi'))}
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">admin</span>
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 transition-transform ${adminOpen ? 'rotate-180' : ''}`}
                 />
               </button>
 
               {adminOpen && (
-                <div className="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-1 z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-1.5 z-50 animate-fade-in">
+                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700/60 mb-1">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100 m-0 truncate">
+                      {currentUser?.fullName || currentUser?.username}
+                    </p>
+                    <p className="text-[11px] text-slate-400 m-0 truncate">
+                      {typeof currentUser?.role === 'object' ? currentUser?.role?.name : (currentUser?.role || (isAdmin ? 'Administrator' : 'Foydalanuvchi'))}
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Chiqish
@@ -370,130 +445,113 @@ export default function Dashboard() {
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-auto p-6 lg:p-8">
-          {activeTab === 'Dashboard' && (
-            <div className="max-w-[1280px] mx-auto space-y-6">
-              {/* Title Section */}
-              <div>
-                <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Umumiy Statistika</p>
-
+          {!permLoading && !canAccessTab(activeTab, userPermissions, currentUser, isAdmin) && (
+            <div className="max-w-md mx-auto my-12 p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 text-center space-y-4">
+              <div className="w-14 h-14 bg-amber-100 dark:bg-amber-950/60 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+                <Shield className="w-7 h-7" />
               </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
-                    <LuLandmark className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">5</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">Fakultetlar soni</p>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">15</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">Kafedralar soni</p>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950/40 rounded-xl flex items-center justify-center text-violet-500 shrink-0">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">124</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">Xodimlar soni</p>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-teal-50 dark:bg-teal-950/40 rounded-xl flex items-center justify-center text-[#0eb99c] shrink-0">
-                    <ClipboardList className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">20</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">Yangiliklar soni</p>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
-                    <IoMegaphoneOutline className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">12</p>
-                    <p className="text-sm text-slate-400 mt-1 m-0">E'lonlar soni</p>
-                  </div>
-                </div>
-              </div>
-
-
-
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">Ruxsat etilmagan bo'lim</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 m-0 leading-relaxed">
+                Ushbu bo'limga kirish uchun hisobingizda yetarli ruxsat mavjud emas.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const firstItem = permittedNavItems[0];
+                  const fallback = firstItem?.subItems ? firstItem.subItems[0].label : (firstItem?.label || 'Dashboard');
+                  handleTabChange(fallback);
+                }}
+                className="px-5 py-2.5 bg-[#0eb99c] hover:bg-[#0ba087] text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
+              >
+                Ruxsat berilgan bo'limga o'tish
+              </button>
             </div>
           )}
-          {activeTab === 'Rahbariyat' && (
-            <LeadershipAdmin />
-          )}
-          {activeTab === 'Yangiliklar' && (
-            <NewsAdmin />
-          )}
-          {activeTab === 'Lavozimlar' && (
-            <PositionsAdmin />
-          )}
-          {activeTab === 'Ilmiy darajalar' && (
-            <AcademicDegreesAdmin />
-          )}
-          {activeTab === "O'quv yillari" && (
-            <StudyYearsAdmin />
-          )}
-          {(activeTab === 'Fakultetlar' || activeTab === 'Tuzilma') && (
-            <FacultiesAdmin />
-          )}
-          {activeTab === 'Kafedralar' && (
-            <DepartmentsAdmin />
-          )}
-          {activeTab === "Markaz va Bo'limlar" && (
-            <CentersAdmin />
-          )}
-          {(activeTab === "O'qituvchilar" || activeTab === "Hodimlar") && (
-            <TeachersAdmin />
-          )}
-          {activeTab === 'Xodimlar' && (
-            <EmployeesAdmin />
-          )}
-          {activeTab === "E'lonlar" && (
-            <AnnouncementsAdmin />
-          )}
-          {activeTab === 'Rollar va Ruxsatlar' && (
-            <Settings activeSubTab="roles" />
-          )}
-          {activeTab === 'Audit Loglar' && (
-            <Settings activeSubTab="audit" />
-          )}
-          {(activeTab === 'Sozlamalar' || activeTab === 'Tizim Fasllari') && (
-            <Settings activeSubTab="fasllar" />
-          )}
-          {activeTab === 'Fotogalereya' && (
-            <GalleryAdmin />
-          )}
-          {activeTab === 'Biz haqimizda' && (
-            <AboutUsAdmin />
-          )}
-          {activeTab === 'Talabalar turar joyi' && (
-            <DormitoryAdmin />
-          )}
-          {activeTab === 'Talabalarga ijara' && (
-            <RentAdmin />
-          )}
-          {activeTab === 'Yashil institut' && (
-            <GreenInstituteAdmin />
-          )}
-          {activeTab === 'Qabul (Abituriyent)' && (
-            <AdmissionAdmin />
+          {canAccessTab(activeTab, userPermissions, currentUser, isAdmin) && (
+            <>
+              {activeTab === 'Dashboard' && (
+                <div className="max-w-[1280px] mx-auto space-y-6">
+                  {/* Title Section */}
+                  <div>
+                    <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Umumiy Statistika</p>
+                  </div>
+
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
+                        <LuLandmark className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">5</p>
+                        <p className="text-sm text-slate-400 mt-1 m-0">Fakultetlar soni</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">15</p>
+                        <p className="text-sm text-slate-400 mt-1 m-0">Kafedralar soni</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950/40 rounded-xl flex items-center justify-center text-violet-500 shrink-0">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">124</p>
+                        <p className="text-sm text-slate-400 mt-1 m-0">Xodimlar soni</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-teal-50 dark:bg-teal-950/40 rounded-xl flex items-center justify-center text-[#0eb99c] shrink-0">
+                        <ClipboardList className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">20</p>
+                        <p className="text-sm text-slate-400 mt-1 m-0">Yangiliklar soni</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
+                        <IoMegaphoneOutline className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">12</p>
+                        <p className="text-sm text-slate-400 mt-1 m-0">E'lonlar soni</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'Rahbariyat' && <LeadershipAdmin />}
+              {activeTab === 'Yangiliklar' && <NewsAdmin />}
+              {activeTab === 'Lavozimlar' && <PositionsAdmin />}
+              {activeTab === 'Ilmiy darajalar' && <AcademicDegreesAdmin />}
+              {activeTab === "O'quv yillari" && <StudyYearsAdmin />}
+              {(activeTab === 'Fakultetlar' || activeTab === 'Tuzilma') && <FacultiesAdmin />}
+              {activeTab === 'Kafedralar' && <DepartmentsAdmin />}
+              {activeTab === "Markaz va Bo'limlar" && <CentersAdmin />}
+              {(activeTab === "O'qituvchilar" || activeTab === "Hodimlar") && <TeachersAdmin />}
+              {activeTab === 'Xodimlar' && <EmployeesAdmin />}
+              {activeTab === "E'lonlar" && <AnnouncementsAdmin />}
+              {(activeTab === 'Foydalanuvchilar' || activeTab === 'Foydalanuvchi') && <Settings activeSubTab="users" />}
+              {activeTab === 'Rollar va Ruxsatlar' && <Settings activeSubTab="roles" />}
+              {activeTab === 'Audit Loglar' && <Settings activeSubTab="audit" />}
+              {(activeTab === 'Sozlamalar' || activeTab === 'Tizim Fasllari') && <Settings activeSubTab="fasllar" />}
+              {activeTab === 'Fotogalereya' && <GalleryAdmin />}
+              {activeTab === 'Biz haqimizda' && <AboutUsAdmin />}
+              {activeTab === 'Talabalar turar joyi' && <DormitoryAdmin />}
+              {activeTab === 'Talabalarga ijara' && <RentAdmin />}
+              {activeTab === 'Yashil institut' && <GreenInstituteAdmin />}
+              {activeTab === 'Qabul (Abituriyent)' && <AdmissionAdmin />}
+            </>
           )}
         </div>
       </main>

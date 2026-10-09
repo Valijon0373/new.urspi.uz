@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import slider1 from '../../assets/images/slider1.jpg'
-import slider2 from '../../assets/images/slider2.jpg'
+import main from '../../assets/images/main.jpg'
+import main2 from '../../assets/images/main2.jpg'
 
 export default function HeroCarousel() {
   const { t } = useTranslation()
@@ -12,13 +12,13 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: 1,
-      image: slider1,
+      image: main,
       title: t('home.carousel.slide1'),
       link: "#",
     },
     {
       id: 2,
-      image: slider2,
+      image: main2,
       title: t('home.carousel.slide2'),
       link: "#",
     }

@@ -4,13 +4,13 @@ import { FaBookOpenReader } from 'react-icons/fa6'
 import { PiStudentFill, PiUsers } from 'react-icons/pi'
 import { IoBarChartOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
-import slider1 from '../../../assets/images/slider1.jpg'
-import slider2 from '../../../assets/images/slider2.jpg'
+import main from '../../../assets/images/main.jpg'
+import main2 from '../../../assets/images/main2.jpg'
 
 export default function Statistics() {
     const { t } = useTranslation()
     const [bgIndex, setBgIndex] = useState(0)
-    const bgImages = [slider1, slider2]
+    const bgImages = [main, main2]
 
     useEffect(() => {
         const timer = setInterval(() => {

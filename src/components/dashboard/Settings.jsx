@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import { Shield, Activity, Sliders, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, Activity, Sliders, Moon, Sun, Users } from 'lucide-react';
 import RolesAdmin from './RolesAdmin';
 import AuditAdmin from './AuditAdmin';
+import UsersAdmin from './UsersAdmin';
 
 export default function Settings({ activeSubTab }) {
-  const [currentTab, setCurrentTab] = useState(activeSubTab || 'fasllar');
+  const [currentTab, setCurrentTab] = useState(activeSubTab || 'users');
+
+  useEffect(() => {
+    if (activeSubTab) {
+      setCurrentTab(activeSubTab);
+    }
+  }, [activeSubTab]);
+
   const [seasons, setSeasons] = useState(() => {
     const saved = localStorage.getItem('app-season');
     const initialState = { bahor: false, yoz: false, kuz: false, qish: false };
@@ -51,12 +59,24 @@ export default function Settings({ activeSubTab }) {
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0">Sozlamalar va Tizim Boshqaruvi</h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 m-0">
-          Tizim fasllari, rollar, ruxsatnomalar hamda audit loglarini boshqarish
+          Foydalanuvchilar va login/parollar, tizim fasllari, rollar, ruxsatnomalar hamda audit loglarini boshqarish
         </p>
       </div>
 
       {/* Tabs Menu */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <button
+          onClick={() => setCurrentTab('users')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
+            currentTab === 'users'
+              ? 'bg-[#0eb99c] text-white shadow-sm'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Foydalanuvchilar
+        </button>
+
         <button
           onClick={() => setCurrentTab('fasllar')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
@@ -96,6 +116,10 @@ export default function Settings({ activeSubTab }) {
 
       {/* Tab Content */}
       <div className="pt-2">
+        {currentTab === 'users' && (
+          <UsersAdmin />
+        )}
+
         {currentTab === 'fasllar' && (
           <div className="max-w-3xl space-y-4">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Sayt Fasllari Effekti</h3>
