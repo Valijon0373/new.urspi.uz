@@ -51,7 +51,8 @@ export default function LeadershipPage() {
               email,
               phoneNumber,
               photo,
-              isRektor
+              isRektor,
+              rawItem: item
             };
           });
           setLeaders(formatted);
@@ -68,8 +69,87 @@ export default function LeadershipPage() {
     return () => { isMounted = false; };
   }, [i18n.language]);
 
+  const getProrektorRank = (p) => {
+    const combined = [
+      p.positionTitle,
+      p.fullName,
+      p.rawItem?.positionTitleUz,
+      p.rawItem?.positionTitleRu,
+      p.rawItem?.positionTitleEn,
+      p.rawItem?.fullNameUz,
+      p.rawItem?.fullNameRu,
+      p.rawItem?.fullNameEn
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    // 1-o'rin (chap tomon): O'quv ishlari bo'yicha prorektor
+    if (
+      combined.includes("o'quv") ||
+      combined.includes("o‘quv") ||
+      combined.includes("oquv") ||
+      combined.includes("учебн") ||
+      combined.includes("academic") ||
+      combined.includes("musurmonov")
+    ) {
+      return 1;
+    }
+
+    // 2-o'rin (o'ng tomon): Yoshlar masalalari va ma'naviy-ma'rifiy ishlar bo'yicha birinchi prorektori
+    if (
+      combined.includes("yoshlar") ||
+      combined.includes("ma'naviy") ||
+      combined.includes("ma‘naviy") ||
+      combined.includes("manaviy") ||
+      combined.includes("birinchi prorektor") ||
+      combined.includes("молодеж") ||
+      combined.includes("духовн") ||
+      combined.includes("youth") ||
+      combined.includes("spiritual") ||
+      combined.includes("xo'jamuratov") ||
+      combined.includes("xojamuratov")
+    ) {
+      return 2;
+    }
+
+    // 3-o'rin: Ilmiy ishlar va innovatsiyalar
+    if (
+      combined.includes("ilmiy") ||
+      combined.includes("innovatsi") ||
+      combined.includes("научн") ||
+      combined.includes("инновац") ||
+      combined.includes("scientific") ||
+      combined.includes("research")
+    ) {
+      return 3;
+    }
+
+    // 4-o'rin: Moliya-iqtisod ishlari
+    if (
+      combined.includes("moliya") ||
+      combined.includes("iqtisod") ||
+      combined.includes("финанс") ||
+      combined.includes("эконом") ||
+      combined.includes("finance") ||
+      combined.includes("latipov")
+    ) {
+      return 4;
+    }
+
+    // 5-o'rin: Xalqaro hamkorlik
+    if (
+      combined.includes("xalqaro") ||
+      combined.includes("международ") ||
+      combined.includes("international")
+    ) {
+      return 5;
+    }
+
+    return 99;
+  };
+
   const rektor = leaders.find(l => l.isRektor) || (leaders.length > 0 ? leaders[0] : null);
-  const prorektors = rektor ? leaders.filter(l => l !== rektor) : [];
+  const prorektors = rektor
+    ? [...leaders.filter(l => l !== rektor)].sort((a, b) => getProrektorRank(a) - getProrektorRank(b))
+    : [];
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">

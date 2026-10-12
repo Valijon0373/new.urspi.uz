@@ -81,8 +81,43 @@ export default function DormitoryAdmin() {
         status: item.status || (item.active !== false ? 'ACTIVE' : 'DISABLED'),
         active: item.active !== false && item.status !== 'DISABLED',
         image: finalImg || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800",
+        createdAt: item.createdAt || item.created_at || item.createDate || item.date || null,
+        sortOrder: item.sortOrder ?? item.order ?? null,
         rawItem: item
       };
+    });
+
+    // Dastlab qo'shilgani 1-chida, keyingisi 2-chida va keyingisi 3-chida tursin
+    formatted.sort((a, b) => {
+      const orderA = a.sortOrder ?? a.rawItem?.sortOrder ?? a.rawItem?.order;
+      const orderB = b.sortOrder ?? b.rawItem?.sortOrder ?? b.rawItem?.order;
+      if (orderA !== null && orderA !== undefined && orderB !== null && orderB !== undefined && orderA !== orderB) {
+        return Number(orderA) - Number(orderB);
+      }
+
+      const dateA = a.createdAt || a.rawItem?.createdAt || a.rawItem?.created_at || a.rawItem?.createDate || a.rawItem?.date;
+      const dateB = b.createdAt || b.rawItem?.createdAt || b.rawItem?.created_at || b.rawItem?.createDate || b.rawItem?.date;
+      if (dateA && dateB) {
+        const tA = new Date(dateA).getTime();
+        const tB = new Date(dateB).getTime();
+        if (!isNaN(tA) && !isNaN(tB) && tA !== tB) {
+          return tA - tB;
+        }
+      }
+
+      const idA = Number(a.id ?? a.rawItem?.id);
+      const idB = Number(b.id ?? b.rawItem?.id);
+      if (!isNaN(idA) && !isNaN(idB) && idA !== idB) {
+        return idA - idB;
+      }
+
+      const strIdA = String(a.id ?? a.rawItem?.id ?? '');
+      const strIdB = String(b.id ?? b.rawItem?.id ?? '');
+      if (strIdA && strIdB && strIdA !== strIdB) {
+        return strIdA.localeCompare(strIdB, undefined, { numeric: true });
+      }
+
+      return 0;
     });
 
     setItemsList(formatted);
