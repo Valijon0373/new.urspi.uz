@@ -26,6 +26,10 @@ function ensureFormData(data) {
 }
 
 export const dormitoriesAPI = {
+    getLanding: (page = 0, size = 100, lang = 'uz') =>
+        request(`/api/landing/dormitories?page=${page}&size=${size}&lang=${lang}`),
+    getLandingById: (id, lang = 'uz') =>
+        request(`/api/landing/dormitories/${id}?lang=${lang}`),
     getAll: (lang) => lang ? request(`/api/dormitories/lang/${lang}`) : request('/api/dormitories'),
     getByLang: (lang) => request(`/api/dormitories/lang/${lang}`),
     getById: (id) => request(`/api/dormitories/${id}`),

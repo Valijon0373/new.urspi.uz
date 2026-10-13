@@ -26,9 +26,14 @@ export default function DormitoryAdmin() {
     let apiData = [];
     try {
       const res = await dormitoriesAPI.getAll();
-      apiData = Array.isArray(res) ? res : (res?.data || res?.content || []);
+      apiData = Array.isArray(res) ? res : (res?.data?.content || res?.data || res?.content || []);
     } catch (e) {
-      console.warn('API fetch error in DormitoryAdmin:', e.message);
+      try {
+        const resLanding = await dormitoriesAPI.getLanding(0, 100);
+        apiData = Array.isArray(resLanding) ? resLanding : (resLanding?.data?.content || resLanding?.data || resLanding?.content || []);
+      } catch (err) {
+        console.warn('API fetch error in DormitoryAdmin:', err.message);
+      }
     }
 
     const formatted = apiData.map(item => {

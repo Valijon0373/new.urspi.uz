@@ -391,23 +391,25 @@ export default function DormitoryPage() {
   const [lightboxItems, setLightboxItems] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
-  const [visibleGalleryCount, setVisibleGalleryCount] = useState(6);
+  const [visibleGalleryCount, setVisibleGalleryCount] = useState(12);
   const [liveRentals, setLiveRentals] = useState([]);
   const [liveDormitories, setLiveDormitories] = useState([]);
+  const [dormLoading, setDormLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchLiveDormitories = async () => {
+      setDormLoading(true);
       let apiItems = [];
       const lang = currentLang || 'uz';
       try {
-        const res = await dormitoriesAPI.getAll(lang);
-        apiItems = Array.isArray(res) ? res : (res?.data || res?.content || []);
+        const res = await dormitoriesAPI.getLanding(0, 100, lang);
+        apiItems = Array.isArray(res) ? res : (res?.data?.content || res?.content || res?.data || []);
       } catch (err) {
         try {
-          const resAll = await dormitoriesAPI.getAll();
-          apiItems = Array.isArray(resAll) ? resAll : (resAll?.data || resAll?.content || []);
+          const resAll = await dormitoriesAPI.getAll(lang);
+          apiItems = Array.isArray(resAll) ? resAll : (resAll?.data?.content || resAll?.content || resAll?.data || []);
         } catch (e) {
           console.warn('Failed to load dormitories from API:', e.message);
         }
@@ -417,11 +419,11 @@ export default function DormitoryPage() {
       if (isMounted) {
         if (combined.length > 0) {
           const formatted = combined.map((item, idx) => {
-            const titleUz = localizedField(item, 'title', 'uz', 'Talabalar turar joyi');
-            const titleRu = localizedField(item, 'title', 'ru', titleUz);
-            const titleEn = localizedField(item, 'title', 'en', titleUz);
+            const titleUz = localizedField(item, 'title', 'uz', item.title || item.titleUz || 'Talabalar turar joyi');
+            const titleRu = localizedField(item, 'title', 'ru', item.title || item.titleRu || titleUz);
+            const titleEn = localizedField(item, 'title', 'en', item.title || item.titleEn || titleUz);
 
-            const descUz = localizedField(item, 'description', 'uz', localizedField(item, 'content', 'uz', ""));
+            const descUz = localizedField(item, 'description', 'uz', localizedField(item, 'content', 'uz', item.description || ""));
             const descRu = localizedField(item, 'description', 'ru', localizedField(item, 'content', 'ru', descUz));
             const descEn = localizedField(item, 'description', 'en', localizedField(item, 'content', 'en', descUz));
 
@@ -479,6 +481,7 @@ export default function DormitoryPage() {
         } else {
           setLiveDormitories([]);
         }
+        setDormLoading(false);
       }
     };
 
@@ -877,6 +880,17 @@ export default function DormitoryPage() {
                   return 0;
                 });
 
+                if (dormLoading) {
+                  return (
+                    <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center">
+                      <div className="w-8 h-8 border-3 border-[#0c1f4a] border-t-transparent rounded-full animate-spin mb-3"></div>
+                      <p className="text-slate-500 font-medium text-sm">
+                        {currentLang === 'uz' ? "Ma'lumotlar yuklanmoqda..." : currentLang === 'ru' ? "Загрузка..." : "Loading..."}
+                      </p>
+                    </div>
+                  );
+                }
+
                 if (galleryItems.length === 0) {
                   return (
                     <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
@@ -900,6 +914,10 @@ export default function DormitoryPage() {
                             src={item.image} 
                             alt={item.title || `Gallery item ${idx + 1}`} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1200";
+                            }}
                           />
                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/50 to-transparent p-4 pt-8 text-white transition-opacity duration-300">
                             {item.title && (

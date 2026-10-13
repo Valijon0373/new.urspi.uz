@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock } from 'lucide-react'
+import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock, Download, FileText } from 'lucide-react'
 import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
@@ -83,14 +83,14 @@ export default function EmployeeProfilePage() {
         const findInList = (list, targetId) => list.find(item => String(item.id) === String(targetId))
 
         if (targetType === 'employee' || targetType === 'staff' || targetType === 'center') {
-          if (hasData(empObj)) data = empObj
-          else if (hasData(empLandingObj)) data = empLandingObj
+          if (hasData(empLandingObj)) data = empLandingObj
+          else if (hasData(empObj)) data = empObj
           else {
             const foundInAll = findInList(empList, id)
             if (hasData(foundInAll)) data = foundInAll
             else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
-            else if (hasData(staffObj)) data = staffObj
             else if (hasData(landingStaffObj)) data = landingStaffObj
+            else if (hasData(staffObj)) data = staffObj
             else {
               const foundInStaff = findInList(staffList, id)
               if (hasData(foundInStaff)) data = foundInStaff
@@ -103,32 +103,37 @@ export default function EmployeeProfilePage() {
             const foundInStaff = findInList(staffList, id)
             if (hasData(foundInStaff)) data = foundInStaff
             else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
-            else if (hasData(empObj)) data = empObj
             else if (hasData(empLandingObj)) data = empLandingObj
+            else if (hasData(empObj)) data = empObj
           }
         } else if (targetType === 'teacher') {
-          if (hasData(teacherObj)) data = teacherObj
-          else if (hasData(landingTeacherObj)) data = landingTeacherObj
+          if (hasData(landingTeacherObj)) data = landingTeacherObj
+          else if (hasData(teacherObj)) data = teacherObj
           else {
             const foundInTeachers = findInList(teacherList, id)
             if (hasData(foundInTeachers)) data = foundInTeachers
             else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
           }
         } else {
-          if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) {
-            data = stateObj
-          } else if (hasData(empObj) && (empObj.centerId || empObj.center || empObj.positionTitleUz || empObj.positionTitle)) {
+          if (hasData(empLandingObj)) {
+            data = empLandingObj
+          } else if (hasData(landingTeacherObj)) {
+            data = landingTeacherObj
+          } else if (hasData(landingStaffObj)) {
+            data = landingStaffObj
+          } else if (hasData(empObj)) {
             data = empObj
           } else if (hasData(teacherObj)) {
             data = teacherObj
-          } else if (hasData(landingTeacherObj)) {
-            data = landingTeacherObj
-          } else if (hasData(empObj)) {
-            data = empObj
-          } else if (hasData(landingStaffObj)) {
-            data = landingStaffObj
           } else if (hasData(staffObj)) {
             data = staffObj
+          } else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) {
+            data = stateObj
+          } else {
+            const foundInEmp = findInList(empList, id)
+            const foundInTeachers = findInList(teacherList, id)
+            const foundInStaff = findInList(staffList, id)
+            data = foundInEmp || foundInTeachers || foundInStaff || null
           }
         }
 
@@ -159,7 +164,8 @@ export default function EmployeeProfilePage() {
               bio: data.bio || data.description || "Urganch davlat pedagogika instituti xodimi.",
               officeHours: data.officeHours || data.receptionTime || data.receptionHours || "Dushanba - Juma: 09:00 - 17:00",
               img: getFileUrl(rawImg) || (typeof data.img === 'string' && data.img.length > 0 ? data.img : menImg),
-              hasScience: !!(degreeVal || data.academicDegree || data.position || data.isTeacher || targetType === 'teacher')
+              hasScience: !!(degreeVal || data.academicDegree || data.position || data.isTeacher || targetType === 'teacher'),
+              cvLink: data.cvLink || data.cv || null
             })
           }
         }
@@ -298,8 +304,20 @@ export default function EmployeeProfilePage() {
                 </div>
 
                 {/* Action Buttons */}
-                {employeeData.hasScience && (
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  {employeeData.cvLink && (
+                    <a
+                      href={getFileUrl(employeeData.cvLink)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0c1f4a] hover:bg-[#122b66] text-white font-semibold transition-all duration-300 w-full sm:w-auto shadow-sm"
+                    >
+                      <Download size={18} />
+                      Rezyumeni yuklab olish (CV)
+                    </a>
+                  )}
+
+                  {employeeData.hasScience && (
                     <button 
                       onClick={() => setShowIlmiyFaoliyat(!showIlmiyFaoliyat)}
                       className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl border border-[#0c1f4a] font-semibold transition-colors duration-300 w-full sm:w-auto ${
@@ -309,8 +327,8 @@ export default function EmployeeProfilePage() {
                       <GraduationCap size={20} />
                       Ilmiy Faoliyat
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
             </div>
