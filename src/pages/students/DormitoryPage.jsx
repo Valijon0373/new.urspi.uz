@@ -802,32 +802,6 @@ export default function DormitoryPage() {
               </div>
             </div>
 
-            {/* Application Steps */}
-            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-900">{trans.appTitle}</h3>
-                <p className="text-sm text-slate-500 mt-1">{trans.appSubtitle}</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                  { step: "01", title: trans.step1Title, desc: trans.step1Desc },
-                  { step: "02", title: trans.step2Title, desc: trans.step2Desc },
-                  { step: "03", title: trans.step3Title, desc: trans.step3Desc },
-                  { step: "04", title: trans.step4Title, desc: trans.step4Desc }
-                ].map((item, idx) => (
-                  <div key={idx} className="relative p-6 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-[#0c1f4a]/5 hover:border-[#0c1f4a]/20 transition-all duration-300">
-                    <div className="absolute top-4 left-6 text-[#0c1f4a] text-3xl font-extrabold opacity-80 group-hover:scale-110 transition-transform">
-                      {item.step}
-                    </div>
-                    <div className="mt-8">
-                      <h4 className="font-bold text-slate-950 text-base">{item.title}</h4>
-                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Photo Gallery ("Talabalar turar joyi foto galereyasi") */}
             <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
               <div className="mb-8 text-center">
@@ -954,6 +928,32 @@ export default function DormitoryPage() {
                   </>
                 );
               })()}
+            </div>
+
+            {/* Application Steps */}
+            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-slate-900">{trans.appTitle}</h3>
+                <p className="text-sm text-slate-500 mt-1">{trans.appSubtitle}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                  { step: "01", title: trans.step1Title, desc: trans.step1Desc },
+                  { step: "02", title: trans.step2Title, desc: trans.step2Desc },
+                  { step: "03", title: trans.step3Title, desc: trans.step3Desc },
+                  { step: "04", title: trans.step4Title, desc: trans.step4Desc }
+                ].map((item, idx) => (
+                  <div key={idx} className="relative p-6 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-[#0c1f4a]/5 hover:border-[#0c1f4a]/20 transition-all duration-300">
+                    <div className="absolute top-4 left-6 text-[#0c1f4a] text-3xl font-extrabold opacity-80 group-hover:scale-110 transition-transform">
+                      {item.step}
+                    </div>
+                    <div className="mt-8">
+                      <h4 className="font-bold text-slate-950 text-base">{item.title}</h4>
+                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
