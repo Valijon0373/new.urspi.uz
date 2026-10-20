@@ -3,12 +3,82 @@ import { Plus, Eye, Edit2, Trash2, X, Image as ImageIcon, MapPin, Clock, Mail, P
 import rektorImg from '../../assets/men.jpg';
 import { leadersAPI, filesAPI, positionsAPI, getPositionName, getFileUrl } from '../../api';
 
-function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+const modalI18n = {
+  uz: {
+    addTitle: "Rahbar qo'shish",
+    editTitle: "Rahbarni tahrirlash",
+    fullNameLabel: "F.I.SH (UZ)",
+    fullNamePlaceholder: "F.I.SH.ni kiriting",
+    positionLabel: "Lavozim",
+    selectPositionPlaceholder: "Lavozimni tanlang",
+    positionTitlePlaceholder: "Lavozim nomi (UZ)",
+    addressLabel: "Manzil (UZ)",
+    addressPlaceholder: "Masalan: Xorazm viloyati...",
+    receptionLabel: "Qabul vaqti (UZ)",
+    receptionPlaceholder: "Masalan: Seshanba, Juma 14:00 - 16:00",
+    emailLabel: "Email",
+    emailPlaceholder: "Masalan: mail@urspi.uz",
+    phoneLabel: "Telefon",
+    phonePlaceholder: "Masalan: +998622261840",
+    photoLabel: "Rasm",
+    choosePhoto: "Rasm tanlash",
+    cancel: "Bekor qilish",
+    save: "Saqlash"
+  },
+  ru: {
+    addTitle: "Добавить руководителя",
+    editTitle: "Редактировать руководителя",
+    fullNameLabel: "Ф.И.О. (RU)",
+    fullNamePlaceholder: "Введите Ф.И.О.",
+    positionLabel: "Должность",
+    selectPositionPlaceholder: "Выберите должность",
+    positionTitlePlaceholder: "Название должности (RU)",
+    addressLabel: "Адрес (RU)",
+    addressPlaceholder: "Например: Хорезмская область...",
+    receptionLabel: "Дни и часы приема (RU)",
+    receptionPlaceholder: "Например: Вторник, Пятница 14:00 - 16:00",
+    emailLabel: "Электронная почта",
+    emailPlaceholder: "Например: mail@urspi.uz",
+    phoneLabel: "Телефон",
+    phonePlaceholder: "Например: +998622261840",
+    photoLabel: "Фотография",
+    choosePhoto: "Выбрать фото",
+    cancel: "Отмена",
+    save: "Сохранить"
+  },
+  en: {
+    addTitle: "Add Leader",
+    editTitle: "Edit Leader",
+    fullNameLabel: "Full Name (EN)",
+    fullNamePlaceholder: "Enter full name",
+    positionLabel: "Position",
+    selectPositionPlaceholder: "Select position",
+    positionTitlePlaceholder: "Position title (EN)",
+    addressLabel: "Address (EN)",
+    addressPlaceholder: "E.g.: Khorezm region...",
+    receptionLabel: "Reception Time (EN)",
+    receptionPlaceholder: "E.g.: Tuesday, Friday 14:00 - 16:00",
+    emailLabel: "Email",
+    emailPlaceholder: "E.g.: mail@urspi.uz",
+    phoneLabel: "Phone",
+    phonePlaceholder: "E.g.: +998622261840",
+    photoLabel: "Photo",
+    choosePhoto: "Select photo",
+    cancel: "Cancel",
+    save: "Save"
+  }
+};
+
+function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const defaultPlaceholder = activeLang === 'uz' ? "Lavozimni tanlang" : activeLang === 'ru' ? "Выберите должность" : "Select position";
+  const effectivePlaceholder = placeholder || defaultPlaceholder;
+  const fallbackTitle = activeLang === 'uz' ? 'Lavozim' : activeLang === 'ru' ? 'Должность' : 'Position';
+
   const selectedPos = positions.find(p => String(p.id) === String(value));
-  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, fallbackTitle) : effectivePlaceholder;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -39,7 +109,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
             onClick={() => { onChange(''); setIsOpen(false); }}
             className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
           >
-            {placeholder}
+            {effectivePlaceholder}
           </div>
           {positions.map(p => {
             const isSelected = String(p.id) === String(value);
@@ -49,7 +119,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
                 onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
                 className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
               >
-                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                <span>{getPositionName(p, activeLang, fallbackTitle)}</span>
                 {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
               </div>
             );
@@ -74,6 +144,7 @@ export default function LeadershipAdmin() {
   const [saving, setSaving] = useState(false);
 
   const [activeLang, setActiveLang] = useState('uz');
+  const t = modalI18n[activeLang] || modalI18n.uz;
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [formData, setFormData] = useState({
@@ -160,7 +231,14 @@ export default function LeadershipAdmin() {
 
   const handleSave = async () => {
     if (!formData.fullName.uz || !formData.position.uz) {
-      showNotification("F.I.SH va Lavozim (O'zbekcha) kiritilishi shart!", true);
+      showNotification(
+        activeLang === 'ru'
+          ? "Ф.И.О. и Должность (на узбекском) обязательны для заполнения!"
+          : activeLang === 'en'
+          ? "Full Name and Position (Uzbek) are required!"
+          : "F.I.SH va Lavozim (O'zbekcha) kiritilishi shart!",
+        true
+      );
       return;
     }
 
@@ -207,15 +285,27 @@ export default function LeadershipAdmin() {
 
       if (editMode && selectedPerson) {
         await leadersAPI.update(selectedPerson.id, dto);
-        showNotification("Muvaffaqiyatli tahrirlandi.");
+        showNotification(
+          activeLang === 'ru'
+            ? "Успешно обновлено."
+            : activeLang === 'en'
+            ? "Successfully updated."
+            : "Muvaffaqiyatli tahrirlandi."
+        );
       } else {
         await leadersAPI.create(dto);
-        showNotification("Muvaffaqiyatli qo'shildi.");
+        showNotification(
+          activeLang === 'ru'
+            ? "Успешно добавлено."
+            : activeLang === 'en'
+            ? "Successfully added."
+            : "Muvaffaqiyatli qo'shildi."
+        );
       }
       setIsModalOpen(false);
       fetchLeaders();
     } catch (e) {
-      showNotification(e.message || "Xatolik yuz berdi", true);
+      showNotification(e.message || (activeLang === 'ru' ? "Произошла ошибка" : activeLang === 'en' ? "An error occurred" : "Xatolik yuz berdi"), true);
     } finally {
       setSaving(false);
     }
@@ -471,7 +561,7 @@ export default function LeadershipAdmin() {
           <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                {editMode ? "Rahbarni tahrirlash" : "Rahbar qo'shish"}
+                {editMode ? t.editTitle : t.addTitle}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -507,25 +597,26 @@ export default function LeadershipAdmin() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      F.I.SH ({activeLang.toUpperCase()})
+                      {t.fullNameLabel}
                     </label>
                     <input
                       type="text"
                       value={formData.fullName[activeLang]}
                       onChange={e => setFormData({ ...formData, fullName: { ...formData.fullName, [activeLang]: e.target.value } })}
-                      placeholder="Masalan: ABDULLAYEV DIYORJON"
+                      placeholder={t.fullNamePlaceholder}
                       className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      Lavozim
+                      {t.positionLabel}
                     </label>
                     <div className="mb-2">
                       <CustomPositionDropdown
                         positions={positions}
                         value={selectedPositionId}
                         activeLang={activeLang}
+                        placeholder={t.selectPositionPlaceholder}
                         onChange={(val) => {
                           setSelectedPositionId(val);
                           const posObj = positions.find(p => String(p.id) === String(val));
@@ -546,7 +637,7 @@ export default function LeadershipAdmin() {
                       type="text"
                       value={formData.position[activeLang] || ''}
                       onChange={e => setFormData({ ...formData, position: { ...formData.position, [activeLang]: e.target.value } })}
-                      placeholder={`Lavozim nomi (${activeLang.toUpperCase()})`}
+                      placeholder={t.positionTitlePlaceholder}
                       className="block w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                     />
                   </div>
@@ -555,25 +646,25 @@ export default function LeadershipAdmin() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      Manzil ({activeLang.toUpperCase()})
+                      {t.addressLabel}
                     </label>
                     <input
                       type="text"
                       value={formData.address[activeLang]}
                       onChange={e => setFormData({ ...formData, address: { ...formData.address, [activeLang]: e.target.value } })}
-                      placeholder="Masalan: Xorazm viloyati..."
+                      placeholder={t.addressPlaceholder}
                       className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      Qabul vaqti ({activeLang.toUpperCase()})
+                      {t.receptionLabel}
                     </label>
                     <input
                       type="text"
                       value={formData.reception[activeLang]}
                       onChange={e => setFormData({ ...formData, reception: { ...formData.reception, [activeLang]: e.target.value } })}
-                      placeholder="Masalan: Seshanba, Juma 14:00 - 16:00"
+                      placeholder={t.receptionPlaceholder}
                       className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                     />
                   </div>
@@ -583,22 +674,22 @@ export default function LeadershipAdmin() {
               {/* Language Independent Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.emailLabel}</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Masalan: mail@urspi.uz"
+                    placeholder={t.emailPlaceholder}
                     className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Telefon</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.phoneLabel}</label>
                   <input
                     type="text"
                     value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Masalan: +998622261840"
+                    placeholder={t.phonePlaceholder}
                     className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] transition-colors"
                   />
                 </div>
@@ -607,7 +698,7 @@ export default function LeadershipAdmin() {
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Rasm
+                  {t.photoLabel}
                 </label>
                 <div className="flex items-center gap-4">
                   {previewUrl && (
@@ -619,7 +710,7 @@ export default function LeadershipAdmin() {
                     <div className="text-center flex items-center gap-2">
                       <ImageIcon className="h-5 w-5 text-slate-400" />
                       <span className="text-sm font-semibold text-[#0eb99c]">
-                        {selectedFile ? selectedFile.name : "Rasm tanlash"}
+                        {selectedFile ? selectedFile.name : t.choosePhoto}
                       </span>
                       <input type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
                     </div>
@@ -634,7 +725,7 @@ export default function LeadershipAdmin() {
                 disabled={saving}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
-                Bekor qilish
+                {t.cancel}
               </button>
               <button
                 onClick={handleSave}
@@ -642,7 +733,7 @@ export default function LeadershipAdmin() {
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm flex items-center gap-2"
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                <span>Saqlash</span>
+                <span>{t.save}</span>
               </button>
             </div>
           </div>
