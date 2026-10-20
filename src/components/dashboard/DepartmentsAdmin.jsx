@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, Search, X, Image as ImageIcon, Check } from 'lucide-react';
-import { departmentsAPI, facultiesAPI } from '../../api';
+import { departmentsAPI, facultiesAPI, localizedField } from '../../api';
 
 export default function DepartmentsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,21 +37,43 @@ export default function DepartmentsAdmin() {
       console.warn('API error in fetchData:', e.message);
     }
 
-    setFacultiesList(rawFac.map(f => ({ id: f.id, title: f.nameUz || f.name || "Fakultet" })));
+    if (rawFac.length === 0) {
+      try {
+        const landingRes = await facultiesAPI.getLanding(0, 100);
+        rawFac = landingRes?.data?.content || (Array.isArray(landingRes?.data) ? landingRes.data : landingRes?.content || []);
+      } catch (err) {
+        console.warn('API fallback error in landing faculties:', err.message);
+      }
+    }
 
-    const formatted = rawDept.map(item => ({
-      id: item.id,
-      title: item.nameUz || item.name || "Kafedra",
-      description: item.descriptionUz || item.description || "Kafedra haqida qisqacha ma'lumot",
-      titleUz: item.nameUz || '',
-      titleRu: item.nameRu || '',
-      titleEn: item.nameEn || '',
-      descriptionUz: item.descriptionUz || '',
-      descriptionRu: item.descriptionRu || '',
-      descriptionEn: item.descriptionEn || '',
-      faculty: item.faculty?.nameUz || item.faculty?.name || "Fakultet",
-      facultyId: item.faculty?.id || item.facultyId || 1
-    }));
+    setFacultiesList(rawFac.map(f => ({
+      ...f,
+      id: f.id,
+      nameUz: f.nameUz || f.name || '',
+      nameRu: f.nameRu || '',
+      nameEn: f.nameEn || '',
+      titleUz: f.titleUz || f.nameUz || f.name || '',
+      titleRu: f.titleRu || f.nameRu || '',
+      titleEn: f.titleEn || f.nameEn || '',
+      title: f.nameUz || f.name || "Fakultet"
+    })));
+
+    const formatted = rawDept.map(item => {
+      const foundFac = rawFac.find(f => String(f.id) === String(item.faculty?.id || item.facultyId));
+      return {
+        id: item.id,
+        title: item.nameUz || item.name || "Kafedra",
+        description: item.descriptionUz || item.description || "Kafedra haqida qisqacha ma'lumot",
+        titleUz: item.nameUz || '',
+        titleRu: item.nameRu || '',
+        titleEn: item.nameEn || '',
+        descriptionUz: item.descriptionUz || '',
+        descriptionRu: item.descriptionRu || '',
+        descriptionEn: item.descriptionEn || '',
+        faculty: item.faculty?.nameUz || item.faculty?.name || foundFac?.nameUz || foundFac?.name || "Fakultet",
+        facultyId: item.faculty?.id || item.facultyId || foundFac?.id || ''
+      };
+    });
     setDepartmentsList(formatted);
     setLoading(false);
   };
@@ -112,14 +134,59 @@ export default function DepartmentsAdmin() {
     setDeleteModalOpen(false);
   };
 
+  const getFacultyName = (fac, lang = 'uz') => {
+    if (!fac) return '';
+    const code = (lang || 'uz').toLowerCase();
+
+    if (code === 'ru') {
+      return (
+        (typeof fac.nameRu === 'string' && fac.nameRu.trim()) ||
+        (typeof fac.titleRu === 'string' && fac.titleRu.trim()) ||
+        (fac.name && typeof fac.name === 'object' && fac.name.ru) ||
+        localizedField(fac, 'name', 'ru') ||
+        localizedField(fac, 'title', 'ru') ||
+        fac.nameUz ||
+        fac.name ||
+        fac.title ||
+        'Факультет'
+      );
+    }
+
+    if (code === 'en') {
+      return (
+        (typeof fac.nameEn === 'string' && fac.nameEn.trim()) ||
+        (typeof fac.titleEn === 'string' && fac.titleEn.trim()) ||
+        (fac.name && typeof fac.name === 'object' && fac.name.en) ||
+        localizedField(fac, 'name', 'en') ||
+        localizedField(fac, 'title', 'en') ||
+        fac.nameUz ||
+        fac.name ||
+        fac.title ||
+        'Faculty'
+      );
+    }
+
+    return (
+      (typeof fac.nameUz === 'string' && fac.nameUz.trim()) ||
+      (typeof fac.titleUz === 'string' && fac.titleUz.trim()) ||
+      (fac.name && typeof fac.name === 'object' && fac.name.uz) ||
+      localizedField(fac, 'name', 'uz') ||
+      localizedField(fac, 'title', 'uz') ||
+      fac.name ||
+      fac.title ||
+      'Fakultet'
+    );
+  };
+
   const openEditModal = (item) => {
     setEditMode(true);
     setSelectedItem(item);
     setFormData({
-      title: { uz: item.titleUz || item.title, ru: item.titleRu || item.title, en: item.titleEn || item.title },
-      description: { uz: item.descriptionUz || item.description, ru: item.descriptionRu || item.description, en: item.descriptionEn || item.description },
+      title: { uz: item.titleUz || item.title || '', ru: item.titleRu || '', en: item.titleEn || '' },
+      description: { uz: item.descriptionUz || item.description || '', ru: item.descriptionRu || '', en: item.descriptionEn || '' },
       facultyId: item.facultyId || ''
     });
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
@@ -131,6 +198,7 @@ export default function DepartmentsAdmin() {
       description: { uz: '', ru: '', en: '' },
       facultyId: ''
     });
+    setActiveLang('uz');
     setIsModalOpen(true);
   };
 
@@ -263,121 +331,160 @@ export default function DepartmentsAdmin() {
       )}
 
       {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
-                {editMode ? "Kafedrani tahrirlash" : "Kafedra qo'shish"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {isModalOpen && (() => {
+        const modalText = {
+          uz: {
+            modalTitle: editMode ? "Kafedrani tahrirlash" : "Kafedra qo'shish",
+            facultyLabel: "Tegishli fakultetni tanlang",
+            facultyPlaceholder: "Fakultetni tanlang",
+            titleLabel: "Kafedra nomi",
+            titlePl: "Kafedra nomini kiriting",
+            descLabel: "Kafedra haqida ma'lumot",
+            descPl: "Kafedra haqida ma'lumot kiriting",
+            cancelBtn: "Bekor qilish",
+            saveBtn: "Saqlash"
+          },
+          ru: {
+            modalTitle: editMode ? "Редактировать кафедру" : "Добавить кафедру",
+            facultyLabel: "Выберите соответствующий факультет",
+            facultyPlaceholder: "Выберите факультет",
+            titleLabel: "Название кафедры",
+            titlePl: "Введите название кафедры",
+            descLabel: "О кафедре",
+            descPl: "Введите информацию о кафедре",
+            cancelBtn: "Отмена",
+            saveBtn: "Сохранить"
+          },
+          en: {
+            modalTitle: editMode ? "Edit department" : "Add department",
+            facultyLabel: "Select corresponding faculty",
+            facultyPlaceholder: "Select faculty",
+            titleLabel: "Department name",
+            titlePl: "Enter department name",
+            descLabel: "About department",
+            descPl: "Enter information about the department",
+            cancelBtn: "Cancel",
+            saveBtn: "Save"
+          }
+        }[activeLang] || {
+          modalTitle: editMode ? "Kafedrani tahrirlash" : "Kafedra qo'shish",
+          facultyLabel: "Tegishli fakultetni tanlang",
+          facultyPlaceholder: "Fakultetni tanlang",
+          titleLabel: "Kafedra nomi",
+          titlePl: "Kafedra nomini kiriting",
+          descLabel: "Kafedra haqida ma'lumot",
+          descPl: "Kafedra haqida ma'lumot kiriting",
+          cancelBtn: "Bekor qilish",
+          saveBtn: "Saqlash"
+        };
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              {/* Language Tabs */}
-              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
-                {[
-                  { id: 'uz', label: "O'zbekcha" },
-                  { id: 'ru', label: 'Русский' },
-                  { id: 'en', label: 'English' }
-                ].map(lang => (
-                  <button
-                    key={lang.id}
-                    type="button"
-                    onClick={() => setActiveLang(lang.id)}
-                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-                      activeLang === lang.id
-                        ? 'border-[#0eb99c] text-[#0eb99c]'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Faculty Select */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Tegishli fakultetni tanlang
-                </label>
-                <select
-                  value={formData.facultyId}
-                  onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
+                  {modalText.modalTitle}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <option value="">Fakultetni tanlang</option>
-                  {facultiesList.map(fac => (
-                    <option key={fac.id} value={fac.id}>{fac.title}</option>
-                  ))}
-                </select>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {(() => {
-                const text = {
-                  uz: { titleLabel: "Kafedra nomi", titlePl: "Kafedra nomini kiriting", descLabel: "Kafedra haqida ma'lumot", descPl: "Kafedra haqida ma'lumot kiriting" },
-                  ru: { titleLabel: "Название кафедры", titlePl: "Введите название кафедры", descLabel: "О кафедре", descPl: "Введите информацию о кафедре" },
-                  en: { titleLabel: "Department name", titlePl: "Enter department name", descLabel: "About department", descPl: "Enter information about the department" }
-                }[activeLang];
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto flex-1 space-y-5">
+                {/* Language Tabs */}
+                <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+                  {[
+                    { id: 'uz', label: "O'zbekcha" },
+                    { id: 'ru', label: 'Русский' },
+                    { id: 'en', label: 'English' }
+                  ].map(lang => (
+                    <button
+                      key={lang.id}
+                      type="button"
+                      onClick={() => setActiveLang(lang.id)}
+                      className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                        activeLang === lang.id
+                          ? 'border-[#0eb99c] text-[#0eb99c]'
+                          : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
 
-                return (
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        {text.titleLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.title[activeLang]}
-                        onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
-                        placeholder={text.titlePl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        {text.descLabel}
-                      </label>
-                      <textarea
-                        rows="3"
-                        value={formData.description[activeLang]}
-                        onChange={e => setFormData({ ...formData, description: { ...formData.description, [activeLang]: e.target.value } })}
-                        placeholder={text.descPl}
-                        className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
-                      />
-                    </div>
+                {/* Faculty Select */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {modalText.facultyLabel}
+                  </label>
+                  <select
+                    value={formData.facultyId}
+                    onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                    className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                  >
+                    <option value="">{modalText.facultyPlaceholder}</option>
+                    {facultiesList.map(fac => (
+                      <option key={fac.id} value={fac.id}>
+                        {getFacultyName(fac, activeLang)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {modalText.titleLabel}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title[activeLang]}
+                      onChange={e => setFormData({ ...formData, title: { ...formData.title, [activeLang]: e.target.value } })}
+                      placeholder={modalText.titlePl}
+                      className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors"
+                    />
                   </div>
-                );
-              })()}
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {modalText.descLabel}
+                    </label>
+                    <textarea
+                      rows="3"
+                      value={formData.description[activeLang]}
+                      onChange={e => setFormData({ ...formData, description: { ...formData.description, [activeLang]: e.target.value } })}
+                      placeholder={modalText.descPl}
+                      className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0eb99c] focus:border-[#0eb99c] transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
 
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-              >
-                Bekor qilish
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
-              >
-                Saqlash
-              </button>
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                >
+                  {modalText.cancelBtn}
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
+                >
+                  {modalText.saveBtn}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
