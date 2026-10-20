@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Edit2, Trash2, X, Check } from 'lucide-react';
-import { positionsAPI } from '../../api';
+import { positionsAPI, resolvePositionTranslations } from '../../api';
 
 export default function PositionsAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,19 +17,6 @@ export default function PositionsAdmin() {
     title: { uz: '', ru: '', en: '' }
   });
 
-  const defaultTranslations = {
-    "katta o'qituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
-    "katta oqituvchi": { ru: "Старший преподаватель", en: "Senior Teacher" },
-    "kafedra mudiri": { ru: "Заведующий кафедрой", en: "Head of Department" },
-    "kafedra mudri": { ru: "Заведующий кафедрой", en: "Head of Department" },
-    "dekan": { ru: "Декан", en: "Dean" },
-    "o'quv ishlari bo'yicha dekan o'rinbosari": { ru: "Заместитель декана по учебной работе", en: "Deputy Dean for Academic Affairs" },
-    "yoshlar masalalari va ma'naviyat bo'yicha dekan o'rinbosari": { ru: "Заместитель декана по работе с молодежью", en: "Deputy Dean for Youth Affairs" },
-    "dotsent": { ru: "Доцент", en: "Associate Professor" },
-    "professor": { ru: "Профессор", en: "Professor" },
-    "assistent": { ru: "Ассистент", en: "Assistant" },
-  };
-
   const fetchPositions = async () => {
     setLoading(true);
     let apiData = [];
@@ -40,15 +27,12 @@ export default function PositionsAdmin() {
       console.warn('API error in fetchPositions:', e.message);
     }
 
-    const norm = (s) => (s || '').toLowerCase().trim().replace(/[''`ʼ‘’]/g, "'");
-
     const formatted = apiData.map(item => {
       const uz = item.nameUz || item.titleUz || item.name || item.title || "Lavozim";
-      const key = norm(uz);
-      const def = defaultTranslations[key] || {};
+      const resolved = resolvePositionTranslations(uz);
 
-      const ru = item.nameRu || item.titleRu || def.ru || '';
-      const en = item.nameEn || item.titleEn || def.en || '';
+      const ru = item.nameRu || item.titleRu || resolved.ru || '';
+      const en = item.nameEn || item.titleEn || resolved.en || '';
 
       return {
         id: item.id,
@@ -78,12 +62,14 @@ export default function PositionsAdmin() {
   const handleSave = async () => {
     try {
       const nameUz = formData.title.uz?.trim();
-      const nameRu = formData.title.ru?.trim() || '';
-      const nameEn = formData.title.en?.trim() || '';
       if (!nameUz) {
         showNotification("Iltimos, lavozim nomini o'zbek tilida kiriting");
         return;
       }
+      const resolved = resolvePositionTranslations(nameUz);
+      const nameRu = formData.title.ru?.trim() || resolved.ru || nameUz;
+      const nameEn = formData.title.en?.trim() || resolved.en || nameUz;
+
       const dto = {
         name: nameUz,
         nameUz,
@@ -127,11 +113,12 @@ export default function PositionsAdmin() {
   const openEditModal = (item) => {
     setEditMode(true);
     setSelectedItem(item);
+    const resolved = resolvePositionTranslations(item.titleUz || item.title || '');
     setFormData({
       title: {
         uz: item.titleUz || item.title || '',
-        ru: item.titleRu || '',
-        en: item.titleEn || ''
+        ru: item.titleRu || resolved.ru || '',
+        en: item.titleEn || resolved.en || ''
       }
     });
     setActiveLang('uz');
@@ -176,7 +163,9 @@ export default function PositionsAdmin() {
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{pos.title}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {pos.titleRu || pos.titleEn ? `${pos.titleRu || '—'} / ${pos.titleEn || '—'}` : `ID: ${pos.id}`}
+                {pos.titleRu && pos.titleEn
+                  ? `${pos.titleRu} / ${pos.titleEn}`
+                  : pos.titleRu || pos.titleEn || (pos.titleUz || pos.title)}
               </p>
             </div>
             
@@ -210,15 +199,34 @@ export default function PositionsAdmin() {
       {/* View Modal */}
       {viewModalOpen && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 text-center">
+          <div className="relative bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 md:p-8 text-left border border-slate-200 dark:border-slate-700">
             <button 
               onClick={() => setViewModalOpen(false)} 
               className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">{selectedItem.title}</h2>
-            <p className="text-slate-500 dark:text-slate-400">Lavozim ID: {selectedItem.id}</p>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-500" />
+              Lavozim ma'lumotlari
+            </h2>
+
+            <div className="space-y-3">
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">O'zbekcha</span>
+                <p className="text-base font-bold text-slate-800 dark:text-slate-100 mt-0.5">{selectedItem.titleUz || selectedItem.title}</p>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Русский</span>
+                <p className="text-base font-semibold text-slate-800 dark:text-slate-100 mt-0.5">{selectedItem.titleRu || '—'}</p>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">English</span>
+                <p className="text-base font-semibold text-slate-800 dark:text-slate-100 mt-0.5">{selectedItem.titleEn || '—'}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
