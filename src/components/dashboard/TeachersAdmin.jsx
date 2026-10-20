@@ -16,12 +16,184 @@ const fileToBase64 = (file) => {
   });
 };
 
-function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+const modalI18n = {
+  uz: {
+    addTeacherTitle: "Yangi o'qituvchi qo'shish",
+    editTeacherTitle: "O'qituvchi ma'lumotlarini tahrirlash",
+    addDeanTitle: "Yangi dekan qo'shish",
+    editDeanTitle: "Dekan ma'lumotlarini tahrirlash",
+    uploadPhoto: "Rasm yuklash",
+    fullNameLabel: "F.I.O",
+    deanFullNameLabel: "Dekan F.I.O",
+    fullNamePlaceholder: "To'liq ism-sharifi",
+    positionLabel: "Lavozim",
+    selectPositionPlaceholder: "Lavozimni tanlang",
+    positionFallback: "Lavozim",
+    deanPositionFallback: "Fakultet dekani",
+    degreeLabel: "Ilmiy daraja",
+    deanDegreeLabel: "Ilmiy daraja / unvon",
+    selectDegreePlaceholder: "Ilmiy darajani tanlang",
+    selectDeanDegreePlaceholder: "Ilmiy darajani tanlang (ixtiyoriy)",
+    degreeFallback: "Ilmiy daraja",
+    phoneLabel: "Telefon raqami",
+    emailLabel: "E-pochtasi",
+    emailPlaceholder: "misol@urspi.uz",
+    deanEmailPlaceholder: "dekan@urspi.uz",
+    cvLabel: "CV fayl (PDF)",
+    facultyLabel: "Fakultet",
+    selectFacultyPlaceholder: "Fakultetni tanlang",
+    facultyFallback: "Fakultet",
+    departmentLabel: "Kafedra",
+    selectDepartmentPlaceholder: "Kafedrani tanlang",
+    departmentFallback: "Kafedra",
+    receptionLabel: "Qabul vaqti",
+    receptionPlaceholder: "Du-Juma: 14:00-17:00",
+    sortOrderLabel: "Saralash tartibi",
+    cancel: "Bekor qilish",
+    save: "Saqlash",
+    enterFullName: "Iltimos, F.I.O ni kiriting",
+    enterEmail: "Iltimos, email manzilini kiriting",
+    selectFaculty: "Iltimos, fakultetni tanlang",
+    selectDepartment: "Iltimos, kafedrani tanlang",
+    selectPosition: "Iltimos, lavozimni tanlang",
+    enterValidPhone: "Iltimos, to'liq telefon raqamini kiriting",
+    emptyPositions: "Lavozimlar ro'yxati bo'sh. Avval «Lavozimlar» bo'limida lavozim qo'shing.",
+    teacherSavedSuccess: "Yangi o'qituvchi muvaffaqiyatli qo'shildi",
+    teacherUpdatedSuccess: "O'qituvchi ma'lumotlari muvaffaqiyatli tahrirlandi",
+    deanSavedSuccess: "Yangi dekan muvaffaqiyatli qo'shildi",
+    deanUpdatedSuccess: "Dekan ma'lumotlari muvaffaqiyatli tahrirlandi",
+    deletedSuccess: "Muvaffaqiyatli o'chirildi",
+    deleteError: "O'chirishda xatolik yuz berdi",
+    confirmTitle: "Tasdiqlash",
+    facultyAndDept: "Fakultet va Kafedra",
+    phone: "Telefon",
+    email: "Email",
+    deleteConfirmText: (name) => `Siz rostdan ham "${name}" ni o'chirmoqchimisiz?`,
+    no: "Yo'q",
+    yes: "Ha"
+  },
+  ru: {
+    addTeacherTitle: "Добавить нового преподавателя",
+    editTeacherTitle: "Редактировать данные преподавателя",
+    addDeanTitle: "Добавить нового декана",
+    editDeanTitle: "Редактировать данные декана",
+    uploadPhoto: "Загрузить фото",
+    fullNameLabel: "Ф.И.О.",
+    deanFullNameLabel: "Ф.И.О. декана",
+    fullNamePlaceholder: "Полное имя",
+    positionLabel: "Должность",
+    selectPositionPlaceholder: "Выберите должность",
+    positionFallback: "Должность",
+    deanPositionFallback: "Декан факультета",
+    degreeLabel: "Ученая степень",
+    deanDegreeLabel: "Ученая степень / звание",
+    selectDegreePlaceholder: "Выберите ученую степень",
+    selectDeanDegreePlaceholder: "Выберите ученую степень (необязательно)",
+    degreeFallback: "Ученая степень",
+    phoneLabel: "Номер телефона",
+    emailLabel: "Электронная почта",
+    emailPlaceholder: "primer@urspi.uz",
+    deanEmailPlaceholder: "dekan@urspi.uz",
+    cvLabel: "CV файл (PDF)",
+    facultyLabel: "Факультет",
+    selectFacultyPlaceholder: "Выберите факультет",
+    facultyFallback: "Факультет",
+    departmentLabel: "Кафедра",
+    selectDepartmentPlaceholder: "Выберите кафедру",
+    departmentFallback: "Кафедра",
+    receptionLabel: "Дни и часы приема",
+    receptionPlaceholder: "Пн-Пт: 14:00-17:00",
+    sortOrderLabel: "Порядок сортировки",
+    cancel: "Отмена",
+    save: "Сохранить",
+    enterFullName: "Пожалуйста, введите Ф.И.О.",
+    enterEmail: "Пожалуйста, введите адрес электронной почты",
+    selectFaculty: "Пожалуйста, выберите факультет",
+    selectDepartment: "Пожалуйста, выберите кафедру",
+    selectPosition: "Пожалуйста, выберите должность",
+    enterValidPhone: "Пожалуйста, введите полный номер телефона",
+    emptyPositions: "Список должностей пуст. Сначала добавьте должность в разделе «Должности».",
+    teacherSavedSuccess: "Новый преподаватель успешно добавлен",
+    teacherUpdatedSuccess: "Данные преподавателя успешно отредактированы",
+    deanSavedSuccess: "Новый декан успешно добавлен",
+    deanUpdatedSuccess: "Данные декана успешно отредактированы",
+    deletedSuccess: "Успешно удалено",
+    deleteError: "Ошибка при удалении",
+    confirmTitle: "Подтверждение",
+    facultyAndDept: "Факультет и кафедра",
+    phone: "Телефон",
+    email: "Email",
+    deleteConfirmText: (name) => `Вы действительно хотите удалить "${name}"?`,
+    no: "Нет",
+    yes: "Да"
+  },
+  en: {
+    addTeacherTitle: "Add New Teacher",
+    editTeacherTitle: "Edit Teacher Details",
+    addDeanTitle: "Add New Dean",
+    editDeanTitle: "Edit Dean Details",
+    uploadPhoto: "Upload photo",
+    fullNameLabel: "Full Name",
+    deanFullNameLabel: "Dean Full Name",
+    fullNamePlaceholder: "Full name",
+    positionLabel: "Position",
+    selectPositionPlaceholder: "Select position",
+    positionFallback: "Position",
+    deanPositionFallback: "Dean of Faculty",
+    degreeLabel: "Academic Degree",
+    deanDegreeLabel: "Academic Degree / Title",
+    selectDegreePlaceholder: "Select academic degree",
+    selectDeanDegreePlaceholder: "Select academic degree (optional)",
+    degreeFallback: "Academic degree",
+    phoneLabel: "Phone number",
+    emailLabel: "Email",
+    emailPlaceholder: "example@urspi.uz",
+    deanEmailPlaceholder: "dean@urspi.uz",
+    cvLabel: "CV file (PDF)",
+    facultyLabel: "Faculty",
+    selectFacultyPlaceholder: "Select faculty",
+    facultyFallback: "Faculty",
+    departmentLabel: "Department",
+    selectDepartmentPlaceholder: "Select department",
+    departmentFallback: "Department",
+    receptionLabel: "Reception Hours",
+    receptionPlaceholder: "Mon-Fri: 14:00-17:00",
+    sortOrderLabel: "Sort order",
+    cancel: "Cancel",
+    save: "Save",
+    enterFullName: "Please enter full name",
+    enterEmail: "Please enter email address",
+    selectFaculty: "Please select faculty",
+    selectDepartment: "Please select department",
+    selectPosition: "Please select position",
+    enterValidPhone: "Please enter a valid phone number",
+    emptyPositions: "Positions list is empty. Please add a position first in 'Positions' section.",
+    teacherSavedSuccess: "New teacher added successfully",
+    teacherUpdatedSuccess: "Teacher details updated successfully",
+    deanSavedSuccess: "New dean added successfully",
+    deanUpdatedSuccess: "Dean details updated successfully",
+    deletedSuccess: "Successfully deleted",
+    deleteError: "Error while deleting",
+    confirmTitle: "Confirmation",
+    facultyAndDept: "Faculty & Department",
+    phone: "Phone",
+    email: "Email",
+    deleteConfirmText: (name) => `Are you sure you want to delete "${name}"?`,
+    no: "No",
+    yes: "Yes"
+  }
+};
+
+function CustomPositionDropdown({ positions, value, onChange, activeLang = 'uz', placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const fallbackTitle = activeLang === 'uz' ? 'Lavozim' : activeLang === 'ru' ? 'Должность' : 'Position';
+  const defaultPlaceholder = activeLang === 'uz' ? "Lavozimni tanlang" : activeLang === 'ru' ? "Выберите должность" : "Select position";
+  const effectivePlaceholder = placeholder || defaultPlaceholder;
+
   const selectedPos = positions.find(p => String(p.id) === String(value));
-  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, fallbackTitle) : effectivePlaceholder;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -52,7 +224,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
             onClick={() => { onChange(''); setIsOpen(false); }}
             className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
           >
-            {placeholder}
+            {effectivePlaceholder}
           </div>
           {positions.map(p => {
             const isSelected = String(p.id) === String(value);
@@ -62,7 +234,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
                 onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
                 className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
               >
-                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                <span>{getPositionName(p, activeLang, fallbackTitle)}</span>
                 {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
               </div>
             );
@@ -103,6 +275,7 @@ export default function TeachersAdmin() {
 
   // Form states
   const [activeLang, setActiveLang] = useState('uz');
+  const t = modalI18n[activeLang] || modalI18n.uz;
   const [fullName, setFullName] = useState({ uz: '', ru: '', en: '' });
   const [phoneNumber, setPhoneNumber] = useState('+998 ');
   const [email, setEmail] = useState('');
@@ -246,27 +419,27 @@ export default function TeachersAdmin() {
     });
 
     const rawData = Array.from(combinedMap.values());
-    const formatted = rawData.map(t => {
-      const facObj = currentFacs.find(f => String(f.id) === String(t.facultyId || t.faculty?.id));
-      const deptObj = currentDepts.find(d => String(d.id) === String(t.departmentId || t.department?.id));
-      const posId = t.positionId || t.position?.id;
-      const nestedPos = (t.position && typeof t.position === 'object') ? t.position : null;
+    const formatted = rawData.map(teacher => {
+      const facObj = currentFacs.find(f => String(f.id) === String(teacher.facultyId || teacher.faculty?.id));
+      const deptObj = currentDepts.find(d => String(d.id) === String(teacher.departmentId || teacher.department?.id));
+      const posId = teacher.positionId || teacher.position?.id;
+      const nestedPos = (teacher.position && typeof teacher.position === 'object') ? teacher.position : null;
       const posObj = (nestedPos && (nestedPos.nameUz || nestedPos.name || nestedPos.nameRu || nestedPos.nameEn || nestedPos.titleUz))
         ? nestedPos
         : (currentPositions.find(p => String(p.id) === String(posId)) || nestedPos);
-      const person = { ...t, position: posObj || t.position };
-      const isDean = !!(t.isDean || t.isFacultyStaff || (posObj && (posObj.nameUz || posObj.name || '').toLowerCase().includes('dekan')));
-      const rawImg = t.photo || t.image || t.photoLink || (typeof t.photo === 'object' ? t.photo?.link || t.photo?.url || t.photo?.path : '');
+      const person = { ...teacher, position: posObj || teacher.position };
+      const isDean = !!(teacher.isDean || teacher.isFacultyStaff || (posObj && (posObj.nameUz || posObj.name || '').toLowerCase().includes('dekan')));
+      const rawImg = teacher.photo || teacher.image || teacher.photoLink || (typeof teacher.photo === 'object' ? teacher.photo?.link || teacher.photo?.url || teacher.photo?.path : '');
       return {
-        id: t.id,
-        faculty: t.facultyName || facObj?.nameUz || facObj?.name || t.faculty?.nameUz || t.faculty?.name || "Fakultet",
-        department: t.departmentName || deptObj?.nameUz || deptObj?.name || t.department?.nameUz || t.department?.name || (isDean ? "Dekanat" : "Kafedra"),
+        id: teacher.id,
+        faculty: teacher.facultyName || facObj?.nameUz || facObj?.name || teacher.faculty?.nameUz || teacher.faculty?.name || "Fakultet",
+        department: teacher.departmentName || deptObj?.nameUz || deptObj?.name || teacher.department?.nameUz || teacher.department?.name || (isDean ? "Dekanat" : "Kafedra"),
         position: resolvePersonPosition(person, activeLang) || (isDean ? "Fakultet dekani" : "O'qituvchi"),
-        fullName: localizedField(t, 'fullName', activeLang, t.fullNameUz || t.fullName || (isDean ? "Fakultet dekani" : "O'qituvchi")),
-        phone: t.phoneNumber || t.phone || "+998 90 123 45 67",
-        email: t.email || "info@urspi.uz",
+        fullName: localizedField(teacher, 'fullName', activeLang, teacher.fullNameUz || teacher.fullName || (isDean ? "Fakultet dekani" : "O'qituvchi")),
+        phone: teacher.phoneNumber || teacher.phone || "+998 90 123 45 67",
+        email: teacher.email || "info@urspi.uz",
         image: getFileUrl(rawImg) || "",
-        isFacultyStaff: !!t.isFacultyStaff,
+        isFacultyStaff: !!teacher.isFacultyStaff,
         isDean: isDean,
         rawItem: person
       };
@@ -367,32 +540,32 @@ export default function TeachersAdmin() {
   const handleSave = async () => {
     const mainFullName = fullName.uz?.trim() || fullName.ru?.trim() || fullName.en?.trim() || '';
     if (!mainFullName) {
-      showNotification("Iltimos, F.I.O ni kiriting");
+      showNotification(t.enterFullName);
       return;
     }
     if (!email?.trim()) {
-      showNotification("Iltimos, email manzilini kiriting");
+      showNotification(t.enterEmail);
       return;
     }
     if (!facultyId) {
-      showNotification("Iltimos, fakultetni tanlang");
+      showNotification(t.selectFaculty);
       return;
     }
     if (!departmentId) {
-      showNotification("Iltimos, kafedrani tanlang");
+      showNotification(t.selectDepartment);
       return;
     }
     if (!positionId) {
-      showNotification("Iltimos, lavozimni tanlang");
+      showNotification(t.selectPosition);
       return;
     }
     const phoneDigits = phoneNumber.replace(/\D/g, '');
     if (phoneDigits.length > 0 && phoneDigits.length < 9) {
-      showNotification("Iltimos, to'liq telefon raqamini kiriting");
+      showNotification(t.enterValidPhone);
       return;
     }
     if (positions.length === 0) {
-      showNotification("Lavozimlar ro'yxati bo'sh. Avval «Lavozimlar» bo'limida lavozim qo'shing.");
+      showNotification(t.emptyPositions);
       return;
     }
     try {
@@ -451,7 +624,7 @@ export default function TeachersAdmin() {
       setFilterDepartment('');
       setSearchQuery('');
 
-      showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+      showNotification(editMode ? t.teacherUpdatedSuccess : t.teacherSavedSuccess);
       setIsModalOpen(false);
       setPhotoFile(null);
       setCvFile(null);
@@ -466,24 +639,24 @@ export default function TeachersAdmin() {
   const handleSaveDean = async () => {
     const mainFullName = fullName.uz?.trim() || fullName.ru?.trim() || fullName.en?.trim() || '';
     if (!mainFullName) {
-      showNotification("Iltimos, F.I.O ni kiriting");
+      showNotification(t.enterFullName);
       return;
     }
     if (!email?.trim()) {
-      showNotification("Iltimos, email manzilini kiriting");
+      showNotification(t.enterEmail);
       return;
     }
     if (!facultyId) {
-      showNotification("Iltimos, fakultetni tanlang");
+      showNotification(t.selectFaculty);
       return;
     }
     if (!positionId) {
-      showNotification("Iltimos, lavozimni tanlang");
+      showNotification(t.selectPosition);
       return;
     }
     const phoneDigits = phoneNumber.replace(/\D/g, '');
     if (phoneDigits.length > 0 && phoneDigits.length < 9) {
-      showNotification("Iltimos, to'liq telefon raqamini kiriting");
+      showNotification(t.enterValidPhone);
       return;
     }
 
@@ -538,7 +711,7 @@ export default function TeachersAdmin() {
         return;
       }
 
-      showNotification(editMode ? "Dekan ma'lumotlari muvaffaqiyatli tahrirlandi" : "Yangi dekan muvaffaqiyatli qo'shildi");
+      showNotification(editMode ? t.deanUpdatedSuccess : t.deanSavedSuccess);
       setIsDeanModalOpen(false);
       setPhotoFile(null);
       setCvFile(null);
@@ -558,12 +731,12 @@ export default function TeachersAdmin() {
       } else {
         await teachersAPI.delete(selectedItem.id);
       }
-      showNotification("Muvaffaqiyatli o'chirildi");
+      showNotification(t.deletedSuccess);
       setDeleteModalOpen(false);
       fetchTeachers();
     } catch (e) {
       console.warn("API delete warning:", e.message);
-      showNotification(e.message || "O'chirishda xatolik yuz berdi");
+      showNotification(e.message || t.deleteError);
     }
   };
 
@@ -676,18 +849,18 @@ export default function TeachersAdmin() {
     setIsDeanModalOpen(true);
   };
 
-  const filteredTeachers = teachersList.filter(t => {
+  const filteredTeachers = teachersList.filter(teacher => {
     const matchesFaculty = !filterFaculty || 
-      String(t.rawItem?.faculty?.id || t.rawItem?.facultyId) === String(filterFaculty);
+      String(teacher.rawItem?.faculty?.id || teacher.rawItem?.facultyId) === String(filterFaculty);
     
     const matchesDepartment = !filterDepartment || 
-      String(t.rawItem?.department?.id || t.rawItem?.departmentId) === String(filterDepartment);
+      String(teacher.rawItem?.department?.id || teacher.rawItem?.departmentId) === String(filterDepartment);
     
     const matchesSearch = !searchQuery || 
-      (t.fullName && t.fullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (t.position && t.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (t.email && t.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (t.phone && t.phone.includes(searchQuery));
+      (teacher.fullName && teacher.fullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (teacher.position && teacher.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (teacher.email && teacher.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (teacher.phone && teacher.phone.includes(searchQuery));
       
     return matchesFaculty && matchesDepartment && matchesSearch;
   });
@@ -920,7 +1093,7 @@ export default function TeachersAdmin() {
                     <ChevronDown className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Fakultet va Kafedra</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.facultyAndDept}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.faculty}, {selectedItem.department}</p>
                   </div>
                 </div>
@@ -929,7 +1102,7 @@ export default function TeachersAdmin() {
                     <FiPhone className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Telefon</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.phone}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.phone}</p>
                   </div>
                 </div>
@@ -938,7 +1111,7 @@ export default function TeachersAdmin() {
                     <TbMail className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Email</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.email}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.email}</p>
                   </div>
                 </div>
@@ -956,27 +1129,27 @@ export default function TeachersAdmin() {
               onClick={() => setDeleteModalOpen(false)} 
               className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
             <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4 mt-2">
               <Trash2 className="w-8 h-8 text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">{t.confirmTitle}</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-              Siz rostdan ham <span className="text-red-500 font-bold">{selectedItem.fullName}</span> ni o'chirmoqchimisiz?
+              {t.deleteConfirmText(selectedItem.fullName)}
             </p>
             <div className="flex items-center justify-center gap-3">
               <button 
                 onClick={() => setDeleteModalOpen(false)} 
                 className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors"
               >
-                Yo'q
+                {t.no}
               </button>
               <button 
                 onClick={handleDelete} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
-                Ha
+                {t.yes}
               </button>
             </div>
           </div>
@@ -990,7 +1163,7 @@ export default function TeachersAdmin() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                {editMode ? "O'qituvchi ma'lumotlarini tahrirlash" : "Yangi o'qituvchi qo'shish"}
+                {editMode ? t.editTeacherTitle : t.addTeacherTitle}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -1022,7 +1195,9 @@ export default function TeachersAdmin() {
                   ) : (
                     <>
                       <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
-                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">
+                        {t.uploadPhoto} <span className="text-red-500">*</span>
+                      </span>
                     </>
                   )}
                 </label>
@@ -1054,15 +1229,15 @@ export default function TeachersAdmin() {
               <div className="space-y-4 pt-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    F.I.O <span className="text-red-500">*</span>
+                    {t.fullNameLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={fullName[activeLang]}
+                      value={fullName[activeLang] || ''}
                       onChange={(e) => setFullName({ ...fullName, [activeLang]: e.target.value })}
-                      placeholder="To'liq ism-sharifi" 
+                      placeholder={t.fullNamePlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
@@ -1070,19 +1245,20 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Lavozim <span className="text-red-500">*</span>
+                    {t.positionLabel} <span className="text-red-500">*</span>
                   </label>
                   <CustomPositionDropdown 
                     positions={positions}
                     value={positionId}
                     onChange={(val) => setPositionId(val)}
                     activeLang={activeLang}
+                    placeholder={t.selectPositionPlaceholder}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Ilmiy daraja <span className="text-red-500">*</span>
+                    {t.degreeLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1090,9 +1266,9 @@ export default function TeachersAdmin() {
                       onChange={(e) => setAcademicDegreeId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Ilmiy darajani tanlang</option>
+                      <option value="">{t.selectDegreePlaceholder}</option>
                       {academicDegrees.map(d => (
-                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, 'Ilmiy daraja')}</option>
+                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, t.degreeFallback)}</option>
                       ))}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -1101,7 +1277,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Telefon raqami <span className="text-red-500">*</span>
+                    {t.phoneLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1116,7 +1292,7 @@ export default function TeachersAdmin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    E-pochtasi <span className="text-red-500">*</span>
+                    {t.emailLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1124,13 +1300,13 @@ export default function TeachersAdmin() {
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="misol@urspi.uz" 
+                      placeholder={t.emailPlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV fayl (PDF)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.cvLabel}</label>
                   <div className="relative">
                     <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
@@ -1148,7 +1324,7 @@ export default function TeachersAdmin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Fakultet <span className="text-red-500">*</span>
+                    {t.facultyLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select 
@@ -1159,10 +1335,10 @@ export default function TeachersAdmin() {
                       }}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Fakultetni tanlang</option>
+                      <option value="">{t.selectFacultyPlaceholder}</option>
                       {faculties.map(f => (
                         <option key={f.id} value={f.id}>
-                          {f.nameUz || f.name || "Fakultet"}
+                          {localizedField(f, 'name', activeLang, f.nameUz || f.name || t.facultyFallback)}
                         </option>
                       ))}
                     </select>
@@ -1172,7 +1348,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Kafedra <span className="text-red-500">*</span>
+                    {t.departmentLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select 
@@ -1180,13 +1356,13 @@ export default function TeachersAdmin() {
                       onChange={(e) => setDepartmentId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Kafedrani tanlang</option>
+                      <option value="">{t.selectDepartmentPlaceholder}</option>
                       {(() => {
                         const filtered = departments.filter(d => !facultyId || String(d.faculty?.id || d.facultyId || d.faculty_id) === String(facultyId));
                         const listToDisplay = (filtered.length > 0 || !facultyId) ? filtered : departments;
                         return listToDisplay.map(d => (
                           <option key={d.id} value={d.id}>
-                            {d.nameUz || d.name || "Kafedra"}
+                            {localizedField(d, 'name', activeLang, d.nameUz || d.name || t.departmentFallback)}
                           </option>
                         ));
                       })()}
@@ -1196,7 +1372,7 @@ export default function TeachersAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Saralash tartibi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.sortOrderLabel}</label>
                   <input
                     type="number"
                     min="0"
@@ -1215,13 +1391,13 @@ export default function TeachersAdmin() {
                 onClick={() => setIsModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
-                Bekor qilish
+                {t.cancel}
               </button>
               <button
                 onClick={handleSave}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
               >
-                Saqlash
+                {t.save}
               </button>
             </div>
           </div>
@@ -1235,7 +1411,7 @@ export default function TeachersAdmin() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                {editMode ? "Dekan ma'lumotlarini tahrirlash" : "Yangi dekan qo'shish"}
+                {editMode ? t.editDeanTitle : t.addDeanTitle}
               </h3>
               <button 
                 onClick={() => setIsDeanModalOpen(false)}
@@ -1267,7 +1443,9 @@ export default function TeachersAdmin() {
                   ) : (
                     <>
                       <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
-                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">
+                        {t.uploadPhoto} <span className="text-red-500">*</span>
+                      </span>
                     </>
                   )}
                 </label>
@@ -1299,15 +1477,15 @@ export default function TeachersAdmin() {
               <div className="space-y-4 pt-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Dekan F.I.O <span className="text-red-500">*</span>
+                    {t.deanFullNameLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={fullName[activeLang]}
+                      value={fullName[activeLang] || ''}
                       onChange={(e) => setFullName({ ...fullName, [activeLang]: e.target.value })}
-                      placeholder="To'liq ism-sharifi" 
+                      placeholder={t.fullNamePlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
@@ -1315,7 +1493,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Fakultet <span className="text-red-500">*</span>
+                    {t.facultyLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select 
@@ -1323,10 +1501,10 @@ export default function TeachersAdmin() {
                       onChange={(e) => setFacultyId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Fakultetni tanlang</option>
+                      <option value="">{t.selectFacultyPlaceholder}</option>
                       {faculties.map(f => (
                         <option key={f.id} value={f.id}>
-                          {f.nameUz || f.name || "Fakultet"}
+                          {localizedField(f, 'name', activeLang, f.nameUz || f.name || t.facultyFallback)}
                         </option>
                       ))}
                     </select>
@@ -1336,7 +1514,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Lavozim <span className="text-red-500">*</span>
+                    {t.positionLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1344,9 +1522,9 @@ export default function TeachersAdmin() {
                       onChange={(e) => setPositionId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Lavozimni tanlang</option>
+                      <option value="">{t.selectPositionPlaceholder}</option>
                       {positions.map(p => (
-                        <option key={p.id} value={p.id}>{getPositionName(p, activeLang, 'Fakultet dekani')}</option>
+                        <option key={p.id} value={p.id}>{getPositionName(p, activeLang, t.deanPositionFallback)}</option>
                       ))}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -1355,7 +1533,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Ilmiy daraja / unvon
+                    {t.deanDegreeLabel}
                   </label>
                   <div className="relative">
                     <select
@@ -1363,9 +1541,9 @@ export default function TeachersAdmin() {
                       onChange={(e) => setAcademicDegreeId(e.target.value)}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Ilmiy darajani tanlang (ixtiyoriy)</option>
+                      <option value="">{t.selectDeanDegreePlaceholder}</option>
                       {academicDegrees.map(d => (
-                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, 'Ilmiy daraja')}</option>
+                        <option key={d.id} value={d.id}>{localizedField(d, 'name', activeLang, t.degreeFallback)}</option>
                       ))}
                     </select>
                     <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -1374,7 +1552,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Qabul vaqti
+                    {t.receptionLabel}
                   </label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1382,7 +1560,7 @@ export default function TeachersAdmin() {
                       type="text" 
                       value={officeHours}
                       onChange={(e) => setOfficeHours(e.target.value)}
-                      placeholder="Du-Juma: 14:00-17:00" 
+                      placeholder={t.receptionPlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
@@ -1390,7 +1568,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Telefon raqami <span className="text-red-500">*</span>
+                    {t.phoneLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1406,7 +1584,7 @@ export default function TeachersAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    E-pochtasi <span className="text-red-500">*</span>
+                    {t.emailLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1414,14 +1592,14 @@ export default function TeachersAdmin() {
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="dekan@urspi.uz" 
+                      placeholder={t.deanEmailPlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">CV fayl (PDF)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.cvLabel}</label>
                   <div className="relative">
                     <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
@@ -1439,7 +1617,7 @@ export default function TeachersAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Saralash tartibi</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.sortOrderLabel}</label>
                   <input
                     type="number"
                     min="0"
@@ -1458,13 +1636,13 @@ export default function TeachersAdmin() {
                 onClick={() => setIsDeanModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
-                Bekor qilish
+                {t.cancel}
               </button>
               <button
                 onClick={handleSaveDean}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0066cc] hover:bg-[#0052a3] rounded-xl transition-colors shadow-sm"
               >
-                Saqlash
+                {t.save}
               </button>
             </div>
           </div>

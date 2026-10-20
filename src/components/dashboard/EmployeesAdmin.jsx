@@ -4,14 +4,138 @@ import { FaRegUserCircle } from 'react-icons/fa';
 import { FiPhone } from 'react-icons/fi';
 import { TbMail } from 'react-icons/tb';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { employeesAPI, centersAPI, positionsAPI, getPositionName, getFileUrl } from '../../api';
+import { employeesAPI, centersAPI, positionsAPI, getPositionName, getFileUrl, localizedField } from '../../api';
 
-function CustomPositionDropdown({ positions, value, onChange, activeLang, placeholder = "Lavozimni tanlang" }) {
+const modalI18n = {
+  uz: {
+    addEmployeeTitle: "Yangi xodim qo'shish",
+    editEmployeeTitle: "Xodim ma'lumotlarini tahrirlash",
+    uploadPhoto: "Rasm yuklash",
+    fullNameLabel: "F.I.O",
+    fullNamePlaceholder: "To'liq ism-sharifi",
+    positionLabel: "Lavozimi",
+    selectPositionPlaceholder: "Lavozimni tanlang",
+    positionTitlePlaceholder: "Lavozim nomi (UZ)",
+    positionFallback: "Lavozim",
+    phoneLabel: "Telefon raqami",
+    emailLabel: "E-pochtasi",
+    emailPlaceholder: "misol@urspi.uz",
+    cvLabel: "CV yuklash (PDF)",
+    optional: "(ixtiyoriy)",
+    centerLabel: "Bo'limi / Markazi",
+    selectCenterPlaceholder: "Bo'lim yoki markazni tanlang",
+    centerFallback: "Markaz/Bo'lim",
+    cancel: "Bekor qilish",
+    save: "Saqlash",
+    confirmTitle: "Tasdiqlash",
+    department: "Bo'lim",
+    phone: "Telefon",
+    email: "Email",
+    deleteConfirmText: (name) => `Siz rostdan ham "${name}" ni o'chirmoqchimisiz?`,
+    no: "Yo'q",
+    yes: "Ha",
+    mandatoryPrefix: "Ushbu maydonlar majburiy, iltimos to'ldiring: ",
+    missingPhoto: "Rasm",
+    missingFullName: "F.I.O",
+    missingPosition: "Lavozimi",
+    missingPhone: "Telefon raqami",
+    missingEmail: "E-pochtasi",
+    missingCenter: "Bo'limi / Markazi",
+    employeeSavedSuccess: "Yangi xodim muvaffaqiyatli qo'shildi",
+    employeeUpdatedSuccess: "Xodim ma'lumotlari muvaffaqiyatli tahrirlandi",
+    deletedSuccess: "Muvaffaqiyatli o'chirildi",
+    deleteError: "O'chirishda xatolik yuz berdi"
+  },
+  ru: {
+    addEmployeeTitle: "Добавить нового сотрудника",
+    editEmployeeTitle: "Редактировать данные сотрудника",
+    uploadPhoto: "Загрузить фото",
+    fullNameLabel: "Ф.И.О.",
+    fullNamePlaceholder: "Полное имя",
+    positionLabel: "Должность",
+    selectPositionPlaceholder: "Выберите должность",
+    positionTitlePlaceholder: "Название должности (RU)",
+    positionFallback: "Должность",
+    phoneLabel: "Номер телефона",
+    emailLabel: "Электронная почта",
+    emailPlaceholder: "primer@urspi.uz",
+    cvLabel: "Загрузить CV (PDF)",
+    optional: "(необязательно)",
+    centerLabel: "Отдел / Центр",
+    selectCenterPlaceholder: "Выберите отдел или центр",
+    centerFallback: "Отдел/Центр",
+    cancel: "Отмена",
+    save: "Сохранить",
+    confirmTitle: "Подтверждение",
+    department: "Отдел",
+    phone: "Телефон",
+    email: "Email",
+    deleteConfirmText: (name) => `Вы действительно хотите удалить "${name}"?`,
+    no: "Нет",
+    yes: "Да",
+    mandatoryPrefix: "Эти поля обязательны, пожалуйста заполните: ",
+    missingPhoto: "Фотография",
+    missingFullName: "Ф.И.О.",
+    missingPosition: "Должность",
+    missingPhone: "Номер телефона",
+    missingEmail: "Электронная почта",
+    missingCenter: "Отдел / Центр",
+    employeeSavedSuccess: "Новый сотрудник успешно добавлен",
+    employeeUpdatedSuccess: "Данные сотрудника успешно отредактированы",
+    deletedSuccess: "Успешно удалено",
+    deleteError: "Ошибка при удалении"
+  },
+  en: {
+    addEmployeeTitle: "Add New Employee",
+    editEmployeeTitle: "Edit Employee Details",
+    uploadPhoto: "Upload photo",
+    fullNameLabel: "Full Name",
+    fullNamePlaceholder: "Full name",
+    positionLabel: "Position",
+    selectPositionPlaceholder: "Select position",
+    positionTitlePlaceholder: "Position title (EN)",
+    positionFallback: "Position",
+    phoneLabel: "Phone number",
+    emailLabel: "Email",
+    emailPlaceholder: "example@urspi.uz",
+    cvLabel: "Upload CV (PDF)",
+    optional: "(optional)",
+    centerLabel: "Department / Center",
+    selectCenterPlaceholder: "Select department or center",
+    centerFallback: "Department/Center",
+    cancel: "Cancel",
+    save: "Save",
+    confirmTitle: "Confirmation",
+    department: "Department",
+    phone: "Phone",
+    email: "Email",
+    deleteConfirmText: (name) => `Are you sure you want to delete "${name}"?`,
+    no: "No",
+    yes: "Yes",
+    mandatoryPrefix: "These fields are required, please fill in: ",
+    missingPhoto: "Photo",
+    missingFullName: "Full Name",
+    missingPosition: "Position",
+    missingPhone: "Phone number",
+    missingEmail: "Email",
+    missingCenter: "Department / Center",
+    employeeSavedSuccess: "New employee added successfully",
+    employeeUpdatedSuccess: "Employee details updated successfully",
+    deletedSuccess: "Successfully deleted",
+    deleteError: "Error while deleting"
+  }
+};
+
+function CustomPositionDropdown({ positions, value, onChange, activeLang = 'uz', placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const fallbackTitle = activeLang === 'uz' ? 'Lavozim' : activeLang === 'ru' ? 'Должность' : 'Position';
+  const defaultPlaceholder = activeLang === 'uz' ? "Lavozimni tanlang" : activeLang === 'ru' ? "Выберите должность" : "Select position";
+  const effectivePlaceholder = placeholder || defaultPlaceholder;
+
   const selectedPos = positions.find(p => String(p.id) === String(value));
-  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, 'Lavozim') : placeholder;
+  const selectedLabel = selectedPos ? getPositionName(selectedPos, activeLang, fallbackTitle) : effectivePlaceholder;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -42,7 +166,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
             onClick={() => { onChange(''); setIsOpen(false); }}
             className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors ${!value ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400'}`}
           >
-            {placeholder}
+            {effectivePlaceholder}
           </div>
           {positions.map(p => {
             const isSelected = String(p.id) === String(value);
@@ -52,7 +176,7 @@ function CustomPositionDropdown({ positions, value, onChange, activeLang, placeh
                 onClick={() => { onChange(String(p.id)); setIsOpen(false); }}
                 className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'}`}
               >
-                <span>{getPositionName(p, activeLang, 'Lavozim')}</span>
+                <span>{getPositionName(p, activeLang, fallbackTitle)}</span>
                 {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
               </div>
             );
@@ -75,6 +199,7 @@ export default function EmployeesAdmin() {
   const [notification, setNotification] = useState({ show: false, message: '' });
 
   const [activeLang, setActiveLang] = useState('uz');
+  const t = modalI18n[activeLang] || modalI18n.uz;
   const [centers, setCenters] = useState([]);
   const [positions, setPositions] = useState([]);
   const [selectedPositionId, setSelectedPositionId] = useState('');
@@ -227,13 +352,13 @@ export default function EmployeesAdmin() {
 
     // 1. Photo validation
     if (!photoFile && !imagePreview) {
-      missingFields.push("Rasm");
+      missingFields.push(t.missingPhoto);
     }
 
     // 2. Full Name validation
     const fullNameUz = formData.fullName.uz?.trim() || formData.fullName.ru?.trim() || formData.fullName.en?.trim();
     if (!fullNameUz) {
-      missingFields.push("F.I.O");
+      missingFields.push(t.missingFullName);
     }
     const fullNameRu = formData.fullName.ru?.trim() || fullNameUz || '';
     const fullNameEn = formData.fullName.en?.trim() || fullNameUz || '';
@@ -241,7 +366,7 @@ export default function EmployeesAdmin() {
     // 3. Position validation
     const posUz = formData.position.uz?.trim() || formData.position.ru?.trim() || formData.position.en?.trim();
     if (!posUz) {
-      missingFields.push("Lavozimi");
+      missingFields.push(t.missingPosition);
     }
     const posRu = formData.position.ru?.trim() || posUz || '';
     const posEn = formData.position.en?.trim() || posUz || '';
@@ -249,22 +374,22 @@ export default function EmployeesAdmin() {
     // 4. Phone validation
     const phoneDigits = formData.phone.replace(/\D/g, '');
     if (phoneDigits.length < 12) {
-      missingFields.push("Telefon raqami");
+      missingFields.push(t.missingPhone);
     }
 
     // 5. Email validation
     if (!formData.email?.trim() || !formData.email.includes('@')) {
-      missingFields.push("E-pochtasi");
+      missingFields.push(t.missingEmail);
     }
 
     // 6. Center ID validation
     if (!centerId) {
-      missingFields.push("Bo'limi / Markazi");
+      missingFields.push(t.missingCenter);
     }
 
     // Show alert and notification if any mandatory fields are missing
     if (missingFields.length > 0) {
-      const msg = `Ushbu maydonlar majburiy, iltimos to'ldiring: ${missingFields.join(', ')}`;
+      const msg = `${t.mandatoryPrefix}${missingFields.join(', ')}`;
       alert(msg);
       showNotification(msg);
       return;
@@ -301,7 +426,7 @@ export default function EmployeesAdmin() {
 
     setSearchTerm('');
     setSelectedDepartment('');
-    showNotification(editMode ? "Muvaffaqiyatli tahrirlandi" : "Muvaffaqiyatli qo'shildi");
+    showNotification(editMode ? t.employeeUpdatedSuccess : t.employeeSavedSuccess);
     setIsModalOpen(false);
     setPhotoFile(null);
     setCvFile(null);
@@ -312,12 +437,12 @@ export default function EmployeesAdmin() {
     if (!selectedItem) return;
     try {
       await employeesAPI.delete(selectedItem.id);
-      showNotification("Muvaffaqiyatli o'chirildi");
+      showNotification(t.deletedSuccess);
       setDeleteModalOpen(false);
       fetchEmployees();
     } catch (e) {
       console.warn("API delete failed:", e.message);
-      showNotification(e.message || "O'chirishda xatolik yuz berdi");
+      showNotification(e.message || t.deleteError);
     }
   };
 
@@ -572,13 +697,12 @@ export default function EmployeesAdmin() {
                 </h2>
               </div>
               
-              <div className="space-y-4 text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                <div className="flex items-center gap-3">
+              <div className="space-y-4 text-slate-600 dark:text-slate-300 font-medium bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50">                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm shrink-0">
                     <ChevronDown className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Bo'lim</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.department}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.department}</p>
                   </div>
                 </div>
@@ -587,7 +711,7 @@ export default function EmployeesAdmin() {
                     <FiPhone className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Telefon</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.phone}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.phone}</p>
                   </div>
                 </div>
@@ -596,7 +720,7 @@ export default function EmployeesAdmin() {
                     <TbMail className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Email</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{t.email}</p>
                     <p className="text-slate-800 dark:text-slate-200 font-medium">{selectedItem.email}</p>
                   </div>
                 </div>
@@ -614,27 +738,27 @@ export default function EmployeesAdmin() {
               onClick={() => setDeleteModalOpen(false)} 
               className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
             <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4 mt-2">
               <Trash2 className="w-8 h-8 text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Tasdiqlash</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">{t.confirmTitle}</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-              Siz rostdan ham <span className="text-red-500 font-bold">{selectedItem.fullName}</span> ni o'chirmoqchimisiz?
+              {t.deleteConfirmText(selectedItem.fullName)}
             </p>
             <div className="flex items-center justify-center gap-3">
               <button 
                 onClick={() => setDeleteModalOpen(false)} 
                 className="flex-1 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors"
               >
-                Yo'q
+                {t.no}
               </button>
               <button 
                 onClick={handleDelete} 
                 className="flex-1 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors shadow-sm"
               >
-                Ha
+                {t.yes}
               </button>
             </div>
           </div>
@@ -648,7 +772,7 @@ export default function EmployeesAdmin() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                {editMode ? "Xodim ma'lumotlarini tahrirlash" : "Yangi xodim qo'shish"}
+                {editMode ? t.editEmployeeTitle : t.addEmployeeTitle}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -680,7 +804,9 @@ export default function EmployeesAdmin() {
                   ) : (
                     <>
                       <Upload className="w-6 h-6 text-slate-400 group-hover:text-blue-500 mb-1" />
-                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">Rasm yuklash <span className="text-red-500">*</span></span>
+                      <span className="text-[10px] text-slate-500 group-hover:text-blue-500 font-medium text-center leading-tight">
+                        {t.uploadPhoto} <span className="text-red-500">*</span>
+                      </span>
                     </>
                   )}
                 </label>
@@ -712,15 +838,15 @@ export default function EmployeesAdmin() {
               <div className="space-y-4 pt-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    F.I.O ({activeLang.toUpperCase()}) <span className="text-red-500">*</span>
+                    {t.fullNameLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FaRegUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      value={formData.fullName[activeLang]}
+                      value={formData.fullName[activeLang] || ''}
                       onChange={e => setFormData({ ...formData, fullName: { ...formData.fullName, [activeLang]: e.target.value } })}
-                      placeholder="To'liq ism-sharifi" 
+                      placeholder={t.fullNamePlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
@@ -728,13 +854,14 @@ export default function EmployeesAdmin() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Lavozimi <span className="text-red-500">*</span>
+                    {t.positionLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="mb-2">
                     <CustomPositionDropdown 
                       positions={positions}
                       value={selectedPositionId}
                       activeLang={activeLang}
+                      placeholder={t.selectPositionPlaceholder}
                       onChange={(val) => {
                         setSelectedPositionId(val);
                         const posObj = positions.find(p => String(p.id) === String(val));
@@ -755,14 +882,14 @@ export default function EmployeesAdmin() {
                     type="text" 
                     value={formData.position[activeLang] || ''}
                     onChange={e => setFormData({ ...formData, position: { ...formData.position, [activeLang]: e.target.value } })}
-                    placeholder={`Lavozim nomi (${activeLang.toUpperCase()})`} 
+                    placeholder={t.positionTitlePlaceholder} 
                     className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors text-sm" 
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Telefon raqami <span className="text-red-500">*</span>
+                    {t.phoneLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -777,7 +904,7 @@ export default function EmployeesAdmin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    E-pochtasi <span className="text-red-500">*</span>
+                    {t.emailLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <TbMail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -785,14 +912,14 @@ export default function EmployeesAdmin() {
                       type="email" 
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="misol@urspi.uz" 
+                      placeholder={t.emailPlaceholder} 
                       className="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors" 
                     />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    CV yuklash (PDF) <span className="text-xs text-slate-400 font-normal">(ixtiyoriy)</span>
+                    {t.cvLabel} <span className="text-xs text-slate-400 font-normal">{t.optional}</span>
                   </label>
                   <div className="relative">
                     <FaRegFilePdf className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -810,7 +937,7 @@ export default function EmployeesAdmin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Bo'limi / Markazi <span className="text-red-500">*</span>
+                    {t.centerLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select 
@@ -823,10 +950,10 @@ export default function EmployeesAdmin() {
                       }}
                       className="w-full h-11 px-4 pr-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 outline-none transition-colors appearance-none cursor-pointer"
                     >
-                      <option value="">Bo'lim yoki markazni tanlang</option>
+                      <option value="">{t.selectCenterPlaceholder}</option>
                       {centers.map(c => (
                         <option key={c.id} value={c.id}>
-                          {c.nameUz || c.name || "Markaz/Bo'lim"}
+                          {localizedField(c, 'name', activeLang, c.nameUz || c.name || t.centerFallback)}
                         </option>
                       ))}
                     </select>
@@ -842,13 +969,13 @@ export default function EmployeesAdmin() {
                 onClick={() => setIsModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
-                Bekor qilish
+                {t.cancel}
               </button>
               <button
                 onClick={handleSave}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-[#0eb99c] hover:bg-[#0ba087] rounded-xl transition-colors shadow-sm"
               >
-                Saqlash
+                {t.save}
               </button>
             </div>
           </div>
