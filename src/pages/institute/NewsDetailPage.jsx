@@ -188,6 +188,13 @@ export default function NewsDetailPage() {
                     <div className="text-gray-700 leading-relaxed space-y-4 text-[15px] whitespace-pre-wrap">
                         {news.content}
                     </div>
+
+                    {/* Attribution / Matbuot xizmati */}
+                    <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-center justify-end">
+                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-slate-100/90 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                            ©️ UrDPI matbuot xizmati
+                        </span>
+                    </div>
                 </div>
             </div>
         </main>

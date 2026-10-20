@@ -117,14 +117,21 @@ export default function Announcement() {
                             </div>
 
                             {/* Content */}
-                            <div className="flex flex-1 flex-col bg-white p-5">
-                                <div className="flex items-center font-medium mb-2.5">
-                                    <FaRegCalendarAlt className="h-4 w-4 mr-2 text-amber-500" />
-                                    <span className="text-[14px] text-[#0c1f4a]">{item.date}</span>
+                            <div className="flex flex-1 flex-col justify-between bg-white p-5">
+                                <div>
+                                    <div className="flex items-center font-medium mb-2.5">
+                                        <FaRegCalendarAlt className="h-4 w-4 mr-2 text-amber-500" />
+                                        <span className="text-[14px] text-[#0c1f4a]">{item.date}</span>
+                                    </div>
+                                    <h3 className="line-clamp-3 text-[14px] font-medium leading-[1.5] text-gray-800 transition-colors duration-300 group-hover:text-blue-600">
+                                        {item.title}
+                                    </h3>
                                 </div>
-                                <h3 className="line-clamp-3 text-[14px] font-medium leading-[1.5] text-gray-800 transition-colors duration-300 group-hover:text-blue-600">
-                                    {item.title}
-                                </h3>
+                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end">
+                                    <span className="text-[11px] font-semibold text-slate-500">
+                                        ©️ UrDPI matbuot xizmati
+                                    </span>
+                                </div>
                             </div>
                         </Link>
                     ))}

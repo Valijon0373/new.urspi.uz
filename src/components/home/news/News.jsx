@@ -124,10 +124,13 @@ export default function News() {
                                     </h3>
 
                                     {/* Meta details */}
-                                    <div className="flex items-center gap-2 mt-2 lg:mt-3">
+                                    <div className="flex items-center justify-between gap-2 mt-2 lg:mt-3">
                                         <span className="inline-flex items-center gap-1.5 px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-md bg-black/40 border border-white/20 text-[11px] lg:text-xs font-medium text-white">
                                             <FaRegCalendarAlt className="h-3.5 w-3.5 lg:h-4 lg:w-4 shrink-0" />
                                             {featuredItem.date}
+                                        </span>
+                                        <span className="text-[11px] lg:text-xs text-white/90 font-medium truncate">
+                                            ©️ UrDPI matbuot xizmati
                                         </span>
                                     </div>
                                 </div>
@@ -167,10 +170,13 @@ export default function News() {
                                         </h3>
 
                                         {/* Meta details */}
-                                        <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex items-center justify-between gap-2 mt-2">
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/40 border border-white/20 text-[11px] font-medium text-white">
                                                 <FaRegCalendarAlt className="h-3.5 w-3.5 shrink-0" />
                                                 {item.date}
+                                            </span>
+                                            <span className="text-[10px] text-white/90 font-medium truncate">
+                                                ©️ UrDPI matbuot xizmati
                                             </span>
                                         </div>
                                     </div>

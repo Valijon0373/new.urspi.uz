@@ -113,11 +113,14 @@ export default function AnnouncementsPage() {
                                     <h3 className="text-white font-medium text-sm line-clamp-2 mb-3 leading-snug">
                                         {item.title}
                                     </h3>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center px-2 py-1 rounded bg-white/20 backdrop-blur-sm text-white text-xs">
                                             <FaRegCalendarAlt className="w-3.5 h-3.5 mr-1.5" />
                                             <span>{item.date}</span>
                                         </div>
+                                        <span className="text-[11px] font-medium text-white/90 truncate">
+                                            ©️ UrDPI matbuot xizmati
+                                        </span>
                                     </div>
                                 </div>
                             </Link>
