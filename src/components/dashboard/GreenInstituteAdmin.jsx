@@ -217,7 +217,7 @@ export default function GreenInstituteAdmin() {
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 m-0 flex items-center gap-2">
             <Leaf className="w-6 h-6 text-emerald-500" />
-            Yashil Universitet Boshqaruvi
+            Yashil Institut Boshqaruvi
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 m-0">
             Yashil institut bo'limi ma'lumotlari va rasm-galereyalarini boshqarish

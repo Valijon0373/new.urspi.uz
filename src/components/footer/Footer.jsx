@@ -11,6 +11,15 @@ export default function Footer() {
     const location = useLocation()
     const isGreenTheme = location.pathname.includes('/green-institute')
     
+    const handleLogoClick = (e) => {
+        e.preventDefault()
+        if (window.location.pathname === '/' && !window.location.search && !window.location.hash) {
+            window.location.reload()
+        } else {
+            window.location.href = '/'
+        }
+    }
+    
     return (
         <footer className={`w-full py-10 md:py-16 text-white font-medium text-sm transition-colors duration-500 ${isGreenTheme ? 'bg-[#022c22]' : 'bg-[#0a3161]'}`}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
@@ -18,12 +27,12 @@ export default function Footer() {
 
                     {/* Column 1: Contacts & Logo */}
                     <div className="flex flex-col space-y-6">
-                        <div className="flex items-center gap-4">
-                            <img src={logo} alt="UrDPI Logo" className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full shadow-sm bg-white" />
-                            <h3 className="font-bold text-[15px] leading-snug max-w-[200px] uppercase tracking-wide whitespace-pre-line">
+                        <a href="/" onClick={handleLogoClick} className="flex items-center gap-4 cursor-pointer group w-fit">
+                            <img src={logo} alt="UrDPI Logo" className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full shadow-sm bg-white transition-transform group-hover:scale-105" />
+                            <h3 className="font-bold text-[15px] leading-snug max-w-[200px] uppercase tracking-wide whitespace-pre-line group-hover:text-blue-100 transition-colors">
                                 {t('footer.institute_name')}
                             </h3>
-                        </div>
+                        </a>
 
                         <div className="flex flex-col space-y-4 pt-2 text-[#e2e8f0] text-base">
                             <a href="tel:+998622291840" className="flex items-center hover:text-white transition-colors">

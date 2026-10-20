@@ -150,6 +150,15 @@ function Navbar() {
     setLangOpen(false)
   }
 
+  const handleLogoClick = (e) => {
+    e.preventDefault()
+    if (window.location.pathname === '/' && !window.location.search && !window.location.hash) {
+      window.location.reload()
+    } else {
+      window.location.href = '/'
+    }
+  }
+
   const currentLang = i18n.language || 'uz'
 
   return (
@@ -269,7 +278,7 @@ function Navbar() {
         >
           <div className={`absolute inset-0 transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/50' : 'bg-[#0c1f4a]/30'}`} />
           <div className="relative z-10 mx-auto flex max-w-[1400px] items-center justify-between">
-            <a href="#">
+            <a href="/" onClick={handleLogoClick} className="cursor-pointer">
               <img src={logoImg} alt="URSPI Logo" className="h-22 w-auto" />
             </a>
           </div>
@@ -419,7 +428,10 @@ function Navbar() {
               <a
                 href="/"
                 className="block rounded-xl px-4 py-3 text-base font-semibold transition hover:bg-white/10"
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => {
+                  setMenuOpen(false)
+                  handleLogoClick(e)
+                }}
               >
                 Asosiy sahifa
               </a>

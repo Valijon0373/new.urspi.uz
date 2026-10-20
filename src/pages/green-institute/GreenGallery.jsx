@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
 import { greenInstitutesAPI, getFileUrl } from '../../api';
-import slider1 from '../../assets/images/slider1.jpg';
-import slider2 from '../../assets/images/slider2.jpg';
-import urspiImage from '../../assets/images/urspi_new.png';
-
-const DEFAULT_GREEN_IMAGES = [
-  slider1,
-  slider2,
-  'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80',
-  urspiImage,
-];
 
 const getImageUrl = (item) => {
   if (!item) return '';
@@ -89,13 +77,9 @@ const GreenGallery = () => {
       return true;
     });
 
-    let fetchedUrls = itemsList
+    const fetchedUrls = itemsList
       .map(item => getImageUrl(item))
       .filter(url => typeof url === 'string' && url.length > 0);
-
-    if (fetchedUrls.length === 0) {
-      fetchedUrls = DEFAULT_GREEN_IMAGES;
-    }
 
     setImages(fetchedUrls);
     if (fetchedUrls.length > 0) {
@@ -130,7 +114,7 @@ const GreenGallery = () => {
 
       <div className="text-center max-w-3xl mx-auto mb-20 relative z-10">
         <h2 className="text-emerald-400 font-bold tracking-widest uppercase text-xs md:text-sm mb-3">Foto Galereya</h2>
-        <h3 className="text-4xl md:text-5xl font-black text-white mb-6">Yashil Universitet Hayotidan</h3>
+        <h3 className="text-4xl md:text-5xl font-black text-white mb-6">Yashil Institut Hayotidan</h3>
         <p className="text-emerald-100/70 text-base md:text-lg">Tabiat uyg'unligi aks etgan maxsus lahzalar.</p>
       </div>
 
@@ -245,7 +229,7 @@ const GreenGallery = () => {
           
           <img 
             src={modalImg} 
-            alt="Yashil Universitet Gallery" 
+            alt="Yashil Institut Gallery" 
             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(52,211,153,0.3)] transform scale-100 animate-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()} 
           />
