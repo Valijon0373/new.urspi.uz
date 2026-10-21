@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-import { announcementsAPI, getFileUrl, localizedField } from '../../../api'
+import { announcementsAPI, getFileUrl, localizedField, formatAuthor } from '../../../api'
 
 export default function Announcement() {
     const { t, i18n } = useTranslation()
@@ -48,6 +48,7 @@ export default function Announcement() {
                         id: item.id || index + 1,
                         date: dateStr,
                         title,
+                        author: item.author || '',
                         image: getFileUrl(item.imageLink || item.image) || urspiImage
                     };
                 });
@@ -129,7 +130,7 @@ export default function Announcement() {
                                 </div>
                                 <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end">
                                     <span className="text-[11px] font-semibold text-slate-500">
-                                        ©️ UrDPI matbuot xizmati
+                                        {formatAuthor(item.author, t)}
                                     </span>
                                 </div>
                             </div>

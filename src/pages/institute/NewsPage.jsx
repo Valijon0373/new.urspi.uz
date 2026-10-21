@@ -5,7 +5,7 @@ import { ChevronRight, Eye } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import { Commet } from 'react-loading-indicators';
 import urspiImage from '../../assets/images/urspi_new.png';
-import { newsAPI, getFileUrl, localizedField, formatNewsDate } from '../../api';
+import { newsAPI, getFileUrl, localizedField, formatNewsDate, formatAuthor } from '../../api';
 
 export default function NewsPage() {
     const { t, i18n } = useTranslation();
@@ -42,6 +42,7 @@ export default function NewsPage() {
                         id: item.id || index + 1,
                         title,
                         content,
+                        author: item.author || '',
                         date: dateStr,
                         views: item.views || item.viewCount || 0,
                         image: getFileUrl(item.mainImageLink || item.mainImage || item.image) || urspiImage
@@ -113,7 +114,7 @@ export default function NewsPage() {
                                             <span>{item.date}</span>
                                         </div>
                                         <span className="text-[11px] font-medium text-white/90 truncate">
-                                            ©️ UrDPI matbuot xizmati
+                                            {formatAuthor(item.author, t)}
                                         </span>
                                     </div>
                                 </div>

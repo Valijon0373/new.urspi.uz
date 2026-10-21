@@ -31,6 +31,27 @@ export const formatNewsDate = (item) => {
     return `${d}.${m}.${y}`;
 };
 
+/**
+ * Format author attribution based on i18n
+ */
+export const formatAuthor = (author, t) => {
+    if (!author) return t ? t('common.press_service') : '©️ UrDPI matbuot xizmati';
+    const str = String(author).trim();
+    const lower = str.toLowerCase();
+    if (
+        lower === '©️ urdpi matbuot xizmati' ||
+        lower === 'urdpi matbuot xizmati' ||
+        lower.includes('matbuot xizmati') ||
+        lower.includes('пресс-служба') ||
+        lower.includes('press service') ||
+        lower === 'urdpi' ||
+        lower === 'urspi'
+    ) {
+        return t ? t('common.press_service') : '©️ UrDPI matbuot xizmati';
+    }
+    return str;
+};
+
 export const newsAPI = {
     getAll: (lang) => lang ? request(`/api/news/lang/${lang}`) : request('/api/news'),
     getByLang: (lang) => request(`/api/news/lang/${lang}`),

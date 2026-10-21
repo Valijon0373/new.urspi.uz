@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import urspiImage from '../../../assets/images/urspi_new.png'
-import { newsAPI, getFileUrl, localizedField, formatNewsDate } from '../../../api'
+import { newsAPI, getFileUrl, localizedField, formatNewsDate, formatAuthor } from '../../../api'
 
 export default function News() {
     const { t, i18n } = useTranslation()
@@ -42,6 +42,7 @@ export default function News() {
                     return {
                         id: item.id || index + 1,
                         title,
+                        author: item.author || '',
                         image: getFileUrl(item.mainImageLink || item.mainImage || item.image) || urspiImage,
                         date: dateStr,
                         isFeatured: index === 0
@@ -130,7 +131,7 @@ export default function News() {
                                             {featuredItem.date}
                                         </span>
                                         <span className="text-[11px] lg:text-xs text-white/90 font-medium truncate">
-                                            ©️ UrDPI matbuot xizmati
+                                            {formatAuthor(featuredItem?.author, t)}
                                         </span>
                                     </div>
                                 </div>
@@ -176,7 +177,7 @@ export default function News() {
                                                 {item.date}
                                             </span>
                                             <span className="text-[10px] text-white/90 font-medium truncate">
-                                                ©️ UrDPI matbuot xizmati
+                                                {formatAuthor(item.author, t)}
                                             </span>
                                         </div>
                                     </div>

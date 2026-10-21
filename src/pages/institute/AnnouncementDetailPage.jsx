@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import { announcementsAPI, getFileUrl, localizedField } from '../../api';
+import { announcementsAPI, getFileUrl, localizedField, formatAuthor } from '../../api';
 
 export default function AnnouncementDetailPage() {
     const { id } = useParams();
@@ -39,6 +39,7 @@ export default function AnnouncementDetailPage() {
                 setAnnouncement({
                     id: data.id,
                     title,
+                    author: data.author || '',
                     date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('uz-UZ') : (data.date || "2026-08-21"),
                     content,
                     address: data.address || "Urganch davlat pedagogika instituti",
@@ -131,7 +132,7 @@ export default function AnnouncementDetailPage() {
                     {/* Attribution / Matbuot xizmati */}
                     <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-center justify-end">
                         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 bg-slate-100/90 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                            ©️ UrDPI matbuot xizmati
+                            {formatAuthor(announcement.author, t)}
                         </span>
                     </div>
                 </div>
