@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { ChevronRight, ArrowRight } from 'lucide-react'
 import { HiOutlineMail } from 'react-icons/hi'
 import { GrSend } from 'react-icons/gr'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
 import placeholderImg from '../../assets/images/bg23.jpg'
-import { teachersAPI, getFileUrl, resolvePersonPosition, isDepartmentHead, localizedField, positionsAPI } from '../../api'
+import { teachersAPI, departmentsAPI, getFileUrl, resolvePersonPosition, isDepartmentHead, localizedField, positionsAPI } from '../../api'
 
 const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -24,36 +24,77 @@ const DeskPhoneIcon = ({ size = 16, className = "" }) => (
   </svg>
 )
 
-const StaffCard = ({ id, name, degree, position, img, raw }) => (
-  <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-    <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
-      <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} />
-    </div>
-    <div className="p-5 flex flex-col flex-grow">
-      <h4 className="text-[13px] md:text-[14px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-snug mb-3">
-        {name}
-      </h4>
-      <p className="text-slate-600 text-[13px] mb-1">
-        {degree}
-      </p>
-      <p className="text-slate-600 text-[13px] mb-6">
-        {position}
-      </p>
+const StaffCard = ({ id, name, degree, position, phone, email, img, raw }) => {
+  const safePhone = phone || raw?.phoneNumber || raw?.phone || "+998 90 123 45 67";
+  const safeEmail = email || raw?.email || "info@urspi.uz";
 
-      <div className="mt-auto">
-        <Link to={`/employee/${id}?type=teacher`} state={{ teacher: raw, person: raw }} className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300">
-          Batafsil <ArrowRight size={14} />
-        </Link>
+  return (
+    <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+      <div className="w-full aspect-[4/3] bg-slate-100 overflow-hidden p-3 pb-0">
+        <img src={img} alt={name} className="w-full h-full object-cover object-top rounded-t-lg" onError={(e) => { e.target.onerror = null; e.target.src = menImg; }} />
+      </div>
+      <div className="p-5 flex flex-col flex-grow">
+        <h4 className="text-[13px] md:text-[14px] font-bold text-[#0c1f4a] uppercase tracking-tight leading-snug mb-3">
+          {name}
+        </h4>
+        <p className="text-slate-600 text-[13px] mb-1">
+          {degree}
+        </p>
+        <p className="text-slate-600 text-[13px] mb-6">
+          {position}
+        </p>
+
+        <div className="mt-auto">
+          <Link 
+            to={`/employee/${id}?type=teacher`} 
+            state={{ 
+              teacher: {
+                ...(raw || {}),
+                id,
+                name,
+                fullName: name,
+                position: position || "O'qituvchi",
+                positionTitle: position || "O'qituvchi",
+                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "O'qituvchi",
+                degree,
+                phone: safePhone,
+                email: safeEmail,
+                isTeacher: true
+              },
+              person: {
+                ...(raw || {}),
+                id,
+                name,
+                fullName: name,
+                position: position || "O'qituvchi",
+                positionTitle: position || "O'qituvchi",
+                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "O'qituvchi",
+                degree,
+                phone: safePhone,
+                email: safeEmail,
+                isTeacher: true
+              }
+            }} 
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-medium text-[13px] transition-colors duration-300"
+          >
+            Batafsil <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
     </div>
-  </div>
-)
+  );
+};
 
 export default function DepartmentStaffPage() {
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'uz';
-  const selectedDepartment = location.state?.department;
+  
+  const stateDepartment = location.state?.department;
+  const searchDeptId = searchParams.get('id') || searchParams.get('departmentId');
+  const [selectedDepartment, setSelectedDepartment] = useState(stateDepartment || null);
+  const [departmentsList, setDepartmentsList] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +108,39 @@ export default function DepartmentStaffPage() {
     if (Array.isArray(payload.result)) return payload.result;
     return [];
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadDepartments = async () => {
+      try {
+        const res = await departmentsAPI.getLanding(0, 50, lang);
+        const list = res?.data?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+        if (isMounted) {
+          setDepartmentsList(list);
+          if (!selectedDepartment) {
+            if (searchDeptId) {
+              const found = list.find(d => String(d.id) === String(searchDeptId));
+              if (found) {
+                setSelectedDepartment(found);
+              }
+            } else if (list.length > 0) {
+              setSelectedDepartment(list[0]);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load departments list:', err);
+      }
+    };
+    loadDepartments();
+    return () => { isMounted = false; };
+  }, [lang, searchDeptId]);
+
+  useEffect(() => {
+    if (stateDepartment) {
+      setSelectedDepartment(stateDepartment);
+    }
+  }, [stateDepartment]);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,7 +162,7 @@ export default function DepartmentStaffPage() {
     const fetchTeachers = async () => {
       setLoading(true);
       try {
-        const deptId = selectedDepartment?.id || selectedDepartment?._id;
+        const deptId = selectedDepartment?.id || selectedDepartment?._id || searchDeptId;
         const promises = [
           deptId ? teachersAPI.getLandingByDepartment(deptId, 0, 100, lang) : Promise.resolve(null),
           deptId ? teachersAPI.getByDepartment(deptId, lang) : Promise.resolve(null),
@@ -162,6 +236,24 @@ export default function DepartmentStaffPage() {
 
         if (isMounted) {
           setTeachers(formatted);
+          try {
+            const map = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+            formatted.forEach((item, index) => {
+              if (item.id) {
+                const isFirst = index === 0;
+                const pos = isFirst ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : (item.position || "O'qituvchi");
+                map[String(item.id)] = {
+                  id: item.id,
+                  position: pos,
+                  positionTitleUz: pos,
+                  department: item.departmentName || '',
+                  degree: item.degree || '',
+                  isDepartmentHead: isFirst
+                };
+              }
+            });
+            localStorage.setItem('urspi_teacher_positions_map', JSON.stringify(map));
+          } catch (e) {}
         }
       } catch (err) {
         console.warn('Failed to fetch department teachers from API:', err.message);
@@ -181,7 +273,7 @@ export default function DepartmentStaffPage() {
       isMounted = false;
       window.removeEventListener('urspi_teachers_updated', handleUpdate);
     };
-  }, [selectedDepartment, lang]);
+  }, [selectedDepartment, lang, searchDeptId]);
 
   const mudir = teachers.find(t => {
     const posStr = [
@@ -199,7 +291,7 @@ export default function DepartmentStaffPage() {
   const rawDeptTitle = typeof selectedDepartment === 'string'
     ? selectedDepartment
     : (typeof selectedDepartment?.name === 'string' ? selectedDepartment?.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment?.nameUz || selectedDepartment?.title || ''));
-  const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : "Kafedra o'qituvchilari";
+  const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : (lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra o'qituvchilari");
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
@@ -234,6 +326,32 @@ export default function DepartmentStaffPage() {
 
       <div className="py-10 flex flex-col flex-grow">
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Department selector if departments list is loaded */}
+          {departmentsList.length > 0 && (
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[13px] font-bold text-[#0c1f4a] uppercase tracking-wide">
+                {lang === 'ru' ? 'Выберите кафедру:' : lang === 'en' ? 'Select department:' : 'Kafedrani tanlang:'}
+              </span>
+              <select
+                value={selectedDepartment?.id || ''}
+                onChange={(e) => {
+                  const found = departmentsList.find(d => String(d.id) === String(e.target.value));
+                  if (found) {
+                    setSelectedDepartment(found);
+                    setSearchParams({ id: found.id });
+                  }
+                }}
+                className="w-full sm:w-auto min-w-[280px] bg-slate-50 border border-slate-200 text-[#0c1f4a] text-[13px] font-semibold rounded-lg px-3 py-2 outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              >
+                {departmentsList.map(dep => (
+                  <option key={dep.id} value={dep.id}>
+                    {localizedField(dep, 'name', lang, dep.name)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
@@ -279,16 +397,46 @@ export default function DepartmentStaffPage() {
                         </div>
                         <div>
                           <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'Elektron pochta:'}
+                            <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почta:' : lang === 'en' ? 'Email:' : 'Elektron pochta:'}
                           </div>
                           <div className="text-slate-700 font-semibold">{mudir.email}</div>
                         </div>
                       </div>
 
                       <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
-                        <Link to={`/employee/${mudir.id}?type=teacher`} state={{ teacher: mudir.raw || mudir, person: mudir.raw || mudir }} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto">
-                          {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
-                        </Link>
+                        {(() => {
+                          const mudirPosTitle = (!mudir.position || mudir.position === "O'qituvchi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position;
+                          return (
+                            <Link 
+                              to={`/employee/${mudir.id}?type=teacher`} 
+                              state={{ 
+                                teacher: {
+                                  ...(mudir.raw || {}),
+                                  ...mudir,
+                                  position: mudirPosTitle,
+                                  positionTitle: mudirPosTitle,
+                                  positionTitleUz: mudirPosTitle,
+                                  isDepartmentHead: true,
+                                  departmentName: mudir.departmentName || deptTitle,
+                                  isTeacher: true
+                                },
+                                person: {
+                                  ...(mudir.raw || {}),
+                                  ...mudir,
+                                  position: mudirPosTitle,
+                                  positionTitle: mudirPosTitle,
+                                  positionTitleUz: mudirPosTitle,
+                                  isDepartmentHead: true,
+                                  departmentName: mudir.departmentName || deptTitle,
+                                  isTeacher: true
+                                }
+                              }} 
+                              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-[#0c1f4a] text-[#0c1f4a] hover:bg-[#0c1f4a] hover:text-white font-semibold transition-colors duration-300 w-full sm:w-auto"
+                            >
+                              {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
+                            </Link>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -310,6 +458,8 @@ export default function DepartmentStaffPage() {
                         name={teacher.name}
                         degree={teacher.degree}
                         position={teacher.position}
+                        phone={teacher.phone}
+                        email={teacher.email}
                         img={teacher.img}
                         raw={teacher.raw || teacher}
                       />

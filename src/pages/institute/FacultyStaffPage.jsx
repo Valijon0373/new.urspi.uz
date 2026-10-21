@@ -303,7 +303,30 @@ export default function FacultyStaffPage() {
                       </div>
 
                       <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
-                        <Link to={`/employee/${dekan.id}?type=faculty-staff`} state={{ staff: dekan.raw || dekan, person: dekan.raw || dekan }} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-sm transition-colors duration-300 w-full sm:w-auto">
+                        <Link 
+                          to={`/employee/${dekan.id}?type=faculty-staff`} 
+                          state={{ 
+                            staff: {
+                              ...(dekan.raw || {}),
+                              ...dekan,
+                              position: dekan.position || "Fakultet dekani",
+                              positionTitle: dekan.position || "Fakultet dekani",
+                              positionTitleUz: dekan.position || "Fakultet dekani",
+                              isDean: true,
+                              isFacultyStaff: true
+                            },
+                            person: {
+                              ...(dekan.raw || {}),
+                              ...dekan,
+                              position: dekan.position || "Fakultet dekani",
+                              positionTitle: dekan.position || "Fakultet dekani",
+                              positionTitleUz: dekan.position || "Fakultet dekani",
+                              isDean: true,
+                              isFacultyStaff: true
+                            }
+                          }} 
+                          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-sm transition-colors duration-300 w-full sm:w-auto"
+                        >
                           {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={16} />
                         </Link>
 
@@ -357,11 +380,32 @@ export default function FacultyStaffPage() {
                             </div>
                           )}
 
-                          <div className="mt-auto">
-                            <Link to={`/employee/${person.id}?type=faculty-staff`} state={{ staff: person.raw || person, person: person.raw || person }} className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors duration-300">
+                            <Link 
+                              to={`/employee/${person.id}?type=faculty-staff`} 
+                              state={{ 
+                                staff: {
+                                  ...(person.raw || {}),
+                                  ...person,
+                                  position: person.position || "Dekan o'rinbosari",
+                                  positionTitle: person.position || "Dekan o'rinbosari",
+                                  positionTitleUz: person.position || "Dekan o'rinbosari",
+                                  isViceDean: true,
+                                  isFacultyStaff: true
+                                },
+                                person: {
+                                  ...(person.raw || {}),
+                                  ...person,
+                                  position: person.position || "Dekan o'rinbosari",
+                                  positionTitle: person.position || "Dekan o'rinbosari",
+                                  positionTitleUz: person.position || "Dekan o'rinbosari",
+                                  isViceDean: true,
+                                  isFacultyStaff: true
+                                }
+                              }} 
+                              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors duration-300"
+                            >
                               {lang === 'ru' ? 'Подробнее' : lang === 'en' ? 'More details' : 'Batafsil'} <ArrowRight size={14} />
                             </Link>
-                          </div>
                         </div>
                       </div>
                     ))}

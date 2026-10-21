@@ -65,7 +65,7 @@ const FacultyCard = ({ faculty }) => {
       >
         <div className="p-5 bg-slate-50/50 flex flex-col gap-2">
           {faculty.departments?.map((dep, idx) => (
-            <Link to="/department-staff" state={{ department: dep, faculty }} key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
+            <Link to={`/department-staff?id=${dep.id || ''}`} state={{ department: dep, faculty }} key={idx} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors cursor-pointer group">
               <div className="mt-0.5 text-blue-500 group-hover:text-blue-600 transition-colors">
                 <ChevronRight size={16} />
               </div>
@@ -104,10 +104,16 @@ export default function FacultiesPage() {
           const desc = localizedField(fac, 'description', lang, "");
 
           const facDepts = rawDept
-            .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
+            .filter(d => {
+              const dFacId = d.faculty?.id != null ? d.faculty.id : d.facultyId;
+              const matchesId = dFacId != null && String(dFacId) === String(fac.id);
+              const matchesName = (d.faculty?.name && d.faculty.name === fac.name) || (typeof d.faculty === 'string' && d.faculty === fac.name);
+              return matchesId || matchesName;
+            })
             .map(d => ({
+              ...d,
               id: d.id,
-              name: localizedField(d, 'name', lang, "Kafedra")
+              name: localizedField(d, 'name', lang, d.name || "Kafedra")
             }));
 
           return {

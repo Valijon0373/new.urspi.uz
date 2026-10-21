@@ -44,14 +44,23 @@ export default function DepartmentsPage() {
       const combinedDept = rawDept;
 
       if (isMounted) {
+        const matchedDeptIds = new Set();
         const formatted = combinedFac.map(fac => {
           const facName = localizedField(fac, 'name', lang, "FAKULTET");
 
           const depts = combinedDept
-            .filter(d => (d.faculty?.id === fac.id) || (d.facultyId === fac.id) || (d.faculty === fac.name))
+            .filter(d => {
+              const dFacId = d.faculty?.id != null ? d.faculty.id : d.facultyId;
+              const matchesId = dFacId != null && String(dFacId) === String(fac.id);
+              const matchesName = (d.faculty?.name && d.faculty.name === fac.name) || (typeof d.faculty === 'string' && d.faculty === fac.name);
+              const isMatch = matchesId || matchesName;
+              if (isMatch) matchedDeptIds.add(d.id);
+              return isMatch;
+            })
             .map(d => ({
+              ...d,
               id: d.id,
-              name: localizedField(d, 'name', lang, "Kafedra")
+              name: localizedField(d, 'name', lang, d.name || "Kafedra")
             }));
 
           return {
@@ -60,6 +69,20 @@ export default function DepartmentsPage() {
             departments: depts
           };
         });
+
+        const unmatchedDepts = combinedDept.filter(d => !matchedDeptIds.has(d.id));
+        if (unmatchedDepts.length > 0) {
+          formatted.push({
+            id: 'other',
+            name: lang === 'ru' ? 'Kafedralar' : lang === 'en' ? 'Departments' : 'Kafedralar',
+            departments: unmatchedDepts.map(d => ({
+              ...d,
+              id: d.id,
+              name: localizedField(d, 'name', lang, d.name || "Kafedra")
+            }))
+          });
+        }
+
         setFacultiesList(formatted);
         setLoading(false);
       }
@@ -144,7 +167,7 @@ export default function DepartmentsPage() {
                       <div className="flex flex-col w-full gap-3">
                         {faculty.departments.map((dep, idx) => (
                           <Link 
-                            to="/department-staff"
+                            to={`/department-staff?id=${dep.id}`}
                             state={{ department: dep }}
                             key={dep.id || idx} 
                             className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 text-[13px] sm:text-[14px] text-[#0c1f4a] font-semibold transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white group"

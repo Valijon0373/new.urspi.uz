@@ -387,6 +387,9 @@ export function resolvePersonPosition(person, lang = 'uz', fallback = "O'qituvch
     if (isDepartmentHead(person)) {
         return lang === 'ru' ? "Заведующий кафедрой" : lang === 'en' ? "Head of Department" : "Kafedra mudiri";
     }
+    if (isViceDean(person)) {
+        return lang === 'ru' ? "Заместитель декана" : lang === 'en' ? "Deputy Dean" : "Dekan o'rinbosari";
+    }
 
     const nested = person.position;
     if (nested && typeof nested === 'object') {
@@ -398,8 +401,30 @@ export function resolvePersonPosition(person, lang = 'uz', fallback = "O'qituvch
         if (fromObj) return fromObj;
     }
     const fromTitle = localizedField(person, 'positionTitle', lang, '');
-    if (fromTitle) return fromTitle;
-    if (typeof nested === 'string' && nested.trim()) return nested;
+    if (fromTitle) return getPositionName(fromTitle, lang, fromTitle);
+
+    if (typeof nested === 'string' && nested.trim()) return getPositionName(nested, lang, nested);
+    if (typeof person.positionTitleUz === 'string' && person.positionTitleUz.trim()) {
+        return getPositionName(person.positionTitleUz, lang, person.positionTitleUz);
+    }
+    if (typeof person.positionTitle === 'string' && person.positionTitle.trim()) {
+        return getPositionName(person.positionTitle, lang, person.positionTitle);
+    }
+    if (typeof person.positionName === 'string' && person.positionName.trim()) {
+        return getPositionName(person.positionName, lang, person.positionName);
+    }
+
+    // Check cached map by person id if available
+    if (person.id && typeof window !== 'undefined') {
+        try {
+            const cachedMap = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+            const cached = cachedMap[String(person.id)];
+            if (cached && (cached.position || cached.positionTitleUz)) {
+                return getPositionName(cached.position || cached.positionTitleUz, lang, cached.position || cached.positionTitleUz);
+            }
+        } catch (e) {}
+    }
+
     return fallback;
 }
 
@@ -442,18 +467,24 @@ function isDeputyRole(text) {
 }
 
 export function isDepartmentHead(person) {
+    if (!person) return false;
+    if (person.isDepartmentHead || person.isMudir || person.raw?.isDepartmentHead || person.raw?.isMudir) return true;
     const s = collectPositionTexts(person);
     if (!s || isDeputyRole(s)) return false;
     return /mudir|mudr|мудир|head of (the )?department|department head|chair/i.test(s);
 }
 
 export function isFacultyDean(person) {
+    if (!person) return false;
+    if (person.isDean || person.raw?.isDean) return true;
     const s = collectPositionTexts(person);
     if (!s || isDeputyRole(s)) return false;
     return /dekan|декан|\bdean\b/i.test(s);
 }
 
 export function isViceDean(person) {
+    if (!person) return false;
+    if (person.isViceDean || person.raw?.isViceDean) return true;
     const s = collectPositionTexts(person);
     if (!s) return false;
     return /dekan o[''`ʼ‘’]?rinbosar|зам.*декан|заместитель декана|vice[\s-]?dean/i.test(s);

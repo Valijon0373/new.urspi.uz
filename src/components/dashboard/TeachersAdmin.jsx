@@ -445,6 +445,25 @@ export default function TeachersAdmin() {
       };
     });
     setTeachersList(formatted);
+    try {
+      const metaMap = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+      formatted.forEach(t => {
+        if (t.id) {
+          metaMap[String(t.id)] = {
+            id: t.id,
+            position: t.position,
+            positionTitleUz: t.rawItem?.positionTitleUz || t.position,
+            positionTitleRu: t.rawItem?.positionTitleRu || '',
+            positionTitleEn: t.rawItem?.positionTitleEn || '',
+            department: t.department,
+            faculty: t.faculty,
+            isDean: t.isDean,
+            isFacultyStaff: t.isFacultyStaff
+          };
+        }
+      });
+      localStorage.setItem('urspi_teacher_positions_map', JSON.stringify(metaMap));
+    } catch (e) {}
     setLoading(false);
   };
 
@@ -609,11 +628,29 @@ export default function TeachersAdmin() {
           sortOrder: Number(sortOrder) || 0,
         };
 
+        let savedResult = null;
         if (editMode && selectedItem) {
-          await teachersAPI.update(selectedItem.id, payloadData);
+          savedResult = await teachersAPI.update(selectedItem.id, payloadData);
         } else {
-          await teachersAPI.create(payloadData);
+          savedResult = await teachersAPI.create(payloadData);
         }
+
+        try {
+          const targetId = selectedItem ? selectedItem.id : (savedResult?.data?.id || savedResult?.id);
+          if (targetId) {
+            const metaMap = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+            metaMap[String(targetId)] = {
+              id: targetId,
+              position: posNameUz,
+              positionTitleUz: posNameUz,
+              positionTitleRu: posNameRu,
+              positionTitleEn: posNameEn,
+              department: deptObj?.nameUz || '',
+              faculty: facObj?.nameUz || '',
+            };
+            localStorage.setItem('urspi_teacher_positions_map', JSON.stringify(metaMap));
+          }
+        } catch (e) {}
       } catch (apiErr) {
         console.warn('Backend API save failed:', apiErr.message);
         showNotification(apiErr.message || "Backendga saqlashda xatolik yuz berdi");

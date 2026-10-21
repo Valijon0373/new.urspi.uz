@@ -3,7 +3,7 @@ import { ChevronRight, Phone, Mail, User, Briefcase, GraduationCap, Clock, Downl
 import { Link, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import menImg from '../../assets/men.jpg'
-import { teachersAPI, employeesAPI, facultyStaffAPI, getFileUrl, resolvePersonPosition, localizedField, positionsAPI } from '../../api'
+import { teachersAPI, employeesAPI, facultyStaffAPI, departmentsAPI, getFileUrl, resolvePersonPosition, getPositionName, localizedField, positionsAPI } from '../../api'
 
 export default function EmployeeProfilePage() {
   const { id } = useParams()
@@ -82,91 +82,211 @@ export default function EmployeeProfilePage() {
         const hasData = (obj) => !!(obj && (obj.fullName || obj.fullNameUz || obj.name || obj.nameUz || obj.id))
         const findInList = (list, targetId) => list.find(item => String(item.id) === String(targetId))
 
-        if (targetType === 'employee' || targetType === 'staff' || targetType === 'center') {
-          if (hasData(empLandingObj)) data = empLandingObj
-          else if (hasData(empObj)) data = empObj
-          else {
-            const foundInAll = findInList(empList, id)
-            if (hasData(foundInAll)) data = foundInAll
-            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
-            else if (hasData(landingStaffObj)) data = landingStaffObj
-            else if (hasData(staffObj)) data = staffObj
-            else {
-              const foundInStaff = findInList(staffList, id)
-              if (hasData(foundInStaff)) data = foundInStaff
+        const isTeacherCategory = targetType === 'teacher' || 
+          Boolean(location.state?.teacher) || 
+          Boolean(stateObj?.isTeacher) || 
+          (targetType !== 'employee' && targetType !== 'faculty-staff' && targetType !== 'center' && targetType !== 'staff' && (hasData(landingTeacherObj) || hasData(teacherObj)));
+
+        const isFacultyStaffCategory = !isTeacherCategory && (
+          targetType === 'faculty-staff' || 
+          Boolean(location.state?.staff) || 
+          Boolean(stateObj?.isFacultyStaff) || 
+          Boolean(stateObj?.isDean) || 
+          (targetType !== 'employee' && targetType !== 'center' && (hasData(landingStaffObj) || hasData(staffObj)))
+        );
+
+        let cachedTeacherMeta = null;
+        try {
+          const map = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+          cachedTeacherMeta = map[String(id)] || null;
+        } catch (e) {}
+
+        if (isTeacherCategory) {
+          const teacherInAll = findInList(teacherList, id);
+          const fullT = hasData(teacherObj) ? teacherObj : (hasData(teacherInAll) ? teacherInAll : null);
+          const landingT = hasData(landingTeacherObj) ? landingTeacherObj : null;
+          const passedT = (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) ? stateObj : null;
+
+          data = {
+            ...(landingT || {}),
+            ...(passedT || {}),
+            ...(fullT || {}),
+            isTeacher: true
+          };
+
+          let candidatePosition =
+            fullT?.positionTitleUz ||
+            fullT?.positionTitle ||
+            (typeof fullT?.position === 'string' ? fullT.position : (fullT?.position?.nameUz || fullT?.position?.name)) ||
+            passedT?.positionTitleUz ||
+            passedT?.positionTitle ||
+            (typeof passedT?.position === 'string' ? passedT.position : (passedT?.position?.nameUz || passedT?.position?.name)) ||
+            cachedTeacherMeta?.positionTitleUz ||
+            cachedTeacherMeta?.position ||
+            landingT?.positionTitleUz ||
+            landingT?.positionTitle ||
+            (typeof landingT?.position === 'string' ? landingT.position : (landingT?.position?.nameUz || landingT?.position?.name)) ||
+            '';
+
+          if (fullT?.position) data.position = fullT.position;
+          else if (passedT?.position) data.position = passedT.position;
+          else if (cachedTeacherMeta?.position) data.position = cachedTeacherMeta.position;
+
+          if (fullT?.departmentName || fullT?.department?.name) data.departmentName = fullT.departmentName || fullT.department?.name;
+          else if (passedT?.departmentName || passedT?.department) data.departmentName = passedT.departmentName || passedT.department;
+          else if (cachedTeacherMeta?.department) data.departmentName = cachedTeacherMeta.department;
+
+          if (passedT?.isDepartmentHead || fullT?.isDepartmentHead || cachedTeacherMeta?.isDepartmentHead) {
+            data.isDepartmentHead = true;
+          }
+
+          // If still no specific position, check department assignment via public landing
+          const isPosGeneric = !candidatePosition || candidatePosition.toLowerCase() === 'xodim';
+          if (isPosGeneric) {
+            try {
+              const depRes = await departmentsAPI.getLanding(0, 50, lang);
+              const depts = extractArray(depRes);
+              const checks = depts.map(async (dept) => {
+                try {
+                  const res = await teachersAPI.getLandingByDepartment(dept.id, 0, 50, lang);
+                  const list = extractArray(res);
+                  const foundIdx = list.findIndex(t => String(t.id) === String(id));
+                  if (foundIdx !== -1) {
+                    return { dept, isFirst: foundIdx === 0, found: list[foundIdx] };
+                  }
+                } catch (e) {}
+                return null;
+              });
+              const results = await Promise.all(checks);
+              const match = results.find(Boolean);
+              if (match) {
+                if (!data.departmentName) data.departmentName = match.dept.name;
+                if (match.isFirst) {
+                  data.isDepartmentHead = true;
+                  candidatePosition = lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri';
+                  data.positionTitleUz = "Kafedra mudiri";
+                } else if (!candidatePosition) {
+                  candidatePosition = lang === 'ru' ? 'Преподаватель' : lang === 'en' ? 'Teacher' : "O'qituvchi";
+                }
+              }
+            } catch (e) {}
+          }
+
+          const posId = data.positionId || fullT?.positionId || fullT?.position?.id || passedT?.positionId || cachedTeacherMeta?.positionId;
+          if (posId) {
+            const matchedPos = positions.find(p => String(p.id) === String(posId));
+            if (matchedPos) {
+              candidatePosition = getPositionName(matchedPos, lang, candidatePosition || "O'qituvchi");
+              data.position = matchedPos;
             }
           }
-        } else if (targetType === 'faculty-staff') {
-          if (hasData(landingStaffObj)) data = landingStaffObj
-          else if (hasData(staffObj)) data = staffObj
-          else {
-            const foundInStaff = findInList(staffList, id)
-            if (hasData(foundInStaff)) data = foundInStaff
-            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
-            else if (hasData(empLandingObj)) data = empLandingObj
-            else if (hasData(empObj)) data = empObj
+
+          if (candidatePosition && typeof candidatePosition === 'string' && candidatePosition.trim()) {
+            data.positionTitleUz = candidatePosition;
+            data.position = candidatePosition;
           }
-        } else if (targetType === 'teacher') {
-          if (hasData(landingTeacherObj)) data = landingTeacherObj
-          else if (hasData(teacherObj)) data = teacherObj
-          else {
-            const foundInTeachers = findInList(teacherList, id)
-            if (hasData(foundInTeachers)) data = foundInTeachers
-            else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) data = stateObj
-          }
+        } else if (isFacultyStaffCategory) {
+          const staffInAll = findInList(staffList, id);
+          const fullS = hasData(staffObj) ? staffObj : (hasData(staffInAll) ? staffInAll : null);
+          const landingS = hasData(landingStaffObj) ? landingStaffObj : null;
+          const passedS = (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) ? stateObj : null;
+
+          data = {
+            ...(landingS || {}),
+            ...(passedS || {}),
+            ...(fullS || {}),
+            isFacultyStaff: true
+          };
         } else {
-          if (hasData(empLandingObj)) {
-            data = empLandingObj
-          } else if (hasData(landingTeacherObj)) {
-            data = landingTeacherObj
-          } else if (hasData(landingStaffObj)) {
-            data = landingStaffObj
-          } else if (hasData(empObj)) {
-            data = empObj
-          } else if (hasData(teacherObj)) {
-            data = teacherObj
-          } else if (hasData(staffObj)) {
-            data = staffObj
-          } else if (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) {
-            data = stateObj
-          } else {
-            const foundInEmp = findInList(empList, id)
-            const foundInTeachers = findInList(teacherList, id)
-            const foundInStaff = findInList(staffList, id)
-            data = foundInEmp || foundInTeachers || foundInStaff || null
-          }
+          // Employee / Center staff
+          const empInAll = findInList(empList, id);
+          const fullE = hasData(empObj) ? empObj : (hasData(empInAll) ? empInAll : null);
+          const landingE = hasData(empLandingObj) ? empLandingObj : null;
+          const passedE = (stateObj && (String(stateObj.id) === String(id) || !stateObj.id)) ? stateObj : null;
+
+          data = {
+            ...(landingE || {}),
+            ...(passedE || {}),
+            ...(fullE || {}),
+          };
         }
 
         if (!data && stateObj) {
-          data = stateObj
+          data = stateObj;
         }
 
         if (data && (!data.position || typeof data.position !== 'object')) {
-          const posId = data.positionId || data.position?.id
-          const posObj = positions.find(p => String(p.id) === String(posId))
-          if (posObj) data = { ...data, position: posObj }
+          const posId = data.positionId || data.position?.id;
+          const posObj = positions.find(p => String(p.id) === String(posId));
+          if (posObj) data = { ...data, position: posObj };
         }
 
         if (data) {
-          const rawImg = data.photoLink || data.photo || data.image || data.img || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url || data.photo?.path : '')
-          const rawPos = data.positionTitle || data.positionTitleUz || data.positionName || data.position
-          const resolvedPos = (typeof rawPos === 'string' && rawPos.trim()) ? rawPos : resolvePersonPosition(data, lang, "Xodim")
-          const degreeVal = data.academicDegree ? (typeof data.academicDegree === 'string' ? data.academicDegree : localizedField(data.academicDegree, 'name', lang, data.academicDegree?.nameUz || '')) : ''
+          const rawImg = data.photoLink || data.photo || data.image || data.img || (typeof data.photo === 'object' ? data.photo?.link || data.photo?.url || data.photo?.path : '');
+          
+          const teacherFallback = lang === 'ru' ? 'Преподаватель' : lang === 'en' ? 'Teacher' : "O'qituvchi";
+          const fallbackPos = isTeacherCategory
+            ? teacherFallback
+            : (isFacultyStaffCategory
+                ? (lang === 'ru' ? 'Сотрудник факультета' : lang === 'en' ? 'Faculty Staff' : "Fakultet xodimi")
+                : (lang === 'ru' ? 'Сотрудник' : lang === 'en' ? 'Employee' : "Xodim"));
+
+          let rawPos = data.positionTitleUz || data.positionTitle || data.positionName || data.position;
+          if (typeof rawPos === 'object' && rawPos) {
+            rawPos = getPositionName(rawPos, lang, '');
+          }
+
+          let resolvedPos = (typeof rawPos === 'string' && rawPos.trim() && rawPos.toLowerCase() !== 'xodim')
+            ? getPositionName(rawPos, lang, rawPos)
+            : resolvePersonPosition(data, lang, fallbackPos);
+
+          if (isTeacherCategory && (!resolvedPos || resolvedPos === 'Xodim' || resolvedPos === 'Сотрудник' || resolvedPos === 'Employee')) {
+            resolvedPos = teacherFallback;
+          }
+
+          // Cache resolved position for future visits
+          if (isTeacherCategory && (data.id || id)) {
+            try {
+              const map = JSON.parse(localStorage.getItem('urspi_teacher_positions_map') || '{}');
+              map[String(data.id || id)] = {
+                id: data.id || id,
+                position: resolvedPos,
+                positionTitleUz: data.positionTitleUz || resolvedPos,
+                department: data.departmentName || '',
+                isDepartmentHead: !!data.isDepartmentHead
+              };
+              localStorage.setItem('urspi_teacher_positions_map', JSON.stringify(map));
+            } catch (e) {}
+          }
+
+          const degreeVal = data.academicDegree
+            ? (typeof data.academicDegree === 'string' ? data.academicDegree : localizedField(data.academicDegree, 'name', lang, data.academicDegree?.nameUz || ''))
+            : (data.degree || '');
+
+          const defaultBio = isTeacherCategory
+            ? (data.departmentName 
+                ? `Urganch davlat pedagogika instituti ${data.departmentName} ${data.isDepartmentHead ? "mudiri" : "o'qituvchisi"}.`
+                : (lang === 'ru' ? 'Преподаватель Ургенчского государственного педагогического института.' : lang === 'en' ? 'Teacher at Urgench State Pedagogical Institute.' : "Urganch davlat pedagogika instituti o'qituvchisi."))
+            : (lang === 'ru' ? 'Сотрудник Ургенчского государственного педагогического института.' : lang === 'en' ? 'Employee of Urgench State Pedagogical Institute.' : "Urganch davlat pedagogika instituti xodimi.");
+
+          const bioText = (data.bio && data.bio !== "Urganch davlat pedagogika instituti xodimi.")
+            ? data.bio
+            : (data.description && data.description !== "Urganch davlat pedagogika instituti xodimi." ? data.description : defaultBio);
 
           if (isMounted) {
             setEmployeeData({
               id: data.id || id,
-              name: localizedField(data, 'fullName', lang, data.fullName || data.fullNameUz || data.name || "Xodim"),
+              name: localizedField(data, 'fullName', lang, data.fullName || data.fullNameUz || data.name || (isTeacherCategory ? "O'qituvchi" : "Xodim")),
               position: resolvedPos,
               degree: degreeVal,
               phone: data.phoneNumber || data.phone || "",
               email: data.email || "info@urspi.uz",
-              bio: data.bio || data.description || "Urganch davlat pedagogika instituti xodimi.",
+              bio: bioText,
               officeHours: data.officeHours || data.receptionTime || data.receptionHours || "Dushanba - Juma: 09:00 - 17:00",
               img: getFileUrl(rawImg) || (typeof data.img === 'string' && data.img.length > 0 ? data.img : menImg),
-              hasScience: !!(degreeVal || data.academicDegree || data.position || data.isTeacher || targetType === 'teacher'),
+              hasScience: !!(degreeVal || data.academicDegree || data.position || isTeacherCategory),
               cvLink: data.cvLink || data.cv || null
-            })
+            });
           }
         }
       } catch (err) {
