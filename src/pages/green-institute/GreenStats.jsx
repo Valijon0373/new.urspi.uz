@@ -41,9 +41,9 @@ const GreenStats = () => {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard icon={TreePine} title="Ekilgan Daraxtlar" value={500} />
-          <StatCard icon={Recycle} title="Qayta ishlangan (T)" value={110} />
-          <StatCard icon={Sun} title="Quyosh energiyasi (kVt)" value={450} />
-          <StatCard icon={LeafyGreen} title="Yashil Loyihalar" value={5} />
+          <StatCard icon={Recycle} title="Qayta işlangan (T)" value={110} />
+          <StatCard icon={Sun} title="Quyoş energiyasi (kVt)" value={450} />
+          <StatCard icon={LeafyGreen} title="Yaşil Loyihalar" value={5} />
         </div>
       </div>
     </section>

@@ -63,24 +63,24 @@ const GreenHero = () => {
 
         {/* Subtitle */}
         <h2 className="text-sm md:text-xl lg:text-2xl font-medium text-emerald-100/70 tracking-[0.3em] md:tracking-[0.4em] uppercase mb-4 md:mb-6">
-          Urganch Davlat Pedagogika Instituti
+          Urganç Davlat Pedagogika Instituti
         </h2>
 
         {/* Main Title with Animated Gradient */}
         <h1 className="text-5xl md:text-7xl lg:text-[6.5rem] font-black leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-lime-200 to-teal-300 text-gradient-animate drop-shadow-[0_0_30px_rgba(52,211,153,0.3)] mb-6 md:mb-8">
-          YASHIL INSTITUT
+          YAŞIL INSTITUT
         </h1>
 
         {/* Description */}
         <p className="max-w-3xl text-sm md:text-lg lg:text-xl font-light text-emerald-100/80 leading-relaxed mb-10 md:mb-14">
-          Tabiatni asrash, ekologik ongni yuksaltirish va kelajak avlod uchun yashil dunyo yaratish yo'lidagi zamonaviy, interaktiv va yagona elektron platforma.
+          Tabiatni asraş, ekologik ongni yuksaltiriş va kelajak avlod uçun yaşil dunyo yaratiş yölidagi zamonaviy, interaktiv va yagona elektron platforma.
         </p>
 
         {/* Interactive Button */}
         <button className="group relative px-8 md:px-10 py-4 md:py-5 font-bold text-emerald-950 text-sm md:text-base bg-gradient-to-r from-emerald-400 to-lime-400 rounded-full overflow-hidden shadow-[0_0_40px_rgba(52,211,153,0.3)] hover:shadow-[0_0_60px_rgba(52,211,153,0.5)] transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
           <span className="relative flex items-center gap-3">
-            Batafsil tanishish
+            Batafsil tanişiş
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
           </span>
         </button>

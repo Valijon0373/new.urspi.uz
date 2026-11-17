@@ -33,7 +33,7 @@ export default function LeadershipPage() {
           const formatted = rawData.map((item, index) => {
             const fullName = localizedField(item, 'fullName', lang, "Rahbar");
             const positionTitle = localizedField(item, 'positionTitle', lang, "Lavozim");
-            const address = localizedField(item, 'address', lang, "Urganch shahri, Gurlan ko'chasi 1A-uy");
+            const address = localizedField(item, 'address', lang, "Urganç şahri, Gurlan köçasi 1A-uy");
             const receptionTime = localizedField(item, 'receptionTime', lang, "09:00 - 17:00");
             const email = item.email || "info@urspi.uz";
             const phoneNumber = item.phoneNumber || item.phone || "+998622261840";
@@ -183,7 +183,7 @@ export default function LeadershipPage() {
             </div>
           ) : leaders.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
-              <p className="text-slate-500 font-medium">Hozircha rahbarlar ma'lumotlari mavjud emas.</p>
+              <p className="text-slate-500 font-medium">Hozirça rahbarlar ma'lumotlari mavjud emas.</p>
             </div>
           ) : (
             <>

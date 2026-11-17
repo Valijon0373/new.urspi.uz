@@ -95,6 +95,9 @@ export const getFileUrl = (link) => {
     }
     link = link.trim();
     if (!link || link === '[object Object]' || link === 'undefined' || link === 'null') return '';
+    if (typeof window !== 'undefined' && window.__urspiBlobUrlMap && window.__urspiBlobUrlMap.has(link)) {
+        return window.__urspiBlobUrlMap.get(link);
+    }
     if (link.startsWith('http://') || link.startsWith('https://') || link.startsWith('data:') || link.startsWith('blob:')) {
         return link;
     }

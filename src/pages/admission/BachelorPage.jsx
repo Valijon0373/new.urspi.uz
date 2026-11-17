@@ -24,61 +24,61 @@ import {
 
 const localTranslations = {
   uz: {
-    breadcrumbHome: "Bosh sahifa",
+    breadcrumbHome: "Boş sahifa",
     breadcrumbAdmission: "Abituriyent",
     breadcrumbCurrent: "Bakalavriat",
     
     // Stats
     statTotalQuota: "UMUMIY KVOTA",
-    statTotalQuotaSub: "Kelgusi o'quv yili uchun",
-    statRegistered: "RO'YXATDAN O'TGANLAR",
-    statRegisteredSub: "+12% kechagiga nisbatan",
-    statAvgScore: "O'RTACHA BALL (2023)",
+    statTotalQuotaSub: "Kelgusi öquv yili uçun",
+    statRegistered: "RÖYXATDAN ÖTGANLAR",
+    statRegisteredSub: "+12% keçagiga nisbatan",
+    statAvgScore: "ÖRTAÇA BALL (2023)",
     statAvgScoreSub: "Eng yuqori 189.0 ball",
     statGrantContract: "GRANT/KONTRAKT",
     
     // Table Section
-    tableTitle: "Yo'nalishlar kesimida qabul kvotalari",
-    tableSubtitle: "Barcha ta'lim yo'nalishlari bo'yicha batafsil ma'lumotlar",
-    colCodeName: "KOD VA YO'NALISH NOMI",
-    colTotalQuota: "Ta'lim shakli",
-    colGrant: "O'quv yili",
-    colContract: "TO'LOV-KONTRAKT",
+    tableTitle: "Yönalişlar kesimida qabul kvotalari",
+    tableSubtitle: "Barça ta'lim yönalişlari böyiça batafsil ma'lumotlar",
+    colCodeName: "KOD VA YÖNALIŞ NOMI",
+    colTotalQuota: "Ta'lim şakli",
+    colGrant: "Öquv yili",
+    colContract: "TÖLOV-KONTRAKT",
     colAction: "AMAL",
-    btnDetails: "Ko'rish",
+    btnDetails: "Köriş",
     
     // Filters
     filterFullTime: "Kunduzgi",
     filterPartTime: "Sirtqi",
-    filterEvening: "Kechki",
-    filterLangUz: "O'zbek tili",
+    filterEvening: "Keçki",
+    filterLangUz: "Özbek tili",
     filterLangRu: "Rus tili",
     
     // Resource Cards
-    cardContractTitle: "Kontrakt to'lov summasi",
-    cardContractDesc: "Yo'nalishlar bo'yicha joriy yilgi shartnoma stavkalari.",
+    cardContractTitle: "Kontrakt tölov summasi",
+    cardContractDesc: "Yönalişlar böyiça joriy yilgi şartnoma stavkalari.",
     cardMandateTitle: "Mandat natijalari",
-    cardMandateDesc: "Qabul natijalarini pasport raqami orqali tekshirish.",
-    cardTransferTitle: "O'qishni ko'chirish",
-    cardTransferDesc: "Boshqa OTMdan o'qishni ko'chirish tartibi va arizalar.",
+    cardMandateDesc: "Qabul natijalarini pasport raqami orqali tekşiriş.",
+    cardTransferTitle: "Öqişni köçiriş",
+    cardTransferDesc: "Boşqa OTMdan öqişni köçiriş tartibi va arizalar.",
 
     // Modals
-    modalClose: "Yopish",
+    modalClose: "Yopiş",
     modalSubjectTitle: "Imtihon fanlari",
     modalSubject1: "1-blok (3.1 ball):",
     modalSubject2: "2-blok (2.1 ball):",
     modalSubjectMandatory: "Majburiy fanlar (1.1 ball):",
-    modalPassingScores: "O'tish ballari (2023)",
+    modalPassingScores: "Ötiş ballari (2023)",
     modalPassingGrant: "Davlat granti:",
-    modalPassingContract: "To'lov-kontrakt:",
-    modalDuration: "O'qish muddati:",
+    modalPassingContract: "Tölov-kontrakt:",
+    modalDuration: "Öqiş muddati:",
     modalDurationVal: "4 yil",
     modalDocumentsRequired: "Kerakli hujjatlar:",
     modalDocsList: [
       "Pasport yoki ID karta (nusxa)",
       "Attestat yoki Diplom (asl nusxa)",
       "Rasm 3x4 (6 dona)",
-      "Imtiyoz hujjatlari (agar mavjud bo'lsa)"
+      "Imtiyoz hujjatlari (agar mavjud bölsa)"
     ]
   },
   ru: {
@@ -202,12 +202,12 @@ const localTranslations = {
 const directionData = {
   kunduzgi: {
     uz: [
-      { code: "5111700", name: "Boshlang'ich ta'lim", quota: 150, grant: 40, contract: 110, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 145.2, scoreContract: 105.8 },
-      { code: "5111300", name: "Ona tili va adabiyoti (Filologiya)", quota: 120, grant: 30, contract: 90, sub1: "Ona tili va adabiyot", sub2: "Chet tili", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 139.8, scoreContract: 98.4 },
-      { code: "5110600", name: "Tarix o'qish metodikasi", quota: 100, grant: 25, contract: 75, sub1: "Tarix", sub2: "Geografiya", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 148.5, scoreContract: 112.1 },
-      { code: "5111100", name: "Matematika va informatika", quota: 80, grant: 20, contract: 60, sub1: "Matematika", sub2: "Fizika", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 135.4, scoreContract: 89.2 },
-      { code: "5110900", name: "Pedagogika va psixologiya", quota: 90, grant: 15, contract: 75, sub1: "Biologiya", sub2: "Ona tili", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 128.6, scoreContract: 90.5 },
-      { code: "5111400", name: "Xorijiy til va adabiyoti: Ingliz tili", quota: 110, grant: 25, contract: 85, sub1: "Ingliz tili", sub2: "Ona tili", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: 155.6, scoreContract: 118.4 }
+      { code: "5111700", name: "Boşlanğiç ta'lim", quota: 150, grant: 40, contract: 110, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 145.2, scoreContract: 105.8 },
+      { code: "5111300", name: "Ona tili va adabiyoti (Filologiya)", quota: 120, grant: 30, contract: 90, sub1: "Ona tili va adabiyot", sub2: "Çet tili", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 139.8, scoreContract: 98.4 },
+      { code: "5110600", name: "Tarix öqiş metodikasi", quota: 100, grant: 25, contract: 75, sub1: "Tarix", sub2: "Geografiya", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 148.5, scoreContract: 112.1 },
+      { code: "5111100", name: "Matematika va informatika", quota: 80, grant: 20, contract: 60, sub1: "Matematika", sub2: "Fizika", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 135.4, scoreContract: 89.2 },
+      { code: "5110900", name: "Pedagogika va psixologiya", quota: 90, grant: 15, contract: 75, sub1: "Biologiya", sub2: "Ona tili", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 128.6, scoreContract: 90.5 },
+      { code: "5111400", name: "Xorijiy til va adabiyoti: Ingliz tili", quota: 110, grant: 25, contract: 85, sub1: "Ingliz tili", sub2: "Ona tili", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: 155.6, scoreContract: 118.4 }
     ],
     ru: [
       { code: "5111700", name: "Начальное образование (Русский язык)", quota: 50, grant: 10, contract: 40, sub1: "Педагогика", sub2: "Математика", mandatory: "Русский язык, Математика, История Узбекистана", scoreGrant: 130.4, scoreContract: 92.5 },
@@ -217,10 +217,10 @@ const directionData = {
   },
   sirtqi: {
     uz: [
-      { code: "5111700", name: "Boshlang'ich ta'lim (Sirtqi)", quota: 100, grant: 0, contract: 100, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 100.5 },
-      { code: "5111300", name: "Ona tili va adabiyoti (Sirtqi)", quota: 80, grant: 0, contract: 80, sub1: "Ona tili va adabiyot", sub2: "Chet tili", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 92.1 },
-      { code: "5110600", name: "Tarix o'qish metodikasi (Sirtqi)", quota: 60, grant: 0, contract: 60, sub1: "Tarix", sub2: "Geografiya", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 104.8 },
-      { code: "5111100", name: "Matematika va informatika (Sirtqi)", quota: 50, grant: 0, contract: 50, sub1: "Matematika", sub2: "Fizika", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 85.1 }
+      { code: "5111700", name: "Boşlanğiç ta'lim (Sirtqi)", quota: 100, grant: 0, contract: 100, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 100.5 },
+      { code: "5111300", name: "Ona tili va adabiyoti (Sirtqi)", quota: 80, grant: 0, contract: 80, sub1: "Ona tili va adabiyot", sub2: "Çet tili", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 92.1 },
+      { code: "5110600", name: "Tarix öqiş metodikasi (Sirtqi)", quota: 60, grant: 0, contract: 60, sub1: "Tarix", sub2: "Geografiya", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 104.8 },
+      { code: "5111100", name: "Matematika va informatika (Sirtqi)", quota: 50, grant: 0, contract: 50, sub1: "Matematika", sub2: "Fizika", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 85.1 }
     ],
     ru: [
       { code: "5111700", name: "Начальное образование (Заочно, Русский язык)", quota: 30, grant: 0, contract: 30, sub1: "Педагогика", sub2: "Математика", mandatory: "Русский язык, Математика, История Узбекистана", scoreGrant: "N/A", scoreContract: 88.4 }
@@ -228,8 +228,8 @@ const directionData = {
   },
   kechki: {
     uz: [
-      { code: "5111700", name: "Boshlang'ich ta'lim (Kechki)", quota: 50, grant: 0, contract: 50, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 98.2 },
-      { code: "5111300", name: "Ona tili va adabiyoti (Kechki)", quota: 40, grant: 0, contract: 40, sub1: "Ona tili va adabiyot", sub2: "Chet tili", mandatory: "Ona tili, Matematika, O'zbekiston tarixi", scoreGrant: "N/A", scoreContract: 90.0 }
+      { code: "5111700", name: "Boşlanğiç ta'lim (Keçki)", quota: 50, grant: 0, contract: 50, sub1: "Pedagogika", sub2: "Matematika", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 98.2 },
+      { code: "5111300", name: "Ona tili va adabiyoti (Keçki)", quota: 40, grant: 0, contract: 40, sub1: "Ona tili va adabiyot", sub2: "Çet tili", mandatory: "Ona tili, Matematika, Özbekiston tarixi", scoreGrant: "N/A", scoreContract: 90.0 }
     ],
     ru: []
   }
@@ -302,7 +302,7 @@ export default function BachelorPage() {
     if (firstChar === 'A') {
       setMandateResult({
         status: 'recommended',
-        text: currentLang === 'uz' ? "Tabriklaymiz! Siz Davlat Granti asosida o'qishga tavsiya etildingiz." :
+        text: currentLang === 'uz' ? "Tabriklaymiz! Siz Davlat Granti asosida öqişga tavsiya etildingiz." :
               currentLang === 'ru' ? "Поздравляем! Вы рекомендованы к зачислению на основе государственного гранта." :
               "Congratulations! You have been recommended for admission on a State Grant basis.",
         score: "168.4 ball",
@@ -311,11 +311,11 @@ export default function BachelorPage() {
     } else {
       setMandateResult({
         status: 'contract',
-        text: currentLang === 'uz' ? "Tabriklaymiz! Siz To'lov-kontrakt asosida o'qishga tavsiya etildingiz." :
+        text: currentLang === 'uz' ? "Tabriklaymiz! Siz Tölov-kontrakt asosida öqişga tavsiya etildingiz." :
               currentLang === 'ru' ? "Поздравляем! Вы рекомендованы к зачислению на платно-контрактной основе." :
               "Congratulations! You have been recommended for admission on a Paid-Contract basis.",
         score: "124.5 ball",
-        direction: currentLang === 'uz' ? "Boshlang'ich ta'lim" : currentLang === 'ru' ? "Начальное образование" : "Primary Education"
+        direction: currentLang === 'uz' ? "Boşlanğiç ta'lim" : currentLang === 'ru' ? "Начальное образование" : "Primary Education"
       });
     }
   };
@@ -451,7 +451,7 @@ export default function BachelorPage() {
             ) : (
               <div className="p-12 text-center text-slate-400">
                 <Info className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-                <p className="text-sm font-semibold">Yo'nalishlar mavjud emas.</p>
+                <p className="text-sm font-semibold">Yönalişlar mavjud emas.</p>
               </div>
             )}
           </div>
@@ -499,7 +499,7 @@ export default function BachelorPage() {
               </p>
             </div>
             <div className="mt-8 flex items-center justify-between text-xs font-bold text-[#0c1f4a] opacity-80 group-hover:opacity-100">
-              <span>Tekshirish</span>
+              <span>Tekşiriş</span>
               <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
@@ -596,7 +596,7 @@ export default function BachelorPage() {
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold uppercase text-slate-400 tracking-wider flex items-center gap-2">
                     <Info className="w-4 h-4 text-[#0c1f4a]" />
-                    <span>O'quv shartlari</span>
+                    <span>Öquv şartlari</span>
                   </h4>
                   <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 text-sm">
                     <div className="flex justify-between">
@@ -672,7 +672,7 @@ export default function BachelorPage() {
                     <h3 className="text-xl font-black text-slate-900">{trans.cardContractTitle}</h3>
                   </div>
                   <p className="text-sm text-slate-500">
-                    Urganch davlat pedagogika institutida bakalavriat ta'lim yo'nalishlari bo'yicha joriy yilgi bazaviy kontrakt miqdorlari:
+                    Urganç davlat pedagogika institutida bakalavriat ta'lim yönalişlari böyiça joriy yilgi bazaviy kontrakt miqdorlari:
                   </p>
                   <div className="bg-slate-50 rounded-2xl p-4 divide-y divide-slate-100 text-sm">
                     <div className="py-2.5 flex justify-between">
@@ -684,18 +684,18 @@ export default function BachelorPage() {
                       <span className="font-extrabold text-[#0c1f4a]">6 400 000 UZS / yil</span>
                     </div>
                     <div className="py-2.5 flex justify-between">
-                      <span className="font-bold text-slate-800">Sirtqi ta'lim shakli (barcha yo'nalishlar)</span>
+                      <span className="font-bold text-slate-800">Sirtqi ta'lim şakli (barça yönalişlar)</span>
                       <span className="font-extrabold text-[#0c1f4a]">7 200 000 UZS / yil</span>
                     </div>
                     <div className="py-2.5 flex justify-between">
-                      <span className="font-bold text-slate-800">Kechki ta'lim shakli (barcha yo'nalishlar)</span>
+                      <span className="font-bold text-slate-800">Keçki ta'lim şakli (barça yönalişlar)</span>
                       <span className="font-extrabold text-[#0c1f4a]">7 200 000 UZS / yil</span>
                     </div>
                   </div>
                   <div className="bg-amber-50 border border-amber-100 text-amber-800 rounded-2xl p-4 text-xs flex gap-2.5">
                     <Info className="w-5 h-5 shrink-0 mt-0.5 text-amber-700" />
                     <p className="leading-normal font-medium">
-                      Oliy ta'lim muassasalarida shartnoma mablag'larini to'lash semestrlarga bo'lingan holda amalga oshirilishi mumkin. Batafsil ma'lumot buxgalteriya bo'limidan olinadi.
+                      Oliy ta'lim muassasalarida şartnoma mablağlarini tölaş semestrlarga bölingan holda amalga oşirilişi mumkin. Batafsil ma'lumot buxgalteriya bölimidan olinadi.
                     </p>
                   </div>
                 </div>
@@ -711,7 +711,7 @@ export default function BachelorPage() {
                     <h3 className="text-xl font-black text-slate-900">{trans.cardMandateTitle}</h3>
                   </div>
                   <p className="text-sm text-slate-500">
-                    Abituriyent ID yoki Pasport raqamini kiriting. (Simulyatsiya qilish uchun pasport seriyasini 'A' harfi bilan kiriting, masalan: <i>AA1234567</i> - Grant, yoki istalgan boshqa simulyatsiya - Kontrakt)
+                    Abituriyent ID yoki Pasport raqamini kiriting. (Simulyatsiya qiliş uçun pasport seriyasini 'A' harfi bilan kiriting, masalan: <i>AA1234567</i> - Grant, yoki istalgan boşqa simulyatsiya - Kontrakt)
                   </p>
                   
                   <form onSubmit={handleCheckMandate} className="space-y-4">
@@ -727,7 +727,7 @@ export default function BachelorPage() {
                         type="submit"
                         className="px-6 py-3 bg-[#0c1f4a] hover:bg-[#0c1f4a]/90 text-white font-bold rounded-xl text-sm transition"
                       >
-                        Tekshirish
+                        Tekşiriş
                       </button>
                     </div>
                   </form>
@@ -741,8 +741,8 @@ export default function BachelorPage() {
                         {mandateResult.text}
                       </p>
                       <div className="text-xs font-semibold pt-2 border-t border-current/10 flex justify-between">
-                        <span>Yo'nalish: <b>{mandateResult.direction}</b></span>
-                        <span>To'plangan ball: <b>{mandateResult.score}</b></span>
+                        <span>Yönaliş: <b>{mandateResult.direction}</b></span>
+                        <span>Töplangan ball: <b>{mandateResult.score}</b></span>
                       </div>
                     </div>
                   )}
@@ -759,26 +759,26 @@ export default function BachelorPage() {
                     <h3 className="text-xl font-black text-slate-900">{trans.cardTransferTitle}</h3>
                   </div>
                   <p className="text-sm text-slate-500">
-                    O'qishni ko'chirish (perevod) jarayoni har yili yozgi va qishki ta'til davrida faqat Oliy ta'lim vazirligi tomonidan belgilangan muddatlarda amalga oshiriladi.
+                    Öqişni köçiriş (perevod) jarayoni har yili yozgi va qişki ta'til davrida faqat Oliy ta'lim vazirligi tomonidan belgilangan muddatlarda amalga oşiriladi.
                   </p>
                   
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asosiy bosqichlar:</h4>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asosiy bosqiçlar:</h4>
                     <div className="relative border-l border-slate-100 ml-2.5 pl-6 space-y-4.5 text-sm text-slate-600">
                       <div className="relative">
                         <div className="absolute -left-9 top-0.5 bg-[#0c1f4a] text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center">1</div>
-                        <h5 className="font-bold text-slate-800">Ariza topshirish</h5>
+                        <h5 className="font-bold text-slate-800">Ariza topşiriş</h5>
                         <p className="text-xs text-slate-500 mt-0.5">transfer.edu.uz portali orqali onlayn ariza yuboriladi.</p>
                       </div>
                       <div className="relative">
                         <div className="absolute -left-9 top-0.5 bg-[#0c1f4a] text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center">2</div>
-                        <h5 className="font-bold text-slate-800">Hujjatlarni o'rganish</h5>
-                        <p className="text-xs text-slate-500 mt-0.5">Vazirlik komissiyasi tomonidan arizalar 15 ish kuni ichida ko'rib chiqiladi.</p>
+                        <h5 className="font-bold text-slate-800">Hujjatlarni örganiş</h5>
+                        <p className="text-xs text-slate-500 mt-0.5">Vazirlik komissiyasi tomonidan arizalar 15 iş kuni içida körib çiqiladi.</p>
                       </div>
                       <div className="relative">
                         <div className="absolute -left-9 top-0.5 bg-[#0c1f4a] text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center">3</div>
-                        <h5 className="font-bold text-slate-800">Natijani e'lon qilish</h5>
-                        <p className="text-xs text-slate-500 mt-0.5">Arizaning rad etilganligi yoki buyruq loyihasi portalda ko'rsatiladi.</p>
+                        <h5 className="font-bold text-slate-800">Natijani e'lon qiliş</h5>
+                        <p className="text-xs text-slate-500 mt-0.5">Arizaning rad etilganligi yoki buyruq loyihasi portalda körsatiladi.</p>
                       </div>
                     </div>
                   </div>
@@ -795,7 +795,7 @@ export default function BachelorPage() {
                   }}
                   className="px-5 py-2 bg-slate-100 hover:bg-[#0c1f4a] hover:text-white text-slate-700 font-bold rounded-xl text-sm transition"
                 >
-                  Yopish
+                  Yopiş
                 </button>
               </div>
 

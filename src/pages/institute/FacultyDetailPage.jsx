@@ -40,7 +40,7 @@ export default function FacultyDetailPage() {
   }, [stateFaculty, i18n.language]);
 
   const titleName = faculty?.name || faculty?.title || "PEDAGOGIKA FAKULTETI";
-  const descText = faculty?.description || faculty?.descriptionUz || "O‘zbekiston Respublikasi Prezidentining 2022 yil 21-iyundagi PQ-289-sonli qaroriga asosan Urganch davlat pedagogika instituti tashkil etildi.";
+  const descText = faculty?.description || faculty?.descriptionUz || "Özbekiston Respublikasi Prezidentining 2022 yil 21-iyundagi PQ-289-sonli qaroriga asosan Urganç davlat pedagogika instituti taşkil etildi.";
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
@@ -100,10 +100,10 @@ export default function FacultyDetailPage() {
               <div className="prose max-w-none text-slate-700 leading-relaxed space-y-5 text-[15px] sm:text-[16px] text-justify relative z-10">
                 <p>{descText}</p>
                 <p>
-                  Fakultet – institutining tarkibiy tuzilmasi hisoblanadi. Uning faoliyati tegishli ta'lim yo'nalishlari va mutaxassisliklari bo'yicha talabalarni o'qitish, ta'lim-tarbiya jarayonlarini uzviy hamda uyg'unlashgan xolda olib borish, shuningdek, kafedralarda ilmiy tadqiqot loyihalarini bajarish ishlarini muvofiqlashtirishga yo'naltiriladi.
+                  Fakultet – institutning tarkibiy tuzilmasi hisoblanadi. Uning faoliyati tegişli ta'lim yönalişlari va mutaxassisliklari böyiça talabalarni öqitiş, ta'lim-tarbiya jarayonlarini uzviy hamda uyğunlaşgan xolda olib boriş, şuningdek, kafedralarda ilmiy tadqiqot loyihalarini bajariş işlarini muvofiqlaştirişga yönaltiriladi.
                 </p>
                 <p>
-                  Fakultet internet tizimida institutning rasmiy <strong><a href="https://urspi.uz" target="_blank" rel="noopener noreferrer" className="text-[#3b82f6] hover:underline">www.UrSPI.uz</a></strong> saytida o'z bo'limiga ega.
+                  Fakultet internet tizimida institutning rasmiy <strong><a href="https://urspi.uz" target="_blank" rel="noopener noreferrer" className="text-[#3b82f6] hover:underline">www.UrSPI.uz</a></strong> saytida öz bölimiga ega.
                 </p>
               </div>
 

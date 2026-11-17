@@ -25,6 +25,7 @@ export * from './dormitories';
 export * from './facultyStaff';
 export * from './users';
 export * from './rbac';
-
-
-
+export * from './hemis';
+export * from './menuLanding';
+export * from './menuAdmin';
+export * from './menuStorage';

@@ -5,28 +5,28 @@ import { FileText, Download, CheckCircle2, ChevronLeft, ChevronRight } from 'luc
 const documents = [
     {
         id: 1,
-        title: "O'zbekiston Respublikasining \"Korrupsiyaga qarshi kurashish to'g'risida\"gi Qonuni",
+        title: "Özbekiston Respublikasining \"Korrupsiyaga qarşi kuraşiş töğrisida\"gi Qonuni",
         size: "1.2 MB",
         date: "2017-yil 3-yanvar",
         type: "PDF"
     },
     {
         id: 2,
-        title: "Korrupsiyaga qarshi kurashish bo'yicha ichki nazorat qoidalari",
+        title: "Korrupsiyaga qarşi kuraşiş böyiça içki nazorat qoidalari",
         size: "850 KB",
         date: "2024-yil 12-fevral",
         type: "PDF"
     },
     {
         id: 3,
-        title: "Odob-axloq qoidalari va manfaatlar to'qnashuvini boshqarish nizomi",
+        title: "Odob-axloq qoidalari va manfaatlar töqnaşuvini boşqariş nizomi",
         size: "2.1 MB",
         date: "2023-yil 5-sentabr",
         type: "PDF"
     },
     {
         id: 4,
-        title: "Korrupsiyaviy xavf-xatarlarni baholash metodikasi",
+        title: "Korrupsiyaviy xavf-xatarlarni baholaş metodikasi",
         size: "1.5 MB",
         date: "2023-yil 18-oktabr",
         type: "PDF"
@@ -34,10 +34,10 @@ const documents = [
 ];
 
 const policyHighlights = [
-    "Halollik va ochiqlik prinsiplariga qat'iy rioya qilish",
+    "Halollik va oçiqlik prinsiplariga qat'iy rioya qiliş",
     "Korrupsion holatlarga nisbatan murosasizlik munosabati",
-    "Davlat xaridlarida shaffoflikni ta'minlash",
-    "Xodimlar va talabalarning huquqiy savodxonligini oshirish"
+    "Davlat xaridlarida şaffoflikni ta'minlaş",
+    "Xodimlar va talabalarning huquqiy savodxonligini oşiriş"
 ];
 
 export default function DocumentsSection() {
@@ -74,7 +74,7 @@ export default function DocumentsSection() {
                             </ul>
                             <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100">
                                 <p className="text-blue-800 font-medium italic">
-                                    "Korrupsiyaga qarshi kurashish - har birimizning mas'uliyatimizdir!"
+                                    "Korrupsiyaga qarşi kuraşiş - har birimizning mas'uliyatimizdir!"
                                 </p>
                             </div>
                         </div>
@@ -106,7 +106,7 @@ export default function DocumentsSection() {
                                     </div>
                                     <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-[#0c1f4a] hover:text-white text-gray-700 font-medium text-sm rounded-lg transition-colors shrink-0">
                                         <Download className="w-4 h-4" />
-                                        Yuklab olish
+                                        Yuklab oliş
                                     </button>
                                 </div>
                             ))}

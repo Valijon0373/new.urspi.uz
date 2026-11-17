@@ -5,24 +5,24 @@ import { useTranslation } from 'react-i18next'
 import docsBg from '../../assets/images/docs.jpg'
 
 const documents = [
-  { id: 1, title: "O'zbekiston Respublikasida fuqarolarning vijdon erkinligini ta'minlash va diniy sohadagi davlat siyosati konsepsiyasini tasdiqlash to'g'risida.", type: "Hujjat", color: "bg-[#ff4d6d]" },
-  { id: 2, title: "Iqtisodiy jinoyatlarga qarshi kurashish tizimi takomillashtirilishi munosabati bilan O'zbekiston Respublikasining ayrim qonun hujjatlariga o'zgartirish va qo'shimchalar kiritish to'g'risida.", type: "Hujjat", color: "bg-[#2185d0]" },
-  { id: 3, title: "O'zbekiston Respublikasi Prezident Farmoni va qarorlari Iqtisodiyotda raqobatni rivojlantirish va xususiy sektorning rolini yana oshirish chora-tadbirlari to'g'risida.", type: "Hujjat", color: "bg-[#fbbd08]" },
-  { id: 4, title: "Texnik reglamentlarni ishlab chiqish, ularni tasdiqlash, o'zgartirish va qo'shimchalar kiritish hamda bekor qilish tartibi to'g'risidagi nizomni tasdiqlash haqida.", type: "Hujjat", color: "bg-[#a333c8]" },
-  { id: 5, title: "Mikromoliyalashtirish faoliyati takomillashtirilishi munosabati bilan O'zbekiston Respublikasining ayrim qonun hujjatlariga qo'shimcha va o'zgartirishlar kiritish to'g'risida.", type: "Hujjat", color: "bg-[#00b5ad]" },
-  { id: 6, title: "Yo'l harakati xavfsizligi tizimi takomillashtirilishi munosabati bilan O'zbekiston Respublikasining Jinoyat, Jinoyat-protsessual kodekslariga hamda O'zbekiston Respublikasining Ma'muriy javobgarlik to'g'risidagi kodeksiga qo'shimcha va o'zgartirishlar kiritish haqida.", type: "Hujjat", color: "bg-[#ff4d6d]" },
-  { id: 7, title: "Shaharsozlik faoliyatini geoaxborot bilan ta'minlash mexanizmini takomillashtirish chora-tadbirlari to'g'risida.", type: "Hujjat", color: "bg-[#2185d0]" },
-  { id: 8, title: "Oliy ta'lim tizimida dual ta'limni tashkil etish chora-tadbirlari to'g'risida (14-son 16.01.2025-y).", type: "Hujjat", color: "bg-[#fbbd08]" },
-  { id: 9, title: "Yoshlar siyosati va sport sohasida davlat boshqaruvi takomillashtirilganligi munosabati bilan O'zbekiston Respublikasi Prezidentining ayrim hujjatlariga o'zgartirish va qo'shimchalar kiritish to'g'risida (24.12.2024 yil PF-226-son).", type: "Hujjat", color: "bg-[#a333c8]" },
-  { id: 10, title: "Jismoniy tarbiya o'qituvchilari (instruktor, kafedra mudirlari) faoliyati samaradorligini baholashning reyting tizimi to'g'risidagi nizomga o'zgartirishlar kiritish haqida (23.12.2024 yilda ro'yxatdan o'tkazilgan).", type: "Hujjat", color: "bg-[#00b5ad]" },
-  { id: 11, title: "Oliy ta'lim muassasasi professor-o'qituvchilar tarkibining o'quv yuklamasi hamda o'quv-uslubiy, ilmiy-tadqiqot va \"Ustoz-shogird\" ishlarini belgilash qoidalarining 7-bandiga o'zgartirish kiritish haqida (3076-2-son 20.01.2025-y)", type: "Hujjat", color: "bg-[#ff4d6d]" },
-  { id: 12, title: "Kosmik faoliyat to'g'risida", type: "Hujjat", color: "bg-[#2185d0]" },
-  { id: 13, title: "Davlat sirlari to'g'risida", type: "Hujjat", color: "bg-[#fbbd08]" },
-  { id: 14, title: "Kasbiy ta'lim tashkilotlari o'quvchilarining ishlab chiqarish amaliyotini tashkil etish tizimini yanada takomillashtirish chora-tadbirlari to'g'risida", type: "Hujjat", color: "bg-[#a333c8]" },
-  { id: 15, title: "Organik va organik-mineral o'g'itlar xavfsizligi bo'yicha qo'shimcha talablar belgilanganligi munosabati bilan Vazirlar Mahkamasining «Organik mahsulotlar va xom ashyolar hamda organikmineral o'g'itlarning xavfsizligiga doir ayrim normativ-huquqiy hujjatlarni tasdiqlash to'g'risida» 2020-yil 18-noyabrdagi 729-son qaroriga o'zgartirish va qo'shimchalar kiritish haqida", type: "Hujjat", color: "bg-[#00b5ad]" },
+  { id: 1, title: "Özbekiston Respublikasida fuqarolarning vijdon erkinligini ta'minlaş va diniy sohadagi davlat siyosati konsepsiyasini tasdiqlaş töğrisida.", type: "Hujjat", color: "bg-[#ff4d6d]" },
+  { id: 2, title: "Iqtisodiy jinoyatlarga qarşi kuraşiş tizimi takomillaştirilişi munosabati bilan Özbekiston Respublikasining ayrim qonun hujjatlariga özgartiriş va qöşimçalar kiritiş töğrisida.", type: "Hujjat", color: "bg-[#2185d0]" },
+  { id: 3, title: "Özbekiston Respublikasi Prezident Farmoni va qarorlari Iqtisodiyotda raqobatni rivojlantiriş va xususiy sektorning rolini yana oşiriş çora-tadbirlari töğrisida.", type: "Hujjat", color: "bg-[#fbbd08]" },
+  { id: 4, title: "Texnik reglamentlarni işlab çiqiş, ularni tasdiqlaş, özgartiriş va qöşimçalar kiritiş hamda bekor qiliş tartibi töğrisidagi nizomni tasdiqlaş haqida.", type: "Hujjat", color: "bg-[#a333c8]" },
+  { id: 5, title: "Mikromoliyalaştiriş faoliyati takomillaştirilişi munosabati bilan Özbekiston Respublikasining ayrim qonun hujjatlariga qöşimça va özgartirişlar kiritiş töğrisida.", type: "Hujjat", color: "bg-[#00b5ad]" },
+  { id: 6, title: "Yöl harakati xavfsizligi tizimi takomillaştirilişi munosabati bilan Özbekiston Respublikasining Jinoyat, Jinoyat-protsessual kodekslariga hamda Özbekiston Respublikasining Ma'muriy javobgarlik töğrisidagi kodeksiga qöşimça va özgartirişlar kiritiş haqida.", type: "Hujjat", color: "bg-[#ff4d6d]" },
+  { id: 7, title: "Şaharsozlik faoliyatini geoaxborot bilan ta'minlaş mexanizmini takomillaştiriş çora-tadbirlari töğrisida.", type: "Hujjat", color: "bg-[#2185d0]" },
+  { id: 8, title: "Oliy ta'lim tizimida dual ta'limni taşkil etiş çora-tadbirlari töğrisida (14-son 16.01.2025-y).", type: "Hujjat", color: "bg-[#fbbd08]" },
+  { id: 9, title: "Yoşlar siyosati va sport sohasida davlat boşqaruvi takomillaştirilganligi munosabati bilan Özbekiston Respublikasi Prezidentining ayrim hujjatlariga özgartiriş va qöşimçalar kiritiş töğrisida (24.12.2024 yil PF-226-son).", type: "Hujjat", color: "bg-[#a333c8]" },
+  { id: 10, title: "Jismoniy tarbiya öqituvçilari (instruktor, kafedra mudirlari) faoliyati samaradorligini baholaşning reyting tizimi töğrisidagi nizomga özgartirişlar kiritiş haqida (23.12.2024 yilda röyxatdan ötkazilgan).", type: "Hujjat", color: "bg-[#00b5ad]" },
+  { id: 11, title: "Oliy ta'lim muassasasi professor-öqituvçilar tarkibining öquv yuklamasi hamda öquv-uslubiy, ilmiy-tadqiqot va \"Ustoz-şogird\" işlarini belgilaş qoidalarining 7-bandiga özgartiriş kiritiş haqida (3076-2-son 20.01.2025-y)", type: "Hujjat", color: "bg-[#ff4d6d]" },
+  { id: 12, title: "Kosmik faoliyat töğrisida", type: "Hujjat", color: "bg-[#2185d0]" },
+  { id: 13, title: "Davlat sirlari töğrisida", type: "Hujjat", color: "bg-[#fbbd08]" },
+  { id: 14, title: "Kasbiy ta'lim taşkilotlari öquvçilarining işlab çiqariş amaliyotini taşkil etiş tizimini yanada takomillaştiriş çora-tadbirlari töğrisida", type: "Hujjat", color: "bg-[#a333c8]" },
+  { id: 15, title: "Organik va organik-mineral öğitlar xavfsizligi böyiça qöşimça talablar belgilanganligi munosabati bilan Vazirlar Mahkamasining «Organik mahsulotlar va xom aşyolar hamda organikmineral öğitlarning xavfsizligiga doir ayrim normativ-huquqiy hujjatlarni tasdiqlaş töğrisida» 2020-yil 18-noyabrdagi 729-son qaroriga özgartiriş va qöşimçalar kiritiş haqida", type: "Hujjat", color: "bg-[#00b5ad]" },
   ...Array.from({ length: 13 }, (_, i) => ({
     id: 16 + i,
-    title: `O'zbekiston Respublikasi Vazirlar Mahkamasining qo'shimcha qarori va nizomlari #${i + 1}`,
+    title: `Özbekiston Respublikasi Vazirlar Mahkamasining qöşimça qarori va nizomlari #${i + 1}`,
     type: "Hujjat",
     color: i % 3 === 0 ? "bg-[#ff4d6d]" : i % 3 === 1 ? "bg-[#2185d0]" : "bg-[#fbbd08]"
   }))
@@ -49,12 +49,12 @@ const DocumentCard = ({ number, title, type, color, onMoreClick }) => (
       
       <div className="flex items-center gap-2 mt-auto mb-2 shrink-0">
         <button className="flex-1 px-3 py-2 rounded-md bg-[#0c1f4a] text-white text-[13px] font-semibold hover:bg-[#0a183d] transition-colors duration-200 shadow-sm text-center">
-          Ochish
+          Oçiş
         </button>
         <button 
           onClick={onMoreClick}
           className="flex-1 px-3 py-2 rounded-md border border-slate-300 text-slate-700 text-[13px] font-semibold hover:bg-slate-50 transition-colors duration-200 shadow-sm text-center">
-          Ko'proq
+          Köproq
         </button>
       </div>
     </div>
@@ -120,7 +120,7 @@ export default function RegulatoryDocumentsPage() {
               Me'yoriy hujjatlar
             </h1>
             <p className="text-slate-500 mt-3 max-w-2xl mx-auto text-[15px]">
-              Institut faoliyatini tartibga soluvchi asosiy qonun, qaror, farmon va nizomlar to'plami.
+              Institut faoliyatini tartibga soluvçi asosiy qonun, qaror, farmon va nizomlar töplami.
             </p>
           </div>
 
@@ -204,10 +204,10 @@ export default function RegulatoryDocumentsPage() {
             </div>
             <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
                <button onClick={() => setSelectedDoc(null)} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-white transition-colors text-[13px]">
-                 Yopish
+                 Yopiş
                </button>
                <button className="px-4 py-2 rounded-lg bg-[#0c1f4a] text-white font-semibold hover:bg-[#0a183d] transition-colors shadow-sm text-[13px]">
-                 Ochish
+                 Oçiş
                </button>
             </div>
           </div>

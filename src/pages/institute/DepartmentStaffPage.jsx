@@ -53,9 +53,9 @@ const StaffCard = ({ id, name, degree, position, phone, email, img, raw }) => {
                 id,
                 name,
                 fullName: name,
-                position: position || "O'qituvchi",
-                positionTitle: position || "O'qituvchi",
-                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "O'qituvchi",
+                position: position || "Öqituvçi",
+                positionTitle: position || "Öqituvçi",
+                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "Öqituvçi",
                 degree,
                 phone: safePhone,
                 email: safeEmail,
@@ -66,9 +66,9 @@ const StaffCard = ({ id, name, degree, position, phone, email, img, raw }) => {
                 id,
                 name,
                 fullName: name,
-                position: position || "O'qituvchi",
-                positionTitle: position || "O'qituvchi",
-                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "O'qituvchi",
+                position: position || "Öqituvçi",
+                positionTitle: position || "Öqituvçi",
+                positionTitleUz: (typeof raw?.positionTitleUz === 'string' && raw.positionTitleUz) || position || "Öqituvçi",
                 degree,
                 phone: safePhone,
                 email: safeEmail,
@@ -291,7 +291,7 @@ export default function DepartmentStaffPage() {
   const rawDeptTitle = typeof selectedDepartment === 'string'
     ? selectedDepartment
     : (typeof selectedDepartment?.name === 'string' ? selectedDepartment?.name : localizedField(selectedDepartment, 'name', lang, selectedDepartment?.nameUz || selectedDepartment?.title || ''));
-  const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : (lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra o'qituvchilari");
+  const deptTitle = (typeof rawDeptTitle === 'string' && rawDeptTitle.trim()) ? rawDeptTitle : (lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra öqituvçilari");
 
   return (
     <div className="flex-grow bg-slate-50 flex flex-col min-h-[calc(100vh-200px)]">
@@ -356,7 +356,7 @@ export default function DepartmentStaffPage() {
           {loading ? (
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
           ) : teachers.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 font-medium">O'qituvchilar topilmadi</div>
+            <div className="text-center py-12 text-slate-500 font-medium">Öqituvçilar topilmadi</div>
           ) : (
             <>
               {/* Kafedra mudiri Section */}
@@ -384,7 +384,7 @@ export default function DepartmentStaffPage() {
                           {mudir.name}
                         </h3>
                         <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                          {(!mudir.position || mudir.position === "O'qituvchi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position}
+                          {(!mudir.position || mudir.position === "O'qituvchi" || mudir.position === "Öqituvçi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position}
                         </p>
                       </div>
 
@@ -397,7 +397,7 @@ export default function DepartmentStaffPage() {
                         </div>
                         <div>
                           <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почta:' : lang === 'en' ? 'Email:' : 'Elektron pochta:'}
+                            <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'Elektron poçta:'}
                           </div>
                           <div className="text-slate-700 font-semibold">{mudir.email}</div>
                         </div>
@@ -405,7 +405,7 @@ export default function DepartmentStaffPage() {
 
                       <div className="mt-8 flex flex-col sm:flex-row items-center justify-start gap-4 border-t border-slate-100 pt-6">
                         {(() => {
-                          const mudirPosTitle = (!mudir.position || mudir.position === "O'qituvchi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position;
+                          const mudirPosTitle = (!mudir.position || mudir.position === "O'qituvchi" || mudir.position === "Öqituvçi") ? (lang === 'ru' ? 'Заведующий кафедрой' : lang === 'en' ? 'Head of Department' : 'Kafedra mudiri') : mudir.position;
                           return (
                             <Link 
                               to={`/employee/${mudir.id}?type=teacher`} 
@@ -447,7 +447,7 @@ export default function DepartmentStaffPage() {
               {otherTeachers.length > 0 && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-                    {lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra o'qituvchilari"}
+                    {lang === 'ru' ? 'Преподаватели кафедры' : lang === 'en' ? 'Department Teachers' : "Kafedra öqituvçilari"}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

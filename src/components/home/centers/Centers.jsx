@@ -26,7 +26,7 @@ export default function Centers() {
 
         if (isMounted) {
           const formatted = rawData.slice(0, 8).map((c, index) => {
-            const title = localizedField(c, 'name', currentLang, localizedField(c, 'title', currentLang, "MARKAZ VA BO'LIM"));
+            const title = localizedField(c, 'name', currentLang, localizedField(c, 'title', currentLang, "MARKAZ VA BÖLIM"));
             const description = localizedField(c, 'description', currentLang, "");
             return {
               id: c.id || index + 1,
@@ -82,11 +82,11 @@ export default function Centers() {
           <h2 id="centers-heading" className="flex items-center justify-center gap-3 md:gap-4 font-bold tracking-tight" style={{ color: '#1d4ed8', fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', lineHeight: '1.1' }}>
             -
             <Building2 style={{ fontSize: 'clamp(2rem, 3.5vw, 3.25rem)', color: '#1d4ed8' }} />
-            {t('home.centers.title', "Markaz va bo'limlar")}
+            {t('home.centers.title', "Markaz va bölimlar")}
             -
           </h2>
           <Link to="/centers" className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 flex items-center text-sm font-semibold text-blue-600 hover:text-[#0c1f4a] transition-colors">
-            {t('home.centers.view_all', "Barchasi")} <ChevronRight className="h-4 w-4 ml-0.5" />
+            {t('home.centers.view_all', "Barçasi")} <ChevronRight className="h-4 w-4 ml-0.5" />
           </Link>
         </div>
 
@@ -124,7 +124,7 @@ export default function Centers() {
                   </div>
 
                   <p className="text-slate-500 text-[13px] leading-relaxed mb-5 flex-grow line-clamp-3">
-                    {center.description || "Urganch davlat pedagogika institutining rasmiy markaz va bo'limi."}
+                    {center.description || "Urganç davlat pedagogika institutining rasmiy markaz va bölimi."}
                   </p>
 
                   <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">

@@ -3,7 +3,7 @@ import { BsTelegram } from 'react-icons/bs'
 import { FaInstagram, FaFacebookF } from 'react-icons/fa'
 import { TfiYoutube } from 'react-icons/tfi'
 import { IoAccessibilityOutline } from 'react-icons/io5'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import logoImg from '../../assets/images/logo.png'
@@ -12,9 +12,10 @@ import uzFlag from '../../assets/images/uz.png'
 import ruFlag from '../../assets/images/ru.png'
 import enFlag from '../../assets/images/en.png'
 import AccessibilityDrawer from './AccessibilityDrawer'
+import { getStoredMenuHierarchy, onMenuHierarchyChange, getLocalizedField } from '../../api'
 
 const address =
-  "Manzil: O'zbekiston, 220100, Urganch shahri, Gurlan ko'chasi, 1-A uy"
+  "Manzil: Özbekiston, 220100, Urganç şahri, Gurlan köçasi, 1-A uy"
 
 const hoverColors = {
   Telegram: 'hover:bg-sky-500',
@@ -117,6 +118,77 @@ function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
   const searchRef = useRef(null)
 
+  const [dynamicMenus, setDynamicMenus] = useState(() => getStoredMenuHierarchy())
+
+  useEffect(() => {
+    // Real-time synchronization when menus are modified in MenuAdmin
+    const unsubscribe = onMenuHierarchyChange((updated) => {
+      if (Array.isArray(updated) && updated.length > 0) {
+        setDynamicMenus(updated)
+      }
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const activeNavLinks = useMemo(() => {
+    if (!dynamicMenus || dynamicMenus.length === 0) {
+      return navLinks
+    }
+
+    const lang = (i18n.language || 'uz').split('-')[0].toLowerCase()
+    const sortedMenus = [...dynamicMenus].sort(
+      (a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0)
+    )
+
+    return sortedMenus.map((menu) => {
+      const hasCategories = Array.isArray(menu.categories) && menu.categories.length > 0
+      const sortedCategories = hasCategories
+        ? [...menu.categories].sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0))
+        : []
+
+      const dropdown = sortedCategories.length > 0
+        ? sortedCategories.map((cat) => {
+            const hasSubs = Array.isArray(cat.subCategories) && cat.subCategories.length > 0
+            const sortedSubs = hasSubs
+              ? [...cat.subCategories].sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0))
+              : []
+
+            const submenu = sortedSubs.length > 0
+              ? sortedSubs.map((sub) => ({
+                  id: sub.id,
+                  title: getLocalizedField(sub, 'name', lang) || sub.name,
+                  href: sub.contentType === 'LINK' && sub.linkPath && sub.linkPath !== '#'
+                    ? sub.linkPath
+                    : `/subcategories/${sub.id}`
+                }))
+              : null
+
+            const catDirectLink = cat.linkPath && cat.linkPath !== '#' ? cat.linkPath : null
+            const defaultCatHref = submenu && submenu.length === 1
+              ? submenu[0].href
+              : `/category/${cat.id}`
+
+            return {
+              id: cat.id,
+              title: getLocalizedField(cat, 'name', lang) || cat.name,
+              href: catDirectLink || defaultCatHref,
+              submenu
+            }
+          })
+        : null
+
+      const menuDirectLink = menu.linkPath && menu.linkPath !== '#' ? menu.linkPath : null
+
+      return {
+        id: menu.id,
+        title: getLocalizedField(menu, 'name', lang) || menu.name,
+        slug: menu.slug,
+        href: menuDirectLink || (dropdown ? `/menu/${menu.id}` : `/menu/${menu.id}`),
+        dropdown
+      }
+    })
+  }, [dynamicMenus, i18n.language])
+
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus()
   }, [searchOpen])
@@ -170,7 +242,13 @@ function Navbar() {
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex items-center gap-6 px-6 font-medium text-xs sm:text-sm tracking-wide shrink-0">
-                <span>Ushbu Sayt Urganch davlat pedagogika instituti yangi sayti va TEST rejimida ishlamoqda...</span>
+                <span>
+                  {currentLang.startsWith('ru')
+                    ? 'Этот сайт является новым сайтом Ургенчского государственного педагогического института и работает в ТЕСТОВОМ режиме...'
+                    : currentLang.startsWith('en')
+                    ? 'This website is the new website of Urgench State Pedagogical Institute and is operating in TEST mode...'
+                    : 'Uşbu Sayt Urganç davlat pedagogika instituti yangi sayti va TEST rejimida işlamoqda...'}
+                </span>
                 <span className="text-white/60 text-xs">✦</span>
               </div>
             ))}
@@ -222,7 +300,7 @@ function Navbar() {
                   <div className={`absolute right-0 top-[calc(100%+8px)] z-50 w-32 rounded-xl border border-white/20 py-1.5 shadow-xl backdrop-blur-xl transition-colors duration-500 ${isGreenTheme ? 'bg-[#011a14]/90' : 'bg-[#0c1f4a]/90'}`}>
                     <button onClick={() => changeLanguage('uz')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
                       <img src={uzFlag} alt="UZ" className="w-5 h-5 rounded-full object-cover" />
-                      O'zbek
+                      Özbek
                     </button>
                     <button onClick={() => changeLanguage('ru')} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-white/90 hover:bg-white/10 hover:text-white">
                       <img src={ruFlag} alt="RU" className="w-5 h-5 rounded-full object-cover" />
@@ -320,36 +398,37 @@ function Navbar() {
 
               {/* Desktop nav links */}
               <ul className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex xl:gap-1.5">
-                {navLinks.map((link) => (
-                  <li key={link.labelKey} className="group relative">
+                {activeNavLinks.map((link, lIdx) => (
+                  <li key={link.labelKey || link.title || lIdx} className="group relative">
                     {link.dropdown ? (
                       <>
                         <button
                           type="button"
                           className={`flex items-center gap-1 rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                         >
-                          <span className="whitespace-nowrap">{t(link.labelKey)}</span>
+                          <span className="whitespace-nowrap">{link.title || (link.labelKey ? t(link.labelKey) : '')}</span>
                           <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80 transition-transform group-hover:rotate-180" />
                         </button>
                         <ul className={`invisible absolute left-0 top-[calc(100%+6px)] z-50 min-w-[200px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover:visible group-hover:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
-                          {link.dropdown.map((item) => (
-                            <li key={item.labelKey} className={item.submenu ? "relative group/submenu" : ""}>
+                          {link.dropdown.map((item, iIdx) => (
+                            <li key={item.labelKey || item.title || iIdx} className={item.submenu ? "relative group/submenu" : ""}>
                               {item.submenu ? (
                                 <>
-                                  <div
+                                  <a
+                                    href={item.href}
                                     className={`flex items-center justify-between px-4 py-2.5 text-left text-[13px] normal-case cursor-pointer transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
                                   >
-                                    <span>{t(item.labelKey)}</span>
+                                    <span>{item.title || (item.labelKey ? t(item.labelKey) : '')}</span>
                                     <ChevronRight className="h-3.5 w-3.5 opacity-80" />
-                                  </div>
+                                  </a>
                                   <ul className={`invisible absolute left-full top-0 z-50 min-w-[220px] rounded-xl border border-white/20 py-1 opacity-0 shadow-xl backdrop-blur-xl transition-all duration-300 group-hover/submenu:visible group-hover/submenu:opacity-100 ${isGreenTheme ? 'bg-[#011a14]/95' : 'bg-[#0c1f4a]/90'}`}>
-                                    {item.submenu.map((subItem) => (
-                                      <li key={subItem.labelKey}>
+                                    {item.submenu.map((subItem, sIdx) => (
+                                      <li key={subItem.labelKey || subItem.title || sIdx}>
                                         <a
                                           href={subItem.href}
                                           className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
                                         >
-                                          {t(subItem.labelKey)}
+                                          {subItem.title || (subItem.labelKey ? t(subItem.labelKey) : '')}
                                         </a>
                                       </li>
                                     ))}
@@ -360,7 +439,7 @@ function Navbar() {
                                   href={item.href}
                                   className={`block px-4 py-2.5 text-left text-[13px] normal-case transition ${isGreenTheme ? 'text-emerald-100/90 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white/85 hover:bg-white/10 hover:text-white'}`}
                                 >
-                                  {t(item.labelKey)}
+                                  {item.title || (item.labelKey ? t(item.labelKey) : '')}
                                 </a>
                               )}
                             </li>
@@ -372,7 +451,7 @@ function Navbar() {
                         href={link.href}
                         className={`block rounded-lg px-2.5 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition whitespace-nowrap xl:px-3 xl:text-[13px] ${isGreenTheme ? 'text-emerald-100 hover:bg-emerald-900/40 hover:text-emerald-300' : 'text-white hover:bg-white/10'}`}
                       >
-                        {t(link.labelKey)}
+                        {link.title || (link.labelKey ? t(link.labelKey) : '')}
                       </a>
                     )}
                   </li>
@@ -410,7 +489,7 @@ function Navbar() {
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/15">
-          <h2 className="text-xl font-bold text-white tracking-wide">Menyu</h2>
+          <h2 className="text-xl font-bold text-white tracking-wide">{t('navbar.menu')}</h2>
           <button
             type="button"
             onClick={() => setMenuOpen(false)}
@@ -433,12 +512,12 @@ function Navbar() {
                   handleLogoClick(e)
                 }}
               >
-                Asosiy sahifa
+                {t('navbar.links.home')}
               </a>
             </li>
 
-            {navLinks.map((link, idx) => (
-              <li key={link.labelKey}>
+            {activeNavLinks.map((link, idx) => (
+              <li key={link.labelKey || link.title || idx}>
                 {link.dropdown ? (
                   <>
                     <button
@@ -446,7 +525,7 @@ function Navbar() {
                       className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-base font-semibold transition hover:bg-white/10"
                       onClick={() => setMobileOpenIdx(mobileOpenIdx === idx ? null : idx)}
                     >
-                      <span>{t(link.labelKey)}</span>
+                      <span>{link.title || (link.labelKey ? t(link.labelKey) : '')}</span>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform duration-200 ${mobileOpenIdx === idx ? 'rotate-180' : ''
                           }`}
@@ -454,8 +533,8 @@ function Navbar() {
                     </button>
                     {mobileOpenIdx === idx && (
                       <ul className="my-1 ml-4 border-l border-white/15 pl-3 flex flex-col gap-1">
-                        {link.dropdown.map((item) => (
-                          <li key={item.labelKey}>
+                        {link.dropdown.map((item, iIdx) => (
+                          <li key={item.labelKey || item.title || iIdx}>
                             {item.submenu ? (
                               <>
                                 <button
@@ -463,26 +542,26 @@ function Navbar() {
                                   className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-white/90 transition hover:bg-white/10 hover:text-white"
                                   onClick={() =>
                                     setMobileSubOpenKey(
-                                      mobileSubOpenKey === item.labelKey ? null : item.labelKey
+                                      mobileSubOpenKey === (item.labelKey || item.title || iIdx) ? null : (item.labelKey || item.title || iIdx)
                                     )
                                   }
                                 >
-                                  <span>{t(item.labelKey)}</span>
+                                  <span>{item.title || (item.labelKey ? t(item.labelKey) : '')}</span>
                                   <ChevronDown
-                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${mobileSubOpenKey === item.labelKey ? 'rotate-180' : ''
+                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${mobileSubOpenKey === (item.labelKey || item.title || iIdx) ? 'rotate-180' : ''
                                       }`}
                                   />
                                 </button>
-                                {mobileSubOpenKey === item.labelKey && (
+                                {mobileSubOpenKey === (item.labelKey || item.title || iIdx) && (
                                   <ul className="my-1 ml-3 border-l border-white/10 pl-3 flex flex-col gap-1">
-                                    {item.submenu.map((subItem) => (
-                                      <li key={subItem.labelKey}>
+                                    {item.submenu.map((subItem, sIdx) => (
+                                      <li key={subItem.labelKey || subItem.title || sIdx}>
                                         <a
                                           href={subItem.href}
                                           className="block rounded-lg px-3 py-1.5 text-xs text-white/75 transition hover:bg-white/10 hover:text-white"
                                           onClick={() => setMenuOpen(false)}
                                         >
-                                          {t(subItem.labelKey)}
+                                          {subItem.title || (subItem.labelKey ? t(subItem.labelKey) : '')}
                                         </a>
                                       </li>
                                     ))}
@@ -495,7 +574,7 @@ function Navbar() {
                                 className="block rounded-lg px-3 py-2 text-sm text-white/90 transition hover:bg-white/10 hover:text-white"
                                 onClick={() => setMenuOpen(false)}
                               >
-                                {t(item.labelKey)}
+                                {item.title || (item.labelKey ? t(item.labelKey) : '')}
                               </a>
                             )}
                           </li>
@@ -509,7 +588,7 @@ function Navbar() {
                     className="block rounded-xl px-4 py-3 text-base font-semibold transition hover:bg-white/10"
                     onClick={() => setMenuOpen(false)}
                   >
-                    {t(link.labelKey)}
+                    {link.title || (link.labelKey ? t(link.labelKey) : '')}
                   </a>
                 )}
               </li>

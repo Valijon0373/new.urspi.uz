@@ -28,6 +28,9 @@ import SeasonEffects from './components/seasonEffect/SeasonEffects'
 import GlobalLoader from './components/common/GlobalLoader'
 import BachelorPage from './pages/admission/BachelorPage'
 import MasterPage from './pages/admission/MasterPage'
+import SubCategoryPage from './pages/menu/SubCategoryPage'
+import InfoDetailPage from './pages/menu/InfoDetailPage'
+import MenuCategoryPage from './pages/menu/MenuCategoryPage'
 import './App.css'
 
 function App() {
@@ -182,6 +185,54 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <EmployeeProfilePage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Menyu ierarxiyasi: SubCategory sahifasi (TABLE / FEED / LINK) */}
+        <Route path="/subcategories/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <SubCategoryPage />
+            <Footer />
+          </div>
+        } />
+        <Route path="/subcategory/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <SubCategoryPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Menyu ierarxiyasi: Info batafsil sahifasi + yillar + materiallar */}
+        <Route path="/infos/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <InfoDetailPage />
+            <Footer />
+          </div>
+        } />
+        <Route path="/info/:id" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <InfoDetailPage />
+            <Footer />
+          </div>
+        } />
+
+        {/* Menyu & Category ko'rish sahifalari */}
+        <Route path="/menu/:menuId" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MenuCategoryPage />
+            <Footer />
+          </div>
+        } />
+        <Route path="/category/:categoryId" element={
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <MenuCategoryPage />
             <Footer />
           </div>
         } />

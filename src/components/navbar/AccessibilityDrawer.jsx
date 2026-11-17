@@ -81,35 +81,35 @@ export default function AccessibilityDrawer({ isOpen, onClose }) {
 
         <div className="px-6 pb-6 space-y-6 text-black">
           <RangeSlider
-            label="Shrift o'lchami"
+            label="Şrift ölçami"
             min={80} max={150} step={5}
             value={fontSize}
             onChange={setFontSize}
           />
 
           <RangeSlider
-            label="Harf oralig'i"
+            label="Harf oraliği"
             min={0} max={10} step={0.5}
             value={letterSpacing}
             onChange={setLetterSpacing}
           />
 
           <RangeSlider
-            label="So'z oralig'i"
+            label="Söz oraliği"
             min={0} max={20} step={1}
             value={wordSpacing}
             onChange={setWordSpacing}
           />
 
           <RangeSlider
-            label="So'z balandligi"
+            label="Söz balandligi"
             min={1} max={3} step={0.1}
             value={lineHeight}
             onChange={setLineHeight}
           />
 
           <RangeSlider
-            label="Masshtab"
+            label="Masştab"
             min={80} max={150} step={5}
             value={zoom}
             onChange={setZoom}
@@ -135,7 +135,7 @@ export default function AccessibilityDrawer({ isOpen, onClose }) {
                 onClick={() => setTheme('lowLight')}
                 className={`px-4 py-2 text-sm rounded border ${theme === 'lowLight' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
               >
-                Past yorug'lik
+                Past yoruğlik
               </button>
               <button
                 onClick={() => setTheme('highContrast')}
@@ -146,13 +146,13 @@ export default function AccessibilityDrawer({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Boshlang'ich holatga qaytarish */}
+          {/* Boşlanğiç holatga qaytariş */}
           <div className="pt-6">
             <button
               onClick={handleReset}
               className="w-full py-3 px-4 bg-[#e9ecf1] hover:bg-[#dce0e8] text-gray-800 text-[15px] rounded-lg transition-colors"
             >
-              Boshlang'ich holatga qaytarish
+              Boşlanğiç holatga qaytariş
             </button>
           </div>
         </div>

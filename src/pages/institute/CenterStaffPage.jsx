@@ -144,7 +144,7 @@ export default function CenterStaffPage() {
         if (isMounted && foundCenter) {
           setCenterData({
             ...foundCenter,
-            title: localizedField(foundCenter, 'name', lang, foundCenter.nameUz || foundCenter.title || "Bo'lim / Markaz"),
+            title: localizedField(foundCenter, 'name', lang, foundCenter.nameUz || foundCenter.title || "Bölim / Markaz"),
             description: localizedField(foundCenter, 'description', lang, foundCenter.descriptionUz || foundCenter.description || ""),
             headName: foundCenter.headName || foundCenter.leaderName || foundCenter.headFullName || "",
             headId: foundCenter.headId || foundCenter.leaderId || null,
@@ -235,7 +235,7 @@ export default function CenterStaffPage() {
     headMember = {
       id: centerData.headId || 'head',
       name: centerData.headName,
-      position: lang === 'ru' ? "Начальник отдела" : lang === 'en' ? "Head of Department" : "Bo'lim boshlig'i",
+      position: lang === 'ru' ? "Начальник отдела" : lang === 'en' ? "Head of Department" : "Bölim boşliği",
       phone: centerData.phone || "+998 90 123 45 67",
       email: centerData.email || "info@urspi.uz",
       img: getFileUrl(centerData.headPhoto) || menImg,
@@ -245,7 +245,7 @@ export default function CenterStaffPage() {
     // Search in staffList for head / boss title
     const foundHead = staffList.find(e => {
       const posStr = String(e.position || e.raw?.positionTitleUz || '').toLowerCase();
-      return /boshliq|boshlig|boshlig'i|rahbar|head|dir|direktor|мудир|начальник/i.test(posStr);
+      return /boshliq|boshlig|boshlig'i|boşliq|boşlig|boşliği|rahbar|head|dir|direktor|мудир|начальник/i.test(posStr);
     }) || (staffList.length > 0 ? staffList[0] : null);
 
     if (foundHead) {
@@ -257,16 +257,16 @@ export default function CenterStaffPage() {
     ? staffList.filter(e => String(e.id) !== String(headMember.id))
     : staffList;
 
-  const centerTitle = centerData?.title || "Markaz / Bo'lim";
+  const centerTitle = centerData?.title || "Markaz / Bölim";
   const centerDesc = centerData?.description || "";
 
   const taskList = (centerData?.tasks && centerData.tasks.length > 0) ? centerData.tasks : [
-    "Institutdagi barcha ta'lim va boshqaruv jarayonlarini samarali muvofiqlashtirish.",
-    "O'quv va tashkiliy faoliyatda zamonaviy metodlar va texnologiyalarni tatbiq etish.",
-    "Talabalar hamda professor-o'qituvchilarga sifatli xizmat ko'rsatish.",
-    "Me'yoriy hujjatlar va davlat ta'lim standartlari talablariga rioya etilishini ta'minlash.",
-    "Soha bo'yicha hisobotlar hamda statistik tahlillarni tayyorlash.",
-    "Innovatsion va samador loyihalarni ishlab chiqish hamda joriy qilish."
+    "Institutdagi barça ta'lim va boşqaruv jarayonlarini samarali muvofiqlaştiriş.",
+    "Öquv va taşkiliy faoliyatda zamonaviy metodlar va texnologiyalarni tatbiq etiş.",
+    "Talabalar hamda professor-öqituvçilarga sifatli xizmat körsatiş.",
+    "Me'yoriy hujjatlar va davlat ta'lim standartlari talablariga rioya etilişini ta'minlaş.",
+    "Soha böyiça hisobotlar hamda statistik tahlillarni tayyorlaş.",
+    "Innovatsion va samador loyihalarni işlab çiqiş hamda joriy qiliş."
   ];
 
   return (
@@ -318,7 +318,7 @@ export default function CenterStaffPage() {
               {headMember && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-                    {lang === 'ru' ? 'Начальник отдела' : lang === 'en' ? 'Head of Department' : "Bo'lim boshlig'i"}
+                    {lang === 'ru' ? 'Начальник отдела' : lang === 'en' ? 'Head of Department' : "Bölim boşliği"}
                   </div>
 
                   <div className="w-full bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row items-start p-5 md:p-6 gap-6 relative mb-12">
@@ -352,7 +352,7 @@ export default function CenterStaffPage() {
                           {headMember.name}
                         </h3>
                         <p className="text-slate-600 mt-2 text-[14px] md:text-[15px] font-medium">
-                          {headMember.position || (lang === 'ru' ? 'Начальник отдела' : lang === 'en' ? 'Head of Department' : "Bo'lim boshlig'i")}
+                          {headMember.position || (lang === 'ru' ? 'Начальник отдела' : lang === 'en' ? 'Head of Department' : "Bölim boşliği")}
                         </p>
                       </div>
 
@@ -370,7 +370,7 @@ export default function CenterStaffPage() {
                           {headMember.email && (
                             <div>
                               <div className="text-[12px] text-slate-400 font-medium uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                                <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'Elektron pochta:'}
+                                <HiOutlineMail size={20} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'Elektron poçta:'}
                               </div>
                               <div className="text-slate-700 font-semibold">{headMember.email}</div>
                             </div>
@@ -399,7 +399,7 @@ export default function CenterStaffPage() {
               {otherStaffList.length > 0 && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 mt-8 text-[18px] sm:text-[20px]">
-                    {lang === 'ru' ? 'Сотрудники отдела' : lang === 'en' ? 'Department Staff' : "Bo'lim xodimlari"}
+                    {lang === 'ru' ? 'Сотрудники отдела' : lang === 'en' ? 'Department Staff' : "Bölim xodimlari"}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -421,19 +421,19 @@ export default function CenterStaffPage() {
 
               {!headMember && otherStaffList.length === 0 && (
                 <div className="text-center py-12 text-slate-500 font-medium">
-                  {lang === 'ru' ? 'Сотрудники пока не добавлены' : lang === 'en' ? 'No staff added yet' : "Xodimlar haqli ma'lumotlar hozircha yo'q"}
+                  {lang === 'ru' ? 'Сотрудники пока не добавлены' : lang === 'en' ? 'No staff added yet' : "Xodimlar haqidagi ma'lumotlar hozirça yöq"}
                 </div>
               )}
 
               {/* Bo'lim maqsadi Section */}
               <div className="mt-16 mb-6">
                 <h2 className="text-center font-bold text-[#0c1f4a] text-[18px] sm:text-[20px] mb-6">
-                  {lang === 'ru' ? 'Цель отдела' : lang === 'en' ? 'Department Goal' : "Bo'lim maqsadi"}
+                  {lang === 'ru' ? 'Цель отдела' : lang === 'en' ? 'Department Goal' : "Bölim maqsadi"}
                 </h2>
                 <div className="bg-slate-100 rounded-xl p-8 text-center relative shadow-sm">
                   <div className="text-[#0c1f4a]/20 text-7xl font-serif leading-none h-10 overflow-visible mx-auto mb-2 select-none">“</div>
                   <p className="text-slate-700 text-[15px] relative z-10 leading-relaxed max-w-4xl mx-auto font-medium">
-                    {centerDesc || "Bo'limning asosiy maqsadi — institutda o'z yo'nalishi bo'yicha ta'lim va boshqaruv jarayonlarini samarali tashkil etish va muvofiqlashtirishdir."}
+                    {centerDesc || "Bölimning asosiy maqsadi — institutda öz yönalişi böyiça ta'lim va boşqaruv jarayonlarini samarali taşkil etiş va muvofiqlaştirişdir."}
                   </p>
                 </div>
               </div>
@@ -441,7 +441,7 @@ export default function CenterStaffPage() {
               {/* Bo'lim vazifalari Section */}
               <div className="mt-16 mb-10">
                 <h2 className="text-center font-bold text-[#0c1f4a] text-[18px] sm:text-[20px] mb-6">
-                  {lang === 'ru' ? 'Задачи отдела' : lang === 'en' ? 'Department Tasks' : "Bo'lim vazifalari"}
+                  {lang === 'ru' ? 'Задачи отдела' : lang === 'en' ? 'Department Tasks' : "Bölim vazifalari"}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {taskList.map((task, index) => (

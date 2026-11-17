@@ -62,7 +62,7 @@ export default function AntiCorruptionPage() {
                                 {t('anticorruption.title_main')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0c1f4a] to-blue-500">{t('anticorruption.title_sub')}</span>
                             </h1>
                             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                                Urganch davlat pedagogika institutida korrupsiyaga o'rin yo'q. Biz halol va adolatli ta'lim tizimini yaratish yo'lida barchani hamkorlikka chorlaymiz.
+                                Urganç davlat pedagogika institutida korrupsiyaga örin yöq. Biz halol va adolatli ta'lim tizimini yaratiş yölida barçani hamkorlikka çorlaymiz.
                             </p>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                                 <a href="#murojaat" className="px-8 py-4 bg-[#0c1f4a] hover:bg-[#1a2f55] text-white font-bold rounded-xl transition-all transform hover:-translate-y-0.5 hover:shadow-lg">

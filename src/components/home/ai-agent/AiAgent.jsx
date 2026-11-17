@@ -4,35 +4,35 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const QA_KNOWLEDGE_BASE = [
     {
-        keywords: ['salom', 'assalom', 'hayrli', 'qalay', 'yaxshimisiz'],
-        answer: 'Assalomu alaykum! Urganch Davlat Pedagogika Instituti (UrSPI) sun\'iy intellekt yordamchisiga xush kelibsiz. Sizga qanday yordam bera olaman?'
+        keywords: ['salom', 'assalom', 'hayrli', 'qalay', 'yaxshimisiz', 'yaxşimisiz'],
+        answer: 'Assalomu alaykum! Urganç Davlat Pedagogika Instituti (UrSPI) sun\'iy intellekt yordamçisiga xuş kelibsiz. Sizga qanday yordam bera olaman?'
     },
     {
-        keywords: ['fakultet', 'yo\'nalish', 'qabul', 'o\'qishga', 'kirish', 'imtihon'],
-        answer: 'Institutimizda qator pedagogik yo\'nalishlar va fakultetlar mavjud. Qabul jarayonlari, imtihonlar va yo\'nalishlar haqida batafsil ma\'lumotni saytimizning "Qabul" va "Ta\'lim" bo\'limlaridan olishingiz mumkin.',
-        action: { url: '/', label: 'Bosh sahifaga o\'tish' }
+        keywords: ['fakultet', 'yo\'nalish', 'yönaliş', 'qabul', 'o\'qishga', 'öqişga', 'kirish', 'kiriş', 'imtihon'],
+        answer: 'Institutimizda qator pedagogik yönalişlar va fakultetlar mavjud. Qabul jarayonlari, imtihonlar va yönalişlar haqida batafsil ma\'lumotni saytimizning "Qabul" va "Ta\'lim" bölimlaridan olişingiz mumkin.',
+        action: { url: '/', label: 'Boş sahifaga ötiş' }
     },
     {
-        keywords: ['manzil', 'qayerda', 'lokatsiya', 'joylashuv'],
-        answer: 'Urganch Davlat Pedagogika Instituti Xorazm viloyati, Urganch shahrida joylashgan.'
+        keywords: ['manzil', 'qayerda', 'lokatsiya', 'joylashuv', 'joylaşuv'],
+        answer: 'Urganç Davlat Pedagogika Instituti Xorazm viloyati, Urganç şahrida joylaşgan.'
     },
     {
         keywords: ['rektor', 'rahbariyat', 'dekan'],
-        answer: 'Institut rahbariyati (rektor, prorektorlar va dekanlar) haqida batafsil ma\'lumotni "Rahbariyat" sahifasidan topishingiz mumkin.',
-        action: { url: '/rahbariyat', label: 'Rahbariyat sahifasiga o\'tish' }
+        answer: 'Institut rahbariyati (rektor, prorektorlar va dekanlar) haqida batafsil ma\'lumotni "Rahbariyat" sahifasidan topişingiz mumkin.',
+        action: { url: '/rahbariyat', label: 'Rahbariyat sahifasiga ötiş' }
     },
     {
-        keywords: ['aloqa', 'telefon', 'bog\'lanish', 'raqam', 'email', 'pochtasi'],
-        answer: 'Biz bilan bog\'lanish uchun saytning "Aloqa" bo\'limidagi telefon raqamlariga qo\'ng\'iroq qilishingiz yoki elektron pochta orqali xabar yuborishingiz mumkin.'
+        keywords: ['aloqa', 'telefon', 'bog\'lanish', 'boğlaniş', 'raqam', 'email', 'pochtasi', 'poçtasi'],
+        answer: 'Biz bilan boğlaniş uçun saytning "Aloqa" bölimidagi telefon raqamlariga qönğiroq qilişingiz yoki elektron poçta orqali xabar yuborişingiz mumkin.'
     },
     {
         keywords: ['yangiliklar', 'yangilik', ' ', 'elonlar'],
-        answer: 'Institut hayotidagi so\'nggi yangiliklar va e\'lonlar bilan tanishish uchun "Yangiliklar" sahifasiga o\'tishingiz mumkin.',
-        action: { url: '/news', label: 'Yangiliklar sahifasiga o\'tish' }
+        answer: 'Institut hayotidagi sönggi yangiliklar va e\'lonlar bilan tanişiş uçun "Yangiliklar" sahifasiga ötişingiz mumkin.',
+        action: { url: '/news', label: 'Yangiliklar sahifasiga ötiş' }
     },
     {
-        keywords: ['sayt', 'yaratuvchi', 'qilgan', 'yaratgan'],
-        answer: 'Ushbu sayt va sun\'iy intellekt moduli tajribali dasturchilar tomonidan ishlab chiqilgan.'
+        keywords: ['sayt', 'yaratuvchi', 'yaratuvçi', 'qilgan', 'yaratgan'],
+        answer: 'Uşbu sayt va sun\'iy intellekt moduli tajribali dasturçilar tomonidan işlab çiqilgan.'
     }
 ];
 
@@ -47,7 +47,7 @@ export default function AiAgent() {
 
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { id: 1, text: "Assalomu alaykum! \n\nMen Urganch davlat pedagogika instituti saytining sun'iy intellekt yordamchisiman. \n\nSizga qanday yordam bera olaman?", isBot: true }
+        { id: 1, text: "Assalomu alaykum! \n\nMen Urganç davlat pedagogika instituti saytining sun'iy intellekt yordamçisiman. \n\nSizga qanday yordam bera olaman?", isBot: true }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -72,7 +72,7 @@ export default function AiAgent() {
 
         // Simulate RAG / AI processing delay
         setTimeout(() => {
-            let botResponse = "Kechirasiz, ma'lumotlar bazasidan bu savolga aniq javob topa olmadim. Iltimos, savolingizni aniqroq yozing yoki sayt menyularidan qidiring.";
+            let botResponse = "Keçirasiz, ma'lumotlar bazasidan bu savolga aniq javob topa olmadim. Iltimos, savolingizni aniqroq yozing yoki sayt menyularidan qidiring.";
             let botAction = null;
 
             const lowerInput = newUserMessage.text.toLowerCase();
@@ -168,7 +168,7 @@ export default function AiAgent() {
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                     </span>
-                                    Onlayn yordamchi
+                                    Onlayn yordamçi
                                 </p>
                             </div>
                         </div>

@@ -166,7 +166,7 @@ export default function FacultiesPage() {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-[#0c1f4a]">{t('common.faculties')}</h1>
-            <p className="text-slate-500 mt-3 max-w-2xl mx-auto">Urganch davlat pedagogika institutidagi mavjud fakultetlar va ularning tuzilmasi bilan tanishing.</p>
+            <p className="text-slate-500 mt-3 max-w-2xl mx-auto">Urganç davlat pedagogika institutidagi mavjud fakultetlar va ularning tuzilmasi bilan tanişing.</p>
           </div>
 
           {loading ? (

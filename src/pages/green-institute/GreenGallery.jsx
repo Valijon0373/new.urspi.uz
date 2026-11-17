@@ -2,54 +2,68 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
 import { greenInstitutesAPI, getFileUrl } from '../../api';
 
+const isValidImageString = (val) => {
+  if (typeof val !== 'string') return false;
+  const t = val.trim();
+  return (
+    t.length > 0 &&
+    t !== '[object Object]' &&
+    t !== 'undefined' &&
+    t !== 'null' &&
+    !t.startsWith('blob:')
+  );
+};
+
+const unwrapApiList = (res) => {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data?.content)) return res.data.content;
+  if (Array.isArray(res?.content)) return res.content;
+  if (Array.isArray(res?.data)) return res.data;
+  return [];
+};
+
 const getImageUrl = (item) => {
   if (!item) return '';
-  
+
   if (typeof item === 'string') {
-    const trimmed = item.trim();
-    if (trimmed.startsWith('blob:')) return ''; // Discard dead blob URLs
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
-      return trimmed;
-    }
-    return getFileUrl(trimmed);
+    if (!isValidImageString(item)) return '';
+    return getFileUrl(item.trim());
   }
 
-  const keys = ['image', 'photo', 'imageLink', 'photoLink', 'filePath', 'fileName', 'fileLink', 'file', 'url', 'path', 'link'];
-  let raw = '';
+  const keys = [
+    'imageLink', 'photoLink', 'fileLink', 'mainImageLink', 'attachmentLink',
+    'imageUrl', 'photoUrl', 'filePath', 'imagePath', 'fileName',
+    'image', 'photo', 'file', 'url', 'path', 'link', 'mainImage'
+  ];
 
   for (const k of keys) {
     const val = item[k];
-    if (typeof val === 'string' && val.trim() && !val.trim().startsWith('blob:')) {
-      raw = val.trim();
-      break;
+    if (isValidImageString(val)) {
+      const resolved = getFileUrl(val.trim());
+      if (resolved) return resolved;
     }
-    if (val && typeof val === 'object') {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
       const nested = val.link || val.url || val.path || val.filePath || val.fileName || val.fileLink || val.photoLink || val.imageLink;
-      if (typeof nested === 'string' && nested.trim() && !nested.trim().startsWith('blob:')) {
-        raw = nested.trim();
-        break;
+      if (isValidImageString(nested)) {
+        const resolved = getFileUrl(nested.trim());
+        if (resolved) return resolved;
       }
     }
   }
 
-  if (!raw) {
-    for (const k of keys) {
-      const val = item[k];
-      if (typeof val === 'string' && val.trim()) {
-        raw = val.trim();
-        break;
-      }
+  if (Array.isArray(item.images) && item.images.length > 0) {
+    for (const img of item.images) {
+      const resolved = getFileUrl(img);
+      if (resolved) return resolved;
     }
   }
-  
-  if (raw) {
-    if (raw.startsWith('blob:')) return '';
-    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
-      return raw;
+  if (Array.isArray(item.imageLinks) && item.imageLinks.length > 0) {
+    for (const img of item.imageLinks) {
+      const resolved = getFileUrl(img);
+      if (resolved) return resolved;
     }
-    return getFileUrl(raw);
   }
-  
+
   return '';
 };
 
@@ -65,9 +79,19 @@ const GreenGallery = () => {
     let apiItems = [];
     try {
       const res = await greenInstitutesAPI.getAll();
-      apiItems = Array.isArray(res) ? res : (res?.data || res?.content || []);
+      apiItems = unwrapApiList(res);
     } catch (e) {
-      console.warn('Failed to fetch green institutes for gallery:', e.message);
+      try {
+        const resLanding = await greenInstitutesAPI.getLanding(0, 100, 'uz');
+        apiItems = unwrapApiList(resLanding);
+      } catch (err) {
+        try {
+          const resLang = await greenInstitutesAPI.getByLang('uz');
+          apiItems = unwrapApiList(resLang);
+        } catch (ex) {
+          console.warn('Failed to fetch green institutes for gallery:', e.message);
+        }
+      }
     }
 
     const itemsList = apiItems.filter(item => {
@@ -78,7 +102,16 @@ const GreenGallery = () => {
     });
 
     const fetchedUrls = itemsList
-      .map(item => getImageUrl(item))
+      .flatMap(item => {
+        if (Array.isArray(item?.imageLinks) && item.imageLinks.length > 0) {
+          return item.imageLinks
+            .filter(isValidImageString)
+            .map(link => getFileUrl(link.trim()))
+            .filter(Boolean);
+        }
+        const single = getImageUrl(item);
+        return single ? [single] : [];
+      })
       .filter(url => typeof url === 'string' && url.length > 0);
 
     setImages(fetchedUrls);
@@ -114,8 +147,8 @@ const GreenGallery = () => {
 
       <div className="text-center max-w-3xl mx-auto mb-20 relative z-10">
         <h2 className="text-emerald-400 font-bold tracking-widest uppercase text-xs md:text-sm mb-3">Foto Galereya</h2>
-        <h3 className="text-4xl md:text-5xl font-black text-white mb-6">Yashil Institut Hayotidan</h3>
-        <p className="text-emerald-100/70 text-base md:text-lg">Tabiat uyg'unligi aks etgan maxsus lahzalar.</p>
+        <h3 className="text-4xl md:text-5xl font-black text-white mb-6">Yaşil Institut Hayotidan</h3>
+        <p className="text-emerald-100/70 text-base md:text-lg">Tabiat uyğunligi aks etgan maxsus lahzalar.</p>
       </div>
 
       {loading ? (
@@ -127,32 +160,32 @@ const GreenGallery = () => {
           <div className="w-16 h-16 bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
             <ImageIcon className="w-8 h-8 text-emerald-400" />
           </div>
-          <p className="text-emerald-100/80 font-medium text-lg">Hozircha foto galereya rasmlari mavjud emas</p>
-          <p className="text-emerald-200/50 text-sm mt-1">Admin panel orqali yangi rasmlar yuklanganda bu yerda ko'rinadi.</p>
+          <p className="text-emerald-100/80 font-medium text-lg">Hozirça foto galereya rasmlari mavjud emas</p>
+          <p className="text-emerald-200/50 text-sm mt-1">Admin panel orqali yangi rasmlar yuklanganda bu yerda körinadi.</p>
         </div>
       ) : (
         <>
           <div className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center max-w-7xl mx-auto px-4 z-20">
             {images.map((img, i) => {
               let offset = i - activeIdx;
-              
+
               if (total > 1) {
                 if (offset < -Math.floor(total / 2)) offset += total;
                 if (offset > Math.floor((total - 1) / 2)) offset -= total;
               }
-              
+
               let zIndex = 30 - Math.abs(offset) * 10;
               let scale = offset === 0 ? 1 : Math.abs(offset) === 1 ? 0.75 : 0.55;
-              
+
               let translateX = offset * 60;
               if (Math.abs(offset) >= 2) {
-                 translateX = offset > 0 ? 105 : -105;
+                translateX = offset > 0 ? 105 : -105;
               }
 
               let opacity = offset === 0 ? 1 : Math.abs(offset) === 1 ? 0.8 : (Math.abs(offset) === 2 ? 0.5 : 0);
 
               return (
-                <div 
+                <div
                   key={i}
                   onClick={() => {
                     if (offset === 0) {
@@ -171,23 +204,29 @@ const GreenGallery = () => {
                   }}
                 >
                   {/* Outer wrapper for the green border */}
-                  <div 
+                  <div
                     className="w-[220px] h-[220px] sm:w-[300px] sm:h-[300px] md:w-[450px] md:h-[450px] flex items-center justify-center transition-colors duration-500 shadow-2xl"
-                    style={{ 
+                    style={{
                       backgroundColor: offset === 0 ? '#34d399' : '#059669',
                       clipPath: 'polygon(29% 0, 71% 0, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0 71%, 0 29%)',
                       padding: offset === 0 ? '6px' : '4px'
                     }}
                   >
                     {/* Inner image */}
-                    <div 
-                       className="w-full h-full bg-cover bg-center transition-all duration-700"
-                       style={{ 
-                         backgroundImage: `url(${img})`,
-                         clipPath: 'polygon(29% 0, 71% 0, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0 71%, 0 29%)',
-                         filter: offset !== 0 ? 'brightness(0.6) grayscale(30%)' : 'brightness(1) grayscale(0%)'
-                       }}
-                    />
+                    <div
+                      className="w-full h-full bg-cover bg-center transition-all duration-700 overflow-hidden"
+                      style={{
+                        backgroundImage: `url("${img}")`,
+                        clipPath: 'polygon(29% 0, 71% 0, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0 71%, 0 29%)',
+                        filter: offset !== 0 ? 'brightness(0.6) grayscale(30%)' : 'brightness(1) grayscale(0%)'
+                      }}
+                    >
+                      <img
+                        src={img}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   </div>
                 </div>
               );
@@ -197,13 +236,13 @@ const GreenGallery = () => {
           {/* Navigation Buttons */}
           {total > 1 && (
             <div className="relative z-30 mt-10 flex items-center justify-center gap-6">
-              <button 
+              <button
                 onClick={handlePrev}
                 className="p-3 md:p-4 rounded-full bg-emerald-900/50 hover:bg-emerald-500/50 border border-emerald-500/30 text-emerald-400 hover:text-white transition-all backdrop-blur-md"
               >
                 <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
               </button>
-              <button 
+              <button
                 onClick={handleNext}
                 className="p-3 md:p-4 rounded-full bg-emerald-900/50 hover:bg-emerald-500/50 border border-emerald-500/30 text-emerald-400 hover:text-white transition-all backdrop-blur-md"
               >
@@ -216,22 +255,22 @@ const GreenGallery = () => {
 
       {/* Fullscreen Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm transition-all"
           onClick={() => setIsModalOpen(false)}
         >
-          <button 
+          <button
             className="absolute top-6 right-6 md:top-10 md:right-10 p-2 text-white hover:text-emerald-400 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors"
             onClick={() => setIsModalOpen(false)}
           >
             <X className="w-8 h-8 md:w-10 md:h-10" />
           </button>
-          
-          <img 
-            src={modalImg} 
-            alt="Yashil Institut Gallery" 
+
+          <img
+            src={modalImg}
+            alt="Yashil Institut Gallery"
             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(52,211,153,0.3)] transform scale-100 animate-in zoom-in duration-300"
-            onClick={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}

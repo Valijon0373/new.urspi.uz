@@ -100,15 +100,15 @@ export default function AboutUs() {
   const team = [
     {
       name: "Davlatmuratov Valijon",
-      role: "FRONTEND VA UI/UX DASTURCHI",
-      desc: "Talabalar uchun qulay va zamonaviy interfeys yaratib, barcha sahifalarda yagona dizayn uslubini joriy qiladi.",
+      role: "FRONTEND VA UI/UX DASTURÇI",
+      desc: "Talabalar uçun qulay va zamonaviy interfeys yaratib, barça sahifalarda yagona dizayn uslubini joriy qiladi.",
       initials: "DV",
       gradient: "from-blue-500 to-cyan-400"
     },
     {
       name: "Otaboyev Akbar",
-      role: "JAVA BACKEND DASTURCHISI",
-      desc: "Ushbu platformaning server qismi, ma'lumotlar bilan ishlash va API larni xavfsiz boshqarish vazifalarini bajaradi.",
+      role: "JAVA BACKEND DASTURÇISI",
+      desc: "Uşbu platformaning server qismi, ma'lumotlar bilan işlaş va API larni xavfsiz boşqariş vazifalarini bajaradi.",
       initials: "OA",
       gradient: "from-orange-500 to-amber-400"
     }
@@ -126,7 +126,7 @@ export default function AboutUs() {
             Biz <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Haqimizda</span>
           </h2>
           <p className="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
-            Platformamiz ortida turgan tajribali va yaratuvchan jamoa bilan tanishing. Bizning maqsadimiz foydalanuvchilarga eng yaxshi tajribani taqdim etish.
+            Platformamiz ortida turgan tajribali va yaratuvçan jamoa bilan tanişing. Bizning maqsadimiz foydalanuvçilarga eng yaxşi tajribani taqdim etiş.
           </p>
         </div>
 

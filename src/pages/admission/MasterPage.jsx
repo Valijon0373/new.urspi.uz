@@ -21,59 +21,59 @@ import {
 
 const localTranslations = {
   uz: {
-    breadcrumbHome: "Bosh sahifa",
+    breadcrumbHome: "Boş sahifa",
     breadcrumbAdmission: "Abituriyent",
     breadcrumbCurrent: "Magistratura",
     
     mainTitle: "Qabul va Mandatlar",
-    mainSubtitle: "Fanlar bo'yicha yillar kesimida qabul va mavjud mandatlar to'g'risida ma'lumotlar. Magistratura bosqichi uchun dolzarb statistikalar va hujjatlar.",
+    mainSubtitle: "Fanlar böyiça yillar kesimida qabul va mavjud mandatlar töğrisida ma'lumotlar. Magistratura bosqiçi uçun dolzarb statistikalar va hujjatlar.",
     
     // Stats
-    statDirections: "Jami yo'nalishlar",
-    statDirectionsVal: "12 yo'nalish",
+    statDirections: "Jami yönalişlar",
+    statDirectionsVal: "12 yönaliş",
     statQuota: "Jami qabul kvotasi",
     statQuotaVal: "450 talaba",
     statMandate: "Mavjud mandatlar",
-    statMandateVal: "84 bo'sh o'rin",
-    statAverage: "O'rtacha to'ldirish",
+    statMandateVal: "84 böş örin",
+    statAverage: "Örtaça töldiriş",
     statAverageVal: "82.5 foiz",
 
     // Sidebar
     sidebarTitle: "MUTAXASSISLIKLAR",
-    sidebarHelpText: "Yo'nalishni tanlang va yillar kesimida mandatlar sonini ko'ring.",
+    sidebarHelpText: "Yönalişni tanlang va yillar kesimida mandatlar sonini köring.",
     cardOnlineApplyTitle: "Onlayn Ariza",
-    cardOnlineApplyDesc: "Magistraturaga hujjat topshirish endi yanada osonroq.",
-    btnApply: "Topshirish",
+    cardOnlineApplyDesc: "Magistraturaga hujjat topşiriş endi yanada osonroq.",
+    btnApply: "Topşiriş",
 
     // Table Column
     colNo: "№",
     colPageName: "Sahifa nomi",
     colAction: "Amal",
-    btnView: "Ko'rish",
+    btnView: "Köriş",
 
     // Table Footer
     footerUpdated: "Ma'lumot yangilandi: 15.06.2024 14:30",
-    footerHint: "Birinchi raqam - kvota, ikkinchi raqam - mandatlar.",
+    footerHint: "Birinçi raqam - kvota, ikkinçi raqam - mandatlar.",
 
     // Specializations
     specs: {
       math: "Matematika va informatika",
       physics: "Fizika va texnologik ta'lim",
       philology: "Filologiya",
-      primary: "Boshlang'ich ta'lim",
+      primary: "Boşlanğiç ta'lim",
       history: "Tarix va ijtimoiy fanlar"
     },
 
     // Resources Names
     resQuota: "Qabul kvotasi",
-    resResults: "Magistraturaga 2024/2025-o'quv yili bo'yicha tanlov natijalari qaydnomalari",
-    resCertificates: "Til sertifikatlari ro'yxati",
-    resCenter: "Magistratura bo'yicha maslahat markazi",
-    resOnlineApply: "Magistraturaga onlayn ariza topshirish",
-    resList: "Magistratura mutaxassisliklari ro'yxati",
+    resResults: "Magistraturaga 2024/2025-öquv yili böyiça tanlov natijalari qaydnomalari",
+    resCertificates: "Til sertifikatlari röyxati",
+    resCenter: "Magistratura böyiça maslahat markazi",
+    resOnlineApply: "Magistraturaga onlayn ariza topşiriş",
+    resList: "Magistratura mutaxassisliklari röyxati",
 
     // Modal
-    modalClose: "Yopish"
+    modalClose: "Yopiş"
   },
   ru: {
     breadcrumbHome: "Главная",
@@ -402,13 +402,13 @@ export default function MasterPage() {
                       {specializations.find(s => s.key === selectedSpec)?.label} {trans.breadcrumbCurrent} Qabuli {selectedYear}
                     </h3>
                     <p className="text-xs text-slate-400 mt-1 font-semibold">
-                      Joriy o'quv yili uchun rasmiy ma'lumotlar va natijalar
+                      Joriy öquv yili uçun rasmiy ma'lumotlar va natijalar
                     </p>
                   </div>
                   <button
                     onClick={handleRefresh}
                     className={`p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl transition border border-slate-100 ${isRefreshing ? 'animate-spin text-[#0c1f4a]' : ''}`}
-                    title="Yangilash"
+                    title="Yangilaş"
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
@@ -483,7 +483,7 @@ export default function MasterPage() {
             <div>
               <h4 className="text-[#0c1f4a] text-sm font-black uppercase tracking-wider">Manzil</h4>
               <p className="text-sm font-bold text-slate-800 mt-2">
-                Urganch shahri, Gurlan ko'chasi, 1-A uy
+                Urganç şahri, Gurlan köçasi, 1-A uy
               </p>
               <div className="mt-1 text-xs text-slate-400 font-semibold">
                 Avtobus: 7, 18, 19
@@ -505,7 +505,7 @@ export default function MasterPage() {
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold uppercase tracking-wide text-white/70">Hujjat ko'rinishi</h3>
+                <h3 className="text-sm font-extrabold uppercase tracking-wide text-white/70">Hujjat körinişi</h3>
                 <h4 className="text-base font-black leading-snug mt-0.5">{activePreviewDoc.name}</h4>
               </div>
               <button 
@@ -523,24 +523,24 @@ export default function MasterPage() {
               {activePreviewDoc.id === 1 && (
                 <div className="space-y-4 text-sm">
                   <p className="text-slate-500 font-medium">
-                    Tashkil etilgan qabul yili ({selectedYear}) bo'yicha mutaxassislik kvotalari taqsimoti:
+                    Taşkil etilgan qabul yili ({selectedYear}) böyiça mutaxassislik kvotalari taqsimoti:
                   </p>
                   <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
                     <div className="flex justify-between border-b border-slate-200/50 pb-2.5">
-                      <span className="font-bold text-slate-800">Tanlangan yo'nalish:</span>
+                      <span className="font-bold text-slate-800">Tanlangan yönaliş:</span>
                       <span className="font-extrabold text-[#0c1f4a]">{specializations.find(s => s.key === selectedSpec)?.label}</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200/50 pb-2.5">
                       <span className="font-bold text-slate-800">Umumiy kvota:</span>
-                      <span className="font-black text-slate-900">{currentQuotaData.quota} ta o'rin</span>
+                      <span className="font-black text-slate-900">{currentQuotaData.quota} ta örin</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200/50 pb-2.5">
                       <span className="font-bold text-slate-800">Davlat Granti:</span>
-                      <span className="font-extrabold text-emerald-600">{currentQuotaData.grantQuota} ta o'rin</span>
+                      <span className="font-extrabold text-emerald-600">{currentQuotaData.grantQuota} ta örin</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-bold text-slate-800">To'lov-kontrakt:</span>
-                      <span className="font-extrabold text-slate-700">{currentQuotaData.contractQuota} ta o'rin</span>
+                      <span className="font-bold text-slate-800">Tölov-kontrakt:</span>
+                      <span className="font-extrabold text-slate-700">{currentQuotaData.contractQuota} ta örin</span>
                     </div>
                   </div>
                 </div>
@@ -550,13 +550,13 @@ export default function MasterPage() {
               {activePreviewDoc.id === 2 && (
                 <div className="space-y-4">
                   <p className="text-slate-500 text-sm font-medium">
-                    Ushbu yo'nalish bo'yicha e'lon qilingan test/imtihon natijalari qaydnomasi:
+                    Uşbu yönaliş böyiça e'lon qilingan test/imtihon natijalari qaydnomasi:
                   </p>
                   <div className="border border-slate-100 rounded-2xl overflow-hidden text-xs">
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-slate-50 text-slate-600 font-bold uppercase border-b border-slate-100">
-                          <th className="px-4 py-2.5 text-center">F.I.SH</th>
+                          <th className="px-4 py-2.5 text-center">F.I.Ş</th>
                           <th className="px-4 py-2.5 text-center">Ball</th>
                           <th className="px-4 py-2.5 text-center">Holat</th>
                         </tr>
@@ -568,7 +568,7 @@ export default function MasterPage() {
                           <td className="px-4 py-3 text-center text-emerald-600 font-extrabold">Grant</td>
                         </tr>
                         <tr className="bg-emerald-50/20">
-                          <td className="px-4 py-3">Karimova Shahlo T.</td>
+                          <td className="px-4 py-3">Karimova Şahlo T.</td>
                           <td className="px-4 py-3 text-center font-bold">171.5</td>
                           <td className="px-4 py-3 text-center text-emerald-600 font-extrabold">Grant</td>
                         </tr>
@@ -597,7 +597,7 @@ export default function MasterPage() {
               {activePreviewDoc.id === 3 && (
                 <div className="space-y-4 text-sm text-slate-700">
                   <p className="text-slate-500 font-medium">
-                    Magistraturaga hujjat topshirishda talab etiladigan milliy yoki xalqaro sertifikatlar ro'yxati va minimal talab darajasi:
+                    Magistraturaga hujjat topşirişda talab etiladigan milliy yoki xalqaro sertifikatlar röyxati va minimal talab darajasi:
                   </p>
                   <ul className="space-y-2.5 bg-slate-50 rounded-2xl p-4">
                     <li className="flex justify-between border-b border-slate-200/50 pb-2">
@@ -624,7 +624,7 @@ export default function MasterPage() {
                   <div className="bg-amber-50 text-amber-800 p-4 border border-amber-100 rounded-2xl text-xs flex gap-2.5">
                     <AlertCircle className="w-5 h-5 shrink-0 text-amber-700" />
                     <p className="leading-normal font-semibold">
-                      Muhim! Magistratura mutaxassisliklariga qabul qilinish uchun chet tili sertifikati bo'lishi majburiy hisoblanadi. Sertifikatga ega bo'lmagan abituriyentlar ro'yxatdan o'ta olmaydi.
+                      Muhim! Magistratura mutaxassisliklariga qabul qiliniş uçun çet tili sertifikati bölişi majburiy hisoblanadi. Sertifikatga ega bölmagan abituriyentlar röyxatdan öta olmaydi.
                     </p>
                   </div>
                 </div>
@@ -634,15 +634,15 @@ export default function MasterPage() {
               {activePreviewDoc.id === 4 && (
                 <div className="space-y-4 text-sm text-slate-700">
                   <p className="text-slate-500 font-medium">
-                    Abituriyentlar va ularning ota-onalari uchun qabul davrida faoliyat yurituvchi maslahat markazi:
+                    Abituriyentlar va ularning ota-onalari uçun qabul davrida faoliyat yurituvçi maslahat markazi:
                   </p>
                   <div className="bg-slate-50 rounded-2xl p-4 space-y-3.5">
                     <div className="flex justify-between border-b border-slate-200/50 pb-2">
-                      <span className="font-bold">Ish tartibi:</span>
-                      <span className="font-extrabold text-[#0c1f4a]">Dushanba - Shanba, 9:00 - 18:00</span>
+                      <span className="font-bold">Iş tartibi:</span>
+                      <span className="font-extrabold text-[#0c1f4a]">Duşanba - Şanba, 9:00 - 18:00</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200/50 pb-2">
-                      <span className="font-bold">Tushlik vaqti:</span>
+                      <span className="font-bold">Tuşlik vaqti:</span>
                       <span className="font-extrabold text-slate-600">13:00 - 14:00</span>
                     </div>
                     <div className="flex justify-between border-b border-slate-200/50 pb-2">
@@ -661,31 +661,31 @@ export default function MasterPage() {
               {activePreviewDoc.id === 5 && (
                 <div className="space-y-4 text-sm text-slate-700">
                   <p className="text-slate-500 font-medium">
-                    Hujjat topshirish tartibi va bosqichlari:
+                    Hujjat topşiriş tartibi va bosqiçlari:
                   </p>
                   <div className="space-y-3">
                     <div className="flex gap-3 bg-slate-50 p-3.5 rounded-2xl">
                       <div className="h-6 w-6 rounded-full bg-[#0c1f4a] text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
                       <p className="font-semibold text-slate-700">
-                        <b>magistr.edu.uz</b> portalida ro'yxatdan o'ting.
+                        <b>magistr.edu.uz</b> portalida röyxatdan öting.
                       </p>
                     </div>
                     <div className="flex gap-3 bg-slate-50 p-3.5 rounded-2xl">
                       <div className="h-6 w-6 rounded-full bg-[#0c1f4a] text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
                       <p className="font-semibold text-slate-700">
-                        Shaxsiy ma'lumotlar va bakalavr diplomi ma'lumotlarini kiriting.
+                        Şaxsiy ma'lumotlar va bakalavr diplomi ma'lumotlarini kiriting.
                       </p>
                     </div>
                     <div className="flex gap-3 bg-slate-50 p-3.5 rounded-2xl">
                       <div className="h-6 w-6 rounded-full bg-[#0c1f4a] text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
                       <p className="font-semibold text-slate-700">
-                        Amaldagi chet tili sertifikati ma'lumotlarini biriktiring.
+                        Amaldagi çet tili sertifikati ma'lumotlarini biriktiring.
                       </p>
                     </div>
                     <div className="flex gap-3 bg-slate-50 p-3.5 rounded-2xl">
                       <div className="h-6 w-6 rounded-full bg-[#0c1f4a] text-white flex items-center justify-center text-xs font-black shrink-0">4</div>
                       <p className="font-semibold text-slate-700">
-                        Urganch davlat pedagogika institutini hamda mutaxassislikni tanlab, arizani yakunlang.
+                        Urganç davlat pedagogika institutini hamda mutaxassislikni tanlab, arizani yakunlang.
                       </p>
                     </div>
                   </div>
@@ -696,7 +696,7 @@ export default function MasterPage() {
               {activePreviewDoc.id === 6 && (
                 <div className="space-y-4 text-sm text-slate-700">
                   <p className="text-slate-500 font-medium">
-                    Institutimizda mavjud barcha magistratura mutaxassisliklari ro'yxati:
+                    Institutimizda mavjud barça magistratura mutaxassisliklari röyxati:
                   </p>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 rounded-2xl p-4 font-semibold text-xs text-slate-800">
                     <li className="flex items-center gap-2">

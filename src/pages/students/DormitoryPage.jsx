@@ -23,82 +23,82 @@ import {
 
 const localTranslations = {
   uz: {
-    breadcrumbHome: "Bosh sahifa",
+    breadcrumbHome: "Boş sahifa",
     breadcrumbStudents: "Talabalarga",
     breadcrumbCurrent: "Yotoqxona",
     mainTitle: "QAYSI TURAR JOY SIZGA MOS?",
     ttjTitle: "Talabalar turar joyi",
-    ttjDesc: "Kampus ichidagi rasmiy yotoqxona xonalari (TTJ)",
-    ijaraTitle: "Talabalar uchun ijara xonadonlari",
-    ijaraDesc: "Kampus tashqarisidagi mustaqil ijara variantlari",
+    ttjDesc: "Kampus içidagi rasmiy yotoqxona xonalari (TTJ)",
+    ijaraTitle: "Talabalar uçun ijara xonadonlari",
+    ijaraDesc: "Kampus taşqarisidagi mustaqil ijara variantlari",
     selectedBadge: "Tanlangan",
     
     // Stats
     statRooms: "180",
     statRoomsLabel: "Umumiy xonalar soni",
     statStudents: "1 240",
-    statStudentsLabel: "Joylashgan talabalar soni",
+    statStudentsLabel: "Joylaşgan talabalar soni",
     statBeds: "420+",
-    statBedsLabel: "Bo'sh o'rinlar",
+    statBedsLabel: "Böş örinlar",
     
     // Amenities & Rules Header
     amenitiesHeader: "Qulayliklar",
-    rulesHeader: "Bilishingiz kerak",
+    rulesHeader: "Bilişingiz kerak",
     
     // Amenities list
     wifiTitle: "Bepul internet",
-    wifiDesc: "Har bir qavatda yuqori tezlikdagi Wi-Fi tarmog'i",
+    wifiDesc: "Har bir qavatda yuqori tezlikdagi Wi-Fi tarmoği",
     securityTitle: "Doimiy nazorat",
-    securityDesc: "Elektron karta orqali kirish va soatlik navbatchilik",
-    studyTitle: "O'quv zonasi",
-    studyDesc: "Har qavatda tinch o'qish xonasi va bosma texnika",
-    kitchenTitle: "Umumiy oshxona",
-    kitchenDesc: "Muzlatgich, plita va idish-tovoqlar bilan jihozlangan",
+    securityDesc: "Elektron karta orqali kiriş va soatlik navbatçilik",
+    studyTitle: "Öquv zonasi",
+    studyDesc: "Har qavatda tinç öqiş xonasi va bosma texnika",
+    kitchenTitle: "Umumiy oşxona",
+    kitchenDesc: "Muzlatgiç, plita va idiş-tovoqlar bilan jihozlangan",
     
     // Rules list
-    paymentTitle: "To'lov muddati",
-    paymentDesc: "Har semestr boshida, bo'lib to'lash imkoniyati mavjud",
-    curfewTitle: "Ichki tartib",
-    curfewDesc: "Soat 23:00 dan keyin navbatchi ruxsati bilan kirish",
+    paymentTitle: "Tölov muddati",
+    paymentDesc: "Har semestr boşida, bölib tölaş imkoniyati mavjud",
+    curfewTitle: "Içki tartib",
+    curfewDesc: "Soat 23:00 dan keyin navbatçi ruxsati bilan kiriş",
     guestsTitle: "Mehmonlar",
-    guestsDesc: "Kunduzgi vaqtda ro'yxatga olingan holda qabul qilinadi",
+    guestsDesc: "Kunduzgi vaqtda röyxatga olingan holda qabul qilinadi",
     helpTitle: "Yordam xizmati",
-    helpDesc: "Texnik nosozliklar uchun 1-qavatdagi dispetcher",
+    helpDesc: "Texnik nosozliklar uçun 1-qavatdagi dispetçer",
     
     // Application steps
-    appTitle: "Ariza berish tartibi",
-    appSubtitle: "Joy soni cheklangan — quyidagi bosqichlarni ketma-ket bajaring.",
-    step1Title: "Ariza to'ldirish",
-    step1Desc: "Shaxsiy kabinetda 'Yotoqxona' bo'limi orqali onlayn ariza yuboring.",
-    step2Title: "Hujjat topshirish",
+    appTitle: "Ariza beriş tartibi",
+    appSubtitle: "Joy soni çeklangan — quyidagi bosqiçlarni ketma-ket bajaring.",
+    step1Title: "Ariza töldiriş",
+    step1Desc: "Şaxsiy kabinetda 'Yotoqxona' bölimi orqali onlayn ariza yuboring.",
+    step2Title: "Hujjat topşiriş",
     step2Desc: "Pasport nusxasi va tibbiy ma'lumotnomani dekanatga taqdim eting.",
-    step3Title: "Xona tanlash",
-    step3Desc: "Bo'sh joylar ro'yxatidan xona turi va hamxonani belgilang.",
-    step4Title: "To'lov va kalit",
-    step4Desc: "Semestr to'lovini amalga oshirib, komendantdan kalit oling.",
+    step3Title: "Xona tanlaş",
+    step3Desc: "Böş joylar röyxatidan xona turi va hamxonani belgilang.",
+    step4Title: "Tölov va kalit",
+    step4Desc: "Semestr tölovini amalga oşirib, komendantdan kalit oling.",
     
     // Gallery
     galleryHeader: "Talabalar turar joyi foto galereyasi",
-    gallerySub: "Yotoqxonamiz hayoti va sharoitlaridan yorqin lavhalar",
+    gallerySub: "Yotoqxonamiz hayoti va şaroitlaridan yorqin lavhalar",
 
     // Rent Info
     rentHeader: "Tavsiya etiladigan ijara xonadonlari",
-    rentSub: "Institutga yaqin bo'lgan, talabalar uchun maxsus ijara uylari",
+    rentSub: "Institutga yaqin bölgan, talabalar uçun maxsus ijara uylari",
     rentPrice: "Narxi",
     rentContact: "Aloqa",
     rentRoom: "xonali",
-    rentDistance: "Institutgacha masofa",
-    rentTipsHeader: "Ijaraga uy oluvchilar uchun maslahatlar",
-    rentTip1Title: "Shartnoma tuzish",
-    rentTip1Desc: "Ijara shartnomasini albatta rasmiylashtiring, bu soliq imtiyozlaridan foydalanishga yordam beradi.",
-    rentTip2Title: "Jihozlarni tekshirish",
-    rentTip2Desc: "Uyga kirishdan oldin suv, gaz va elektr jihozlarining ishlashini tekshirib oling.",
+    rentDistance: "Institutgaça masofa",
+    rentTipsHeader: "Ijaraga uy oluvçilar uçun maslahatlar",
+    rentTip1Title: "Şartnoma tuziş",
+    rentTip1Desc: "Ijara şartnomasini albatta rasmiylaştiring, bu soliq imtiyozlaridan foydalanişga yordam beradi.",
+    rentTip2Title: "Jihozlarni tekşiriş",
+    rentTip2Desc: "Uyga kirişdan oldin suv, gaz va elektr jihozlarining işlaşini tekşirib oling.",
     rentTip3Title: "Transport qulayligi",
-    rentTip3Desc: "Institutga jamoat transporti yoki piyoda borish qulay bo'lgan hududlarni tanlang.",
+    rentTip3Desc: "Institutga jamoat transporti yoki piyoda boriş qulay bölgan hududlarni tanlang.",
     
     // Buttons
-    btnShowMore: "Ko'proq ko'rsatish",
-    btnShowLess: "Kamroq ko'rsatish"
+    btnShowMore: "Köproq körsatiş",
+    btnShowLess: "Kamroq körsatiş"
   },
   ru: {
     breadcrumbHome: "Главная",
@@ -334,14 +334,14 @@ function ApartmentCard({ apt, currentLang, trans, onZoom }) {
               onClick={() => onZoom(apt.images, imgIdx)}
               type="button"
               className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-lg transition-transform hover:scale-110 z-10 flex items-center justify-center animate-in fade-in duration-200"
-              title="Kattalashtirish"
+              title="Kattalaştiriş"
             >
               <Search className="w-4 h-4 text-[#0c1f4a]" />
             </button>
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">
-            Rasm yo'q
+            Rasm yöq
           </div>
         )}
 
@@ -511,12 +511,12 @@ export default function DormitoryPage() {
             const titleEn = item.titleEn || (typeof titleObj === 'object' ? titleObj?.en : titleObj) || titleUz;
 
             const addressObj = item.address;
-            const addressUz = item.addressUz || (typeof addressObj === 'object' ? addressObj?.uz : addressObj) || (typeof item.address === 'string' ? item.address : "Urganch shahri");
+            const addressUz = item.addressUz || (typeof addressObj === 'object' ? addressObj?.uz : addressObj) || (typeof item.address === 'string' ? item.address : "Urganç şahri");
             const addressRu = item.addressRu || (typeof addressObj === 'object' ? addressObj?.ru : addressObj) || addressUz;
             const addressEn = item.addressEn || (typeof addressObj === 'object' ? addressObj?.en : addressObj) || addressUz;
 
             const priceObj = item.price;
-            const priceUz = item.priceUz || (typeof priceObj === 'object' ? priceObj?.uz : priceObj) || (typeof item.price === 'string' ? item.price : "Kelishilgan narxda");
+            const priceUz = item.priceUz || (typeof priceObj === 'object' ? priceObj?.uz : priceObj) || (typeof item.price === 'string' ? item.price : "Kelişilgan narxda");
 
             let rawImages = [];
             if (Array.isArray(item.images) && item.images.length > 0) {
@@ -869,7 +869,7 @@ export default function DormitoryPage() {
                   return (
                     <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
                       <p className="text-slate-500 font-medium text-sm">
-                        {currentLang === 'uz' ? "Foto galereyada hozircha rasmlar mavjud emas" : currentLang === 'ru' ? "В фотогалерее пока нет фотографий" : "No photos available in gallery yet"}
+                        {currentLang === 'uz' ? "Foto galereyada hozirça rasmlar mavjud emas" : currentLang === 'ru' ? "В фотогалерее пока нет фотографий" : "No photos available in gallery yet"}
                       </p>
                     </div>
                   );
@@ -907,7 +907,7 @@ export default function DormitoryPage() {
                           </div>
                           <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
                             <span className="bg-white/95 px-4 py-2 rounded-xl text-xs font-bold text-[#0c1f4a] shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                              {currentLang === 'uz' ? "Kattalashtirish" : currentLang === 'ru' ? "Увеличить" : "Zoom Image"}
+                              {currentLang === 'uz' ? "Kattalaştiriş" : currentLang === 'ru' ? "Увеличить" : "Zoom Image"}
                             </span>
                           </div>
                         </div>
@@ -972,10 +972,10 @@ export default function DormitoryPage() {
                     <Home className="w-8 h-8" />
                   </div>
                   <h4 className="text-lg font-bold text-slate-800">
-                    {currentLang === 'uz' ? "Hozircha ijara e'lonlari mavjud emas" : currentLang === 'ru' ? "Объявления об аренде пока отсутствуют" : "No rental announcements available yet"}
+                    {currentLang === 'uz' ? "Hozirça ijara e'lonlari mavjud emas" : currentLang === 'ru' ? "Объявления об аренде пока отсутствуют" : "No rental announcements available yet"}
                   </h4>
                   <p className="text-sm text-slate-500 mt-1">
-                    {currentLang === 'uz' ? "Yangi e'lonlar qo'shilganda shu yerda ko'rinadi." : currentLang === 'ru' ? "Новые объявления появятся здесь после добавления." : "New announcements will appear here once added."}
+                    {currentLang === 'uz' ? "Yangi e'lonlar qöşilganda şu yerda körinadi." : currentLang === 'ru' ? "Новые объявления появятся здесь после добавления." : "New announcements will appear here once added."}
                   </p>
                 </div>
               ) : (

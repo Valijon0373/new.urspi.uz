@@ -26,15 +26,15 @@ import logoImg from '../../assets/images/logo1.jpg';
 const timelineData = [
   {
     year: '2022',
-    text: "Prezidentning 289-sonli qaroriga asosan institut tashkil etildi."
+    text: "Prezidentning 289-sonli qaroriga asosan institut taşkil etildi."
   },
   {
     year: '2023',
-    text: "5 ta fakultet va 15 ta kafedra faoliyat boshladi."
+    text: "5 ta fakultet va 15 ta kafedra faoliyat boşladi."
   },
   {
     year: '2024',
-    text: "Yangi ta'lim yo'nalishlari va magistratura mutaxassisliklari ochildi."
+    text: "Yangi ta'lim yönalişlari va magistratura mutaxassisliklari oçildi."
   },
   {
     year: '2025',
@@ -47,14 +47,14 @@ const topStats = [
   { value: '5', label: 'Fakultet', icon: Building, color: 'text-blue-500' },
   { value: '15', label: 'Kafedra', icon: Layers, color: 'text-emerald-500' },
   { value: '8317', label: 'Talaba', icon: Users, color: 'text-purple-600' },
-  { value: '19', label: "Bakalavriat\nyo'nalishlari", icon: BookOpen, color: 'text-orange-500' },
+  { value: '19', label: "Bakalavriat\nyönalişlari", icon: BookOpen, color: 'text-orange-500' },
   { value: '11', label: 'Magistratura\nmutaxassisliklari', icon: GraduationCap, color: 'text-teal-500' }
 ];
 
 const studentStats = [
   { value: '5 164', label: "Kunduzgi ta'lim", icon: UsersRound, color: 'text-blue-600', bg: 'bg-blue-50/50' },
   { value: '2 193', label: "Sirtqi ta'lim", icon: BookCopy, color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
-  { value: '202', label: 'Ikkinchi oliy\nmutaxassislik', icon: UserPlus, color: 'text-orange-500', bg: 'bg-orange-50/50' },
+  { value: '202', label: 'Ikkinçi oliy\nmutaxassislik', icon: UserPlus, color: 'text-orange-500', bg: 'bg-orange-50/50' },
   { value: '357', label: 'Magistratura', icon: GraduationCap, color: 'text-purple-600', bg: 'bg-purple-50/50' }
 ];
 
@@ -84,7 +84,7 @@ const faculties = [
     bgColor: 'bg-emerald-50/30',
     departments: [
       "Pedagogika va psixologiya kafedrasi",
-      "Maktabgacha ta'lim kafedrasi"
+      "Maktabgaça ta'lim kafedrasi"
     ],
     count: '2 ta kafedra'
   },
@@ -97,21 +97,21 @@ const faculties = [
     bgColor: 'bg-purple-50/30',
     departments: [
       "Rus tili va adabiyoti kafedrasi",
-      "O'zbek tili va adabiyoti kafedrasi",
+      "Özbek tili va adabiyoti kafedrasi",
       "Xorijiy filologiya kafedrasi"
     ],
     count: '3 ta kafedra'
   },
   {
-    title: "IV. Boshlang'ich ta'lim fakulteti",
+    title: "IV. Boşlanğiç ta'lim fakulteti",
     icon: Pencil,
     color: 'text-orange-500',
     dotColor: 'bg-orange-500',
     borderColor: 'border-orange-200',
     bgColor: 'bg-orange-50/30',
     departments: [
-      "Boshlang'ich ta'lim metodikasi kafedrasi",
-      "Boshlang'ich ta'lim nazariyasi kafedrasi"
+      "Boşlanğiç ta'lim metodikasi kafedrasi",
+      "Boşlanğiç ta'lim nazariyasi kafedrasi"
     ],
     count: '2 ta kafedra'
   },
@@ -124,8 +124,8 @@ const faculties = [
     bgColor: 'bg-teal-50/30',
     departments: [
       "Tarix kafedrasi",
-      "Milliy g'oya va falsafa kafedrasi",
-      "San'atshunoslik kafedrasi",
+      "Milliy ğoya va falsafa kafedrasi",
+      "San'atşunoslik kafedrasi",
       "Jismoniy madaniyat kafedrasi"
     ],
     count: '4 ta kafedra'
@@ -136,21 +136,21 @@ const faculties = [
 const pieData = [
   { name: "Kunduzgi ta'lim", value: 5164, color: '#0052cc', percent: '62%' },
   { name: "Sirtqi ta'lim", value: 2193, color: '#10b981', percent: '26%' },
-  { name: "Ikkinchi oliy mutaxassislik", value: 202, color: '#f97316', percent: '2%' },
+  { name: "Ikkinçi oliy mutaxassislik", value: 202, color: '#f97316', percent: '2%' },
   { name: "Magistratura", value: 357, color: '#8b5cf6', percent: '10%' },
 ];
 
 const directions = {
   kunduzgi: [
     "60110100 - Pedagogika",
-    "60110200 - Maktabgacha ta'lim",
-    "60110400 - Boshlang'ich ta'lim",
+    "60110200 - Maktabgaça ta'lim",
+    "60110400 - Boşlanğiç ta'lim",
     "60110500 - Tasviriy san'at va muhandislik grafikasi",
     "60110600 - Musiqiy ta'lim",
-    "60110700 - O'zbek tili va adabiyoti",
+    "60110700 - Özbek tili va adabiyoti",
     "60110800 - Ona tili va adabiyoti: rus tili",
     "60110900 - Xorijiy til va adabiyoti: ingliz tili",
-    "60111100 - Milliy g'oya, ma'naviyat asoslari va huquq ta'limi",
+    "60111100 - Milliy ğoya, ma'naviyat asoslari va huquq ta'limi",
     "60111200 - Jismoniy madaniyat",
     "60111300 - Texnologik ta'lim",
     "60220300 - Tarix",
@@ -164,8 +164,8 @@ const directions = {
   ],
   sirtqi: [
     "60110100 - Pedagogika",
-    "60110200 - Maktabgacha ta'lim",
-    "60110400 - Boshlang'ich ta'lim",
+    "60110200 - Maktabgaça ta'lim",
+    "60110400 - Boşlanğiç ta'lim",
     "60110500 - Tasviriy san'at",
     "60110600 - Musiqiy ta'lim",
     "60111200 - Jismoniy madaniyat",
@@ -190,16 +190,16 @@ const directions = {
 // ==== izoh: MastersGrid ma'lumotlari ====
 const mastersData = [
   "70110101 - Pedagogika nazariyasi va tarixi",
-  "70110201 - Ta'lim va tarbiya nazariyasi va metodikasi (maktabgacha ta'lim)",
-  "70110501 - Ta'lim va tarbiya nazariyasi va metodikasi (boshlang'ich ta'lim)",
+  "70110201 - Ta'lim va tarbiya nazariyasi va metodikasi (maktabgaça ta'lim)",
+  "70110501 - Ta'lim va tarbiya nazariyasi va metodikasi (boşlanğiç ta'lim)",
   "70111202 - Muhandislik grafikasi va dizayn nazariyasi",
   "70111301 - Musiqa ta'limi va san'at",
-  "70111101 - Ijtimoiy-gumanitar fanlarni o'qitish metodikasi (ma'naviyat asoslari)",
-  "70112201 - Jismoniy tarbiya va sport mashg'ulotlari nazariyasi va metodikasi",
+  "70111101 - Ijtimoiy-gumanitar fanlarni öqitiş metodikasi (ma'naviyat asoslari)",
+  "70112201 - Jismoniy tarbiya va sport maşğulotlari nazariyasi va metodikasi",
   "70112301 - Ta'lim va tarbiya nazariyasi va metodikasi (texnologik ta'lim)",
-  "70220303 - Ijtimoiy-gumanitar fanlarni o'qitish metodikasi (tarix)",
-  "70530510 - Aniq va tabiiy fanlarni o'qitish metodikasi (fizika va astronomiya)",
-  "70540104 - Aniq va tabiiy fanlarni o'qitish metodikasi (matematika)"
+  "70220303 - Ijtimoiy-gumanitar fanlarni öqitiş metodikasi (tarix)",
+  "70530510 - Aniq va tabiiy fanlarni öqitiş metodikasi (fizika va astronomiya)",
+  "70540104 - Aniq va tabiiy fanlarni öqitiş metodikasi (matematika)"
 ];
 
 export default function InfographicPage() {
@@ -227,7 +227,7 @@ export default function InfographicPage() {
             <img src={logoImg} alt="UrDPI Logo" className="w-24 h-24 md:w-32 md:h-32 object-contain" />
           </div>
           <p className="text-sm md:text-base text-slate-700 leading-relaxed mb-8 max-w-3xl font-bold">
-            Urganch davlat pedagogika instituti O‘zbekiston Respublikasi Prezidentining 2022-yil 21-iyundagi "Pedagogik ta'lim sifatini oshirish va pedagog kadrlar tayyorlovchi oliy ta'lim muassasalari faoliyatini yanada rivojlantirish chora-tadbirlari to'g'risida"gi 289-sonli qaroriga asosan tashkil qilingan.
+            Urganç davlat pedagogika instituti Özbekiston Respublikasi Prezidentining 2022-yil 21-iyundagi "Pedagogik ta'lim sifatini oşiriş va pedagog kadrlar tayyorlovçi oliy ta'lim muassasalari faoliyatini yanada rivojlantiriş çora-tadbirlari töğrisida"gi 289-sonli qaroriga asosan taşkil qilingan.
           </p>
           
 
@@ -275,7 +275,7 @@ export default function InfographicPage() {
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
                 <div className="border-b border-slate-100 px-6 py-4">
-                  <h2 className="text-lg font-bold text-slate-800">Talabalar soni <span className="text-sm font-normal text-slate-500">(2025-2026 o'quv yili)</span></h2>
+                  <h2 className="text-lg font-bold text-slate-800">Talabalar soni <span className="text-sm font-normal text-slate-500">(2025-2026 öquv yili)</span></h2>
                 </div>
                 <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                   {studentStats.map((stat, idx) => (
@@ -329,7 +329,7 @@ export default function InfographicPage() {
         {/* ==== izoh: DirectionsTab qismi ==== */}
         <div className="mt-10">
           <div className="w-full">
-            <h2 className="text-2xl font-bold text-slate-800 mb-4">Ta'lim yo'nalishlari</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Ta'lim yönalişlari</h2>
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="flex border-b border-slate-100 overflow-x-auto">
                 {tabs.map((tab) => (
@@ -350,7 +350,7 @@ export default function InfographicPage() {
               <div className="flex flex-col xl:flex-row p-6 gap-8">
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">
-                    {tabs.find(t => t.id === activeTab)?.label} yo'nalishlari
+                    {tabs.find(t => t.id === activeTab)?.label} yönalişlari
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                     <ul className="space-y-2">

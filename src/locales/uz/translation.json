@@ -1,13 +1,13 @@
 {
   "navbar": {
-    "address": "Manzil: O'zbekiston, 220100, Urganch shahri, Gurlan ko'chasi, 1-A uy",
-    "search_placeholder": "Izlash",
-    "select_lang": "Til tanlash",
+    "address": "Manzil: Özbekiston, 220100, Urganç şahri, Gurlan köçasi, 1-A uy",
+    "search_placeholder": "Izlaş",
+    "select_lang": "Til tanlaş",
     "accessibility": "Maxsus imkoniyatlar",
-    "close_search": "Qidirishni yopish",
+    "close_search": "Qidirişni yopiş",
     "menu": "Menyu",
     "links": {
-      "home": "Bosh sahifa",
+      "home": "Boş sahifa",
       "news": "Yangiliklar",
       "announcements": "E'lonlar",
       "institut": "INSTITUT",
@@ -19,13 +19,13 @@
       "structure": "Tuzilma",
       "faculties": "Fakultetlar",
       "departments": "Kafedralar",
-      "centers": "Markaz va bo'limlar",
+      "centers": "Markaz va bölimlar",
       "docs": "Me'yoriy hujjatlar",
       "activity": "FAOLIYAT",
-      "council": "Kengash",
-      "finance": "Moliya bo'limi",
+      "council": "Kengaş",
+      "finance": "Moliya bölimi",
       "spirituality": "Ma'naviyat",
-      "recruitment": "Institutga ishga qabul",
+      "recruitment": "Institutga işga qabul",
       "scientific_activity": "Ilmiy va innovatsion faoliyat",
       "science": "Ilmiy faoliyat",
       "education": "Ta'lim faoliyati",
@@ -36,59 +36,59 @@
       "scholarships": "Stipendiyalar",
       "dormitory": "Yotoqxona",
       "dormitory_accommodation": "Talabalar turar joyi",
-      "dormitory_rent_info": "Talabalar uchun ijara xonadonlari",
+      "dormitory_rent_info": "Talabalar uçun ijara xonadonlari",
       "library": "Kutubxona",
       "admission": "ABITURIYENT",
       "bachelor": "Bakalavr",
       "master": "Magistratura",
-      "transfer": "O'qishni ko'chirish",
-      "second_specialty": "Ikkinchi mutaxassislik",
-      "technicum_graduates": "Texnikum bitiruvchilari",
-      "green_uni": "YASHIL INSTITUT",
+      "transfer": "Öqişni köçiriş",
+      "second_specialty": "Ikkinçi mutaxassislik",
+      "technicum_graduates": "Texnikum bitiruvçilari",
+      "green_uni": "YAŞIL INSTITUT",
       "foreign": "XORIJIY TALABALAR",
-      "for_foreign": "Xorijiy talabalar uchun",
+      "for_foreign": "Xorijiy talabalar uçun",
       "lang_courses": "Til kurslari",
       "visa": "Viza va hujjatlar",
-      "anticorruption": "KORRUPSIYAGA QARSHI KURASHISH",
-      "appeal": "Murojaat qilish",
+      "anticorruption": "KORRUPSIYAGA QARŞI KURAŞIŞ",
+      "appeal": "Murojaat qiliş",
       "reports": "Hisobotlar",
       "stats": "STATISTIKA"
     }
   },
   "home": {
     "carousel": {
-      "slide1": "Urganch davlat pedagogika instituti tashkil etildi",
-      "slide2": "Zamonaviy ta'lim texnologiyalari va innovatsion yondashuv",
+      "slide1": "Urganç davlat pedagogika instituti taşkil etildi",
+      "slide2": "Zamonaviy ta'lim texnologiyalari va innovatsion yondaşuv",
       "details": "Batafsil",
       "prev": "Oldingi rasm",
       "next": "Keyingi rasm"
     },
     "news": {
-      "title": "So'nggi yangiliklar",
-      "view_all": "Barchasi",
+      "title": "Sönggi yangiliklar",
+      "view_all": "Barçasi",
       "label": "Yangiliklar"
     },
     "announcements": {
       "title": "E'lonlar",
-      "view_all": "Barchasi"
+      "view_all": "Barçasi"
     },
     "centers": {
-      "title": "Markaz va bo'limlar",
-      "view_all": "Barchasi"
+      "title": "Markaz va bölimlar",
+      "view_all": "Barçasi"
     },
     "statistics": {
       "title": "Statistika",
-      "directions": "Yo'nalishlar",
+      "directions": "Yönalişlar",
       "students": "Talabalar soni",
-      "professors": "Professor-o'qituvchilar soni",
+      "professors": "Professor-öqituvçilar soni",
       "science_potential": "Ilmiy salohiyat"
     },
     "esystems": {
       "title": "Elektron tizimlar",
-      "view_all": "Barchasi",
+      "view_all": "Barçasi",
       "hemis": "HEMIS Student axborot tizimi",
       "akbt": "AKBT Elektron kutubxona",
-      "email": "Elektron pochta",
+      "email": "Elektron poçta",
       "feedback": "Feedback Platformasi",
       "point110": "110 Ballik Platforma",
       "live": "Onlayn kuzatuv",
@@ -98,58 +98,58 @@
     "links": {
       "title": "Foydali havolalar",
       "mygov": "Yagona interaktiv davlat xizmatlari portali",
-      "president": "O'zbekiston Respublikasi Prezidenti",
-      "data_gov": "O'zbekiston Respublikasi ochiq ma'lumotlar portali",
-      "lex_uz": "O'zbekiston Respublikasi Qonunchilik ma'lumotlari milliy bazasi",
-      "regulation": "Normativ-huquqiy hujjatlar loyihalarini muhokama qilish"
+      "president": "Özbekiston Respublikasi Prezidenti",
+      "data_gov": "Özbekiston Respublikasi oçiq ma'lumotlar portali",
+      "lex_uz": "Özbekiston Respublikasi Qonunçilik ma'lumotlari milliy bazasi",
+      "regulation": "Normativ-huquqiy hujjatlar loyihalarini muhokama qiliş"
     },
     "galery": {
       "title": "Fotogalereya",
-      "view_all": "Barcha rasmlar"
+      "view_all": "Barça rasmlar"
     }
   },
   "anticorruption": {
     "badge": "Korrupsiyasiz ta'lim",
-    "title_main": "Adolat va shaffoflik —",
-    "title_sub": "bosh mezonimiz",
+    "title_main": "Adolat va şaffoflik —",
+    "title_sub": "boş mezonimiz",
     "report_title": "Korrupsiya haqida xabar bering",
-    "report_desc": "Agar siz korrupsiya holatiga duch kelsangiz yoki bu haqda ma'lumotga ega bo'lsangiz, quyidagi forma orqali yoki ishonch telefonlariga murojaat qilishingiz mumkin. Murojaatchining shaxsi sir saqlanishi kafolatlanadi.",
-    "hotline_title": "Ishonch telefoni",
-    "hotline_desc": "Tunu-kun xizmat ko'rsatuvchi ishonch telefoni orqali bog'laning:",
-    "email_title": "Elektron pochta",
-    "email_desc": "Xat va hujjatlarni quyidagi elektron manzilga yuborishingiz mumkin:",
-    "form_title": "Murojaat yuborish",
+    "report_desc": "Agar siz korrupsiya holatiga duç kelsangiz yoki bu haqda ma'lumotga ega bölsangiz, quyidagi forma orqali yoki işonç telefonlariga murojaat qilişingiz mumkin. Murojaatçining şaxsi sir saqlanişi kafolatlanadi.",
+    "hotline_title": "Işonç telefoni",
+    "hotline_desc": "Tunu-kun xizmat körsatuvçi işonç telefoni orqali boğlaning:",
+    "email_title": "Elektron poçta",
+    "email_desc": "Xat va hujjatlarni quyidagi elektron manzilga yuborişingiz mumkin:",
+    "form_title": "Murojaat yuboriş",
     "name_label": "F.I.O (ixtiyoriy)",
     "name_placeholder": "Ism-familiyangizni kiriting",
     "phone_label": "Telefon raqamingiz",
     "phone_placeholder": "+998 90 123 45 67",
     "message_label": "Murojaat matni",
     "message_placeholder": "Batafsil ma'lumot qoldiring...",
-    "submit_btn": "Murojaatni yuborish",
-    "anonymous_note": "Murojaat anonim tarzda yuborilishi mumkin"
+    "submit_btn": "Murojaatni yuboriş",
+    "anonymous_note": "Murojaat anonim tarzda yuborilişi mumkin"
   },
   "footer": {
-    "institute_name": "Urganch Davlat\nPedagogika Instituti",
-    "address": "Urganch sh. Gurlan ko'chasi 1A-uy"
+    "institute_name": "Urganç Davlat\nPedagogika Instituti",
+    "address": "Urganç ş. Gurlan köçasi 1A-uy"
   },
   "dashboard": {
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Daşboard",
       "structure": "Tuzilma",
       "faculties": "Fakultetlar",
       "departments": "Kafedralar",
-      "centers": "Markaz va Bo'limlar",
+      "centers": "Markaz va Bölimlar",
       "positions": "Lavozimlar",
-      "users": "Foydalanuvchilar",
-      "teachers": "O'qituvchilar",
+      "users": "Foydalanuvçilar",
+      "teachers": "Öqituvçilar",
       "news": "Yangiliklar",
       "announcements": "E'lonlar",
       "about": "Biz haqimizda",
       "settings": "Sozlamalar"
     },
     "general": {
-      "return": "Platformaga qaytish",
-      "logout": "Chiqish",
+      "return": "Platformaga qaytiş",
+      "logout": "Çiqiş",
       "general_stats": "Umumiy Statistika",
       "faculties_count": "Fakultetlar soni",
       "departments_count": "Kafedralar soni",
@@ -159,7 +159,7 @@
     }
   },
   "common": {
-    "home": "Bosh sahifa",
+    "home": "Boş sahifa",
     "structure": "Tuzilma",
     "faculties": "Fakultetlar",
     "departments": "Kafedralar",
@@ -167,7 +167,7 @@
     "department": "Kafedra",
     "staff": "Xodimlar",
     "leadership": "Rahbariyat",
-    "centers": "Markaz va bo'limlar",
+    "centers": "Markaz va bölimlar",
     "news": "Yangiliklar",
     "announcements": "E'lonlar",
     "back": "Orqaga",

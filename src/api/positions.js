@@ -1,41 +1,44 @@
 import { request } from './client.js';
+import { toUzbekLatin } from './menuStorage.js';
 
 export function localizedField(obj, base, lang = 'uz', fallback = '') {
-    if (obj == null) return fallback;
-    if (typeof obj === 'string') return obj || fallback;
     const code = String(lang || 'uz').slice(0, 2).toLowerCase();
+    const applyUz = (val) => (code === 'uz' && typeof val === 'string' ? toUzbekLatin(val) : val);
+
+    if (obj == null) return applyUz(fallback);
+    if (typeof obj === 'string') return applyUz(obj || fallback);
     const cap = code.charAt(0).toUpperCase() + code.slice(1);
 
     // 1. Check nested object: e.g. obj[base][code] (obj.title.ru, obj.name.en)
     const nested = obj[base];
     if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
         const fromNested = nested[code] || nested[code.toUpperCase()] || nested.uz || nested.ru || nested.en;
-        if (fromNested && typeof fromNested === 'string' && fromNested.trim()) return fromNested;
+        if (fromNested && typeof fromNested === 'string' && fromNested.trim()) return applyUz(fromNested);
     }
 
     // 2. Check exact property matching requested language: e.g. titleRu, nameRu, fullNameRu, descriptionRu, contentRu
     const keyWithCap = `${base}${cap}`;
     if (obj[keyWithCap] && typeof obj[keyWithCap] === 'string' && obj[keyWithCap].trim()) {
-        return obj[keyWithCap];
+        return applyUz(obj[keyWithCap]);
     }
     const snakeKey = `${base}_${code}`;
     if (obj[snakeKey] && typeof obj[snakeKey] === 'string' && obj[snakeKey].trim()) {
-        return obj[snakeKey];
+        return applyUz(obj[snakeKey]);
     }
 
     // 3. Fallback to Uzbek: baseUz or base_uz
     const uzKey = `${base}Uz`;
     if (obj[uzKey] && typeof obj[uzKey] === 'string' && obj[uzKey].trim()) {
-        return obj[uzKey];
+        return applyUz(obj[uzKey]);
     }
     const snakeUz = `${base}_uz`;
     if (obj[snakeUz] && typeof obj[snakeUz] === 'string' && obj[snakeUz].trim()) {
-        return obj[snakeUz];
+        return applyUz(obj[snakeUz]);
     }
 
     // 4. Fallback to plain string property: e.g. obj[base] (landing API responses)
-    if (typeof nested === 'string' && nested.trim()) return nested;
-    if (obj[base] && typeof obj[base] === 'string' && obj[base].trim()) return obj[base];
+    if (typeof nested === 'string' && nested.trim()) return applyUz(nested);
+    if (obj[base] && typeof obj[base] === 'string' && obj[base].trim()) return applyUz(obj[base]);
 
     // 5. Fallback to Russian or English
     const ruKey = `${base}Ru`;
@@ -43,7 +46,7 @@ export function localizedField(obj, base, lang = 'uz', fallback = '') {
     const enKey = `${base}En`;
     if (obj[enKey] && typeof obj[enKey] === 'string' && obj[enKey].trim()) return obj[enKey];
 
-    return fallback;
+    return applyUz(fallback);
 }
 
 export const POSITION_DICTIONARY = {
@@ -352,16 +355,17 @@ export function resolvePositionTranslations(rawText) {
     };
 }
 
-export function getPositionName(position, lang = 'uz', fallback = "O'qituvchi") {
-    if (position == null || position === '') return fallback;
+export function getPositionName(position, lang = 'uz', fallback = "Öqituvçi") {
     const targetLang = String(lang || 'uz').slice(0, 2).toLowerCase();
+    const applyUz = (val) => (targetLang === 'uz' && typeof val === 'string' ? toUzbekLatin(val) : val);
+    if (position == null || position === '') return applyUz(fallback);
     if (typeof position === 'string') {
         const tr = resolvePositionTranslations(position);
-        return tr[targetLang] || tr.uz || position || fallback;
+        return applyUz(tr[targetLang] || tr.uz || position || fallback);
     }
     const val = localizedField(position, 'name', targetLang, '') || localizedField(position, 'title', targetLang, '');
     if (val && typeof val === 'string' && val.trim()) {
-        if (targetLang === 'uz') return val;
+        if (targetLang === 'uz') return applyUz(val);
         // If localizedField returned something, verify if it was just fallback Uzbek
         const baseUz = position.nameUz || position.titleUz || position.name || position.title || '';
         if (val !== baseUz) {
@@ -372,23 +376,25 @@ export function getPositionName(position, lang = 'uz', fallback = "O'qituvchi") 
     const baseName = position.nameUz || position.titleUz || position.name || position.title || '';
     if (baseName && typeof baseName === 'string') {
         const tr = resolvePositionTranslations(baseName);
-        return tr[targetLang] || tr.uz || baseName;
+        return applyUz(tr[targetLang] || tr.uz || baseName);
     }
 
-    return fallback;
+    return applyUz(fallback);
 }
 
-export function resolvePersonPosition(person, lang = 'uz', fallback = "O'qituvchi") {
-    if (!person) return fallback;
+export function resolvePersonPosition(person, lang = 'uz', fallback = "Öqituvçi") {
+    const targetLang = String(lang || 'uz').slice(0, 2).toLowerCase();
+    const applyUz = (val) => (targetLang === 'uz' && typeof val === 'string' ? toUzbekLatin(val) : val);
+    if (!person) return applyUz(fallback);
 
     if (isFacultyDean(person)) {
-        return lang === 'ru' ? "Декан факультета" : lang === 'en' ? "Dean of Faculty" : "Fakultet dekani";
+        return targetLang === 'ru' ? "Декан факультета" : targetLang === 'en' ? "Dean of Faculty" : "Fakultet dekani";
     }
     if (isDepartmentHead(person)) {
-        return lang === 'ru' ? "Заведующий кафедрой" : lang === 'en' ? "Head of Department" : "Kafedra mudiri";
+        return targetLang === 'ru' ? "Заведующий кафедрой" : targetLang === 'en' ? "Head of Department" : "Kafedra mudiri";
     }
     if (isViceDean(person)) {
-        return lang === 'ru' ? "Заместитель декана" : lang === 'en' ? "Deputy Dean" : "Dekan o'rinbosari";
+        return targetLang === 'ru' ? "Заместитель декана" : targetLang === 'en' ? "Deputy Dean" : "Dekan örinbosari";
     }
 
     const nested = person.position;

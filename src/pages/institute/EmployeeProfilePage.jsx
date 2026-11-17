@@ -265,9 +265,9 @@ export default function EmployeeProfilePage() {
 
           const defaultBio = isTeacherCategory
             ? (data.departmentName 
-                ? `Urganch davlat pedagogika instituti ${data.departmentName} ${data.isDepartmentHead ? "mudiri" : "o'qituvchisi"}.`
-                : (lang === 'ru' ? 'Преподаватель Ургенчского государственного педагогического института.' : lang === 'en' ? 'Teacher at Urgench State Pedagogical Institute.' : "Urganch davlat pedagogika instituti o'qituvchisi."))
-            : (lang === 'ru' ? 'Сотрудник Ургенчского государственного педагогического института.' : lang === 'en' ? 'Employee of Urgench State Pedagogical Institute.' : "Urganch davlat pedagogika instituti xodimi.");
+                ? `Urganç davlat pedagogika instituti ${data.departmentName} ${data.isDepartmentHead ? "mudiri" : "öqituvçisi"}.`
+                : (lang === 'ru' ? 'Преподаватель Ургенчского государственного педагогического института.' : lang === 'en' ? 'Teacher at Urgench State Pedagogical Institute.' : "Urganç davlat pedagogika instituti öqituvçisi."))
+            : (lang === 'ru' ? 'Сотрудник Ургенчского государственного педагогического института.' : lang === 'en' ? 'Employee of Urgench State Pedagogical Institute.' : "Urganç davlat pedagogika instituti xodimi.");
 
           const bioText = (data.bio && data.bio !== "Urganch davlat pedagogika instituti xodimi.")
             ? data.bio
@@ -276,13 +276,13 @@ export default function EmployeeProfilePage() {
           if (isMounted) {
             setEmployeeData({
               id: data.id || id,
-              name: localizedField(data, 'fullName', lang, data.fullName || data.fullNameUz || data.name || (isTeacherCategory ? "O'qituvchi" : "Xodim")),
+              name: localizedField(data, 'fullName', lang, data.fullName || data.fullNameUz || data.name || (isTeacherCategory ? "Öqituvçi" : "Xodim")),
               position: resolvedPos,
               degree: degreeVal,
               phone: data.phoneNumber || data.phone || "",
               email: data.email || "info@urspi.uz",
               bio: bioText,
-              officeHours: data.officeHours || data.receptionTime || data.receptionHours || "Dushanba - Juma: 09:00 - 17:00",
+              officeHours: data.officeHours || data.receptionTime || data.receptionHours || "Duşanba - Juma: 09:00 - 17:00",
               img: getFileUrl(rawImg) || (typeof data.img === 'string' && data.img.length > 0 ? data.img : menImg),
               hasScience: !!(degreeVal || data.academicDegree || data.position || isTeacherCategory),
               cvLink: data.cvLink || data.cv || null
@@ -384,7 +384,7 @@ export default function EmployeeProfilePage() {
                     <Mail size={24} />
                   </div>
                   <div>
-                    <div className="text-[13px] text-slate-500 font-medium uppercase tracking-wider mb-1">Elektron pochta</div>
+                    <div className="text-[13px] text-slate-500 font-medium uppercase tracking-wider mb-1">Elektron poçta</div>
                     <div className="text-slate-800 font-semibold text-[15px]">{employeeData.email}</div>
                   </div>
                 </div>
@@ -416,7 +416,7 @@ export default function EmployeeProfilePage() {
                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                   <h3 className="font-bold text-[#0c1f4a] text-[16px] mb-3 flex items-center gap-2">
                     <User size={18} />
-                    Qisqacha ma'lumot
+                    Qisqaça ma'lumot
                   </h3>
                   <p className="text-slate-600 leading-relaxed text-[15px]">
                     {employeeData.bio}
@@ -433,7 +433,7 @@ export default function EmployeeProfilePage() {
                       className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0c1f4a] hover:bg-[#122b66] text-white font-semibold transition-all duration-300 w-full sm:w-auto shadow-sm"
                     >
                       <Download size={18} />
-                      Rezyumeni yuklab olish (CV)
+                      Rezyumeni yuklab oliş (CV)
                     </a>
                   )}
 
@@ -458,13 +458,13 @@ export default function EmployeeProfilePage() {
           {showIlmiyFaoliyat && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm mt-4 transition-all w-full animate-in fade-in slide-in-from-top-4 duration-300">
               <h4 className="font-bold text-[#0c1f4a] mb-5 text-[18px] border-b border-slate-100 pb-4">
-                Ilmiy faoliyat yo'nalishlari
+                Ilmiy faoliyat yönalişlari
               </h4>
               <div className="flex flex-col gap-3">
                 {[
-                  "Xalqaro jurnallarda nashr etilgan maqolalar",
-                  "Respublika miqyosidagi ilmiy jurnallardagi nashrlar",
-                  "O'quv qo'llanmalar va darsliklar",
+                  "Xalqaro jurnallarda naşr etilgan maqolalar",
+                  "Respublika miqyosidagi ilmiy jurnallardagi naşrlar",
+                  "Öquv qöllanmalar va darsliklar",
                   "Ilmiy monografiyalar",
                   "Mualliflik guvohnomalari va patentlar"
                 ].map((item, idx) => (

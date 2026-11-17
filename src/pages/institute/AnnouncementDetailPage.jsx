@@ -42,7 +42,7 @@ export default function AnnouncementDetailPage() {
                     author: data.author || '',
                     date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('uz-UZ') : (data.date || "2026-08-21"),
                     content,
-                    address: data.address || "Urganch davlat pedagogika instituti",
+                    address: data.address || "Urganç davlat pedagogika instituti",
                     tel: data.tel || "+998 62 224 81 11",
                     fax: data.fax || "",
                     email: data.email || "info@urspi.uz",

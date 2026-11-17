@@ -10,7 +10,15 @@ function ensureFormData(data) {
     if (typeof data === 'object') {
         Object.entries(data).forEach(([key, val]) => {
             if (val !== undefined && val !== null) {
-                fd.append(key, val);
+                if (Array.isArray(val)) {
+                    val.forEach(v => {
+                        if (v !== undefined && v !== null) {
+                            fd.append(key, v);
+                        }
+                    });
+                } else {
+                    fd.append(key, val);
+                }
             }
         });
     }
@@ -18,6 +26,10 @@ function ensureFormData(data) {
 }
 
 export const greenInstitutesAPI = {
+    getLanding: (page = 0, size = 100, lang = 'uz') =>
+        request(`/api/landing/green-institutes?page=${page}&size=${size}&lang=${lang}`),
+    getLandingById: (id, lang = 'uz') =>
+        request(`/api/landing/green-institutes/${id}?lang=${lang}`),
     getAll: (lang) => lang ? request(`/api/green-institutes/lang/${lang}`) : request('/api/green-institutes'),
     getByLang: (lang) => request(`/api/green-institutes/lang/${lang}`),
     getById: (id) => request(`/api/green-institutes/${id}`),

@@ -3,7 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, FileText,
   User, Users, CheckSquare, Info, Moon, Sun, ChevronDown,
-  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf, Shield, Calendar, Award, Activity, AlertCircle
+  Trophy, File, ClipboardList, Menu, LogOut, ArrowLeft, Image as ImageIcon, Home, Key, Leaf, Shield, Calendar, Award, Activity, AlertCircle, Server
 } from 'lucide-react';
 import { LuLandmark } from 'react-icons/lu';
 import { IoMegaphoneOutline, IoSettingsOutline } from 'react-icons/io5';
@@ -33,6 +33,9 @@ import AcademicDegreesAdmin from './AcademicDegreesAdmin';
 import StudyYearsAdmin from './StudyYearsAdmin';
 import RolesAdmin from './RolesAdmin';
 import AuditAdmin from './AuditAdmin';
+import HemisAdmin from './HemisAdmin';
+import MenuAdmin from './MenuAdmin';
+import { FolderTree } from 'lucide-react';
 import { 
   facultiesAPI, departmentsAPI, employeesAPI, newsAPI, announcementsAPI, authAPI, getAuthToken,
   loadCurrentUserPermissions, canAccessTab, getPermittedNavItems, getFileUrl
@@ -79,12 +82,14 @@ const NAV_ITEMS = [
       { label: 'Foydalanuvchilar', icon: Users },
       { label: 'Tizim Fasllari', icon: IoSettingsOutline },
       { label: 'Rollar va Ruxsatlar', icon: Shield },
-      { label: 'Audit Loglar', icon: Activity }
+      { label: 'Audit Loglar', icon: Activity },
+      { label: 'HEMIS Integratsiya', icon: Server }
     ]
   },
   { icon: FileText, label: 'Qabul (Abituriyent)' },
   { icon: Leaf, label: 'Yashil institut' },
   { icon: HiOutlineMailOpen, label: 'Korporativ pochta', href: 'http://webmail.urspi.uz:4040/admin' },
+  { icon: FolderTree, label: 'Menyular' },
   { icon: Info, label: 'Biz haqimizda' },
 ];
 
@@ -219,10 +224,10 @@ export default function Dashboard() {
         className={`shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all duration-300 overflow-hidden ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'
           }`}
       >
-        <div>
+        <div className="flex flex-col flex-1 min-h-0">
           {/* Logo area */}
           <div
-            className={`h-[72px] flex items-center border-b border-slate-100 dark:border-slate-800 ${sidebarCollapsed ? 'justify-center px-2' : 'px-5'
+            className={`h-[72px] shrink-0 flex items-center border-b border-slate-100 dark:border-slate-800 ${sidebarCollapsed ? 'justify-center px-2' : 'px-5'
               }`}
           >
             <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-3'}`}>
@@ -243,7 +248,7 @@ export default function Dashboard() {
           </div>
 
           {/* Navigation */}
-          <nav className={`py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
+          <nav className={`flex-1 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-5 space-y-1 ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
             {permittedNavItems.map(({ icon: Icon, label, subItems, href }) => {
               const isSubActive = subItems && subItems.some(s => s.label === activeTab);
               const isActive = activeTab === label || isSubActive;
@@ -332,7 +337,7 @@ export default function Dashboard() {
         </div>
 
         {/* Bottom Button */}
-        <div className={`mb-2 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`shrink-0 mb-2 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
           <Link
             to="/"
             title={sidebarCollapsed ? 'Platformaga qaytish' : undefined}
@@ -542,6 +547,8 @@ export default function Dashboard() {
               {activeTab === 'Talabalarga ijara' && <RentAdmin />}
               {activeTab === 'Yashil institut' && <GreenInstituteAdmin />}
               {activeTab === 'Qabul (Abituriyent)' && <AdmissionAdmin />}
+              {activeTab === 'HEMIS Integratsiya' && <HemisAdmin />}
+              {activeTab === 'Menyular' && <MenuAdmin />}
             </>
           )}
         </div>

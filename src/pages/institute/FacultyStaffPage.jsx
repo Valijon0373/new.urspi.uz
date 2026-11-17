@@ -240,7 +240,7 @@ export default function FacultyStaffPage() {
             <div className="text-center py-12 text-slate-500 font-medium">Yuklanmoqda...</div>
           ) : !dekan && viceDeans.length === 0 ? (
             <div className="text-center py-12 text-slate-500 font-medium bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-              Ushbu fakultet uchun xodimlar ma'lumotlari kiritilmagan
+              Uşbu fakultet uçun xodimlar ma'lumotlari kiritilmagan
             </div>
           ) : (
             <>
@@ -295,7 +295,7 @@ export default function FacultyStaffPage() {
                         {dekan.email && (
                           <div>
                             <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                              <HiOutlineMail size={18} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'ELEKTRON POCHTA:'}
+                              <HiOutlineMail size={18} /> {lang === 'ru' ? 'Эл. почта:' : lang === 'en' ? 'Email:' : 'ELEKTRON POÇTA:'}
                             </div>
                             <div className="text-slate-800 text-[14px] font-bold">{dekan.email}</div>
                           </div>
@@ -332,7 +332,7 @@ export default function FacultyStaffPage() {
 
                         <a href="https://t.me/urspi_dekan" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#0066cc] hover:bg-[#0052a3] text-white font-semibold text-sm transition-colors duration-300 w-full sm:w-auto shadow-sm">
                           <GrSend className="w-4 h-4" />
-                          {lang === 'ru' ? 'Обращение к декану' : lang === 'en' ? 'Contact Dean' : "Dekanga murojaat yo'llash"}
+                          {lang === 'ru' ? 'Обращение к декану' : lang === 'en' ? 'Contact Dean' : "Dekanga murojaat yöllaş"}
                         </a>
                       </div>
                     </div>
@@ -344,7 +344,7 @@ export default function FacultyStaffPage() {
               {viceDeans.length > 0 && (
                 <>
                   <div className="bg-white rounded-xl py-4 px-6 shadow-sm border border-slate-200 text-center font-bold text-[#0c1f4a] mb-6 text-[18px] sm:text-[20px]">
-                    {lang === 'ru' ? 'Заместители декана' : lang === 'en' ? 'Vice Deans' : "Dekan o'rinbosarlari"}
+                    {lang === 'ru' ? 'Заместители декана' : lang === 'en' ? 'Vice Deans' : "Dekan örinbosarlari"}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

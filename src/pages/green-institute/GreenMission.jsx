@@ -19,9 +19,9 @@ const GreenMission = () => {
         {/* Right content side */}
         <div className="w-full lg:w-1/2">
           <h2 className="text-emerald-400 font-bold tracking-widest uppercase text-xs md:text-sm mb-3">Bizning Missiyamiz</h2>
-          <h3 className="text-4xl md:text-5xl font-black text-white mb-8 leading-tight">Ekologik barqarorlik orqali ta'lim sifatini oshirish</h3>
+          <h3 className="text-4xl md:text-5xl font-black text-white mb-8 leading-tight">Ekologik barqarorlik orqali ta'lim sifatini oşiriş</h3>
           <p className="text-emerald-100/70 text-lg mb-10 leading-relaxed">
-            Urganch Davlat Pedagogika Instituti yashil ta'lim konsepsiyasini joriy etish orqali, talabalarda ekologik madaniyatni shakllantirish, resurslardan unumli foydalanish va tabiat bilan uyg'unlikda yashashni targ'ib qiladi.
+            Urganç Davlat Pedagogika Instituti yaşil ta'lim konsepsiyasini joriy etiş orqali, talabalarda ekologik madaniyatni şakllantiriş, resurslardan unumli foydalaniş va tabiat bilan uyğunlikda yaşaşni tarğib qiladi.
           </p>
           
           <div className="space-y-8">
@@ -30,8 +30,8 @@ const GreenMission = () => {
                 <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-xl font-bold text-white mb-2">Tabiatni Himoyalash</h4>
-                <p className="text-emerald-100/60 leading-relaxed">Universitetdagi barcha jarayonlarda atrof-muhitga yetkaziladigan zararni minimallashtirish va xavfsiz muhit yaratish.</p>
+                <h4 className="text-xl font-bold text-white mb-2">Tabiatni Himoyalaş</h4>
+                <p className="text-emerald-100/60 leading-relaxed">Universitetdagi barça jarayonlarda atrof-muhitga yetkaziladigan zararni minimallaştiriş va xavfsiz muhit yaratiş.</p>
               </div>
             </div>
             
@@ -41,7 +41,7 @@ const GreenMission = () => {
               </div>
               <div>
                 <h4 className="text-xl font-bold text-white mb-2">Ijtimoiy Mas'uliyat</h4>
-                <p className="text-emerald-100/60 leading-relaxed">Talabalar va xodimlar ishtirokida doimiy ekologik aksiyalar, xasharlar va daraxt ekish tadbirlarini tashkil etish.</p>
+                <p className="text-emerald-100/60 leading-relaxed">Talabalar va xodimlar iştirokida doimiy ekologik aksiyalar, xaşarlar va daraxt ekiş tadbirlarini taşkil etiş.</p>
               </div>
             </div>
           </div>
